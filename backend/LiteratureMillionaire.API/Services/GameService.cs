@@ -8,7 +8,7 @@ namespace LiteratureMillionaire.API.Services;
 
 /// <summary>
 /// "Ayın kitabı" quiz engine: 10 random questions from the active campaign's book,
-/// options shuffled per session, 30 seconds per question enforced server-side,
+/// options shuffled per session, QuizRules.SecondsPerQuestion seconds per question enforced server-side,
 /// answered in order, judged against the campaign's PassingScore at the end.
 /// </summary>
 public class GameService : IGameService
@@ -127,6 +127,7 @@ public class GameService : IGameService
         if (isCorrect)
         {
             session.CorrectAnswers++;
+            session.PointsEarned += session.Current.Points; // weight fixed at session start, never client-supplied
         }
         session.CurrentIndex++;
 
@@ -147,7 +148,9 @@ public class GameService : IGameService
                     TotalQuestions: session.TotalQuestions,
                     PassingScore: session.PassingScore,
                     Passed: session.Passed,
-                    RewardTitle: session.Passed ? session.RewardTitle : null));
+                    RewardTitle: session.Passed ? session.RewardTitle : null,
+                    PointsEarned: session.PointsEarned,
+                    MaxPoints: session.MaxPoints));
         }
 
         // The next question's clock starts now, on the server, regardless of client latency.
@@ -190,12 +193,13 @@ public class GameService : IGameService
     }
 
     /// <summary>
-    /// Random QuizRules.QuestionsPerQuiz questions from the campaign book's pool, each
-    /// with its own per-session option permutation. When the pool allows it, exactly
-    /// QuizRules.ImageQuestionsPerQuiz illustrated questions are included and the final
-    /// order is shuffled again so illustrated questions land in varying positions.
-    /// Only id, correct letter and an image flag are read; legacy questions without a
-    /// book are never candidates.
+    /// Builds the session's question list from the campaign book's pool:
+    /// exactly QuizRules.EasyPerQuiz / MediumPerQuiz / HardPerQuiz questions so every
+    /// player faces the same maximum score, with QuizRules.ImageQuestionsPerQuiz
+    /// illustrated questions whenever the pool can supply them without breaking the
+    /// difficulty mix. The final order is shuffled, and each question gets its own
+    /// option permutation. Only id, correct letter, difficulty and an image flag are
+    /// read; legacy questions without a book are never candidates.
     /// </summary>
     private async Task<IReadOnlyList<SessionQuestion>> SelectQuestionsAsync(CurrentCampaignDto campaign, CancellationToken ct)
     {
@@ -204,55 +208,77 @@ public class GameService : IGameService
         var pool = await _db.Questions
             .AsNoTracking()
             .Where(q => q.BookId == bookId)
-            .Select(q => new { q.Id, q.CorrectOption, HasImage = q.ImageUrl != null })
+            .Select(q => new { q.Id, q.CorrectOption, q.Difficulty, HasImage = q.ImageUrl != null })
             .ToArrayAsync(ct);
 
-        if (pool.Length < QuizRules.QuestionsPerQuiz)
+        var difficulties = new[] { Difficulty.Easy, Difficulty.Medium, Difficulty.Hard };
+        var available = difficulties.ToDictionary(d => d, d => pool.Count(q => q.Difficulty == d));
+        var missing = difficulties.Where(d => available[d] < QuizRules.QuotaFor(d)).ToList();
+
+        if (missing.Count > 0)
         {
             _logger.LogError(
-                "Campaign {CampaignId} (book {BookId}) has {Available} questions; {Required} are required to start a quiz.",
-                campaign.CampaignId, bookId, pool.Length, QuizRules.QuestionsPerQuiz);
+                "Campaign {CampaignId} (book {BookId}) cannot fill the difficulty mix. Available Easy/Medium/Hard = {Easy}/{Medium}/{Hard}, required {ReqEasy}/{ReqMedium}/{ReqHard}.",
+                campaign.CampaignId, bookId, available[Difficulty.Easy], available[Difficulty.Medium], available[Difficulty.Hard],
+                QuizRules.EasyPerQuiz, QuizRules.MediumPerQuiz, QuizRules.HardPerQuiz);
 
             throw GameException.Conflict(
-                "Not enough questions for this campaign",
-                $"The campaign's book has {pool.Length} questions; {QuizRules.QuestionsPerQuiz} are required.",
+                "Not enough questions per difficulty for this campaign",
+                $"A quiz needs {QuizRules.EasyPerQuiz} Easy, {QuizRules.MediumPerQuiz} Medium and {QuizRules.HardPerQuiz} Hard questions. Missing: {string.Join(", ", missing.Select(d => $"{d} (have {available[d]}, need {QuizRules.QuotaFor(d)})"))}.",
                 new Dictionary<string, object?>
                 {
-                    ["code"] = "INSUFFICIENT_CAMPAIGN_QUESTIONS",
+                    ["code"] = "INSUFFICIENT_DIFFICULTY_QUESTIONS",
                     ["campaignId"] = campaign.CampaignId,
                     ["bookId"] = bookId,
-                    ["required"] = QuizRules.QuestionsPerQuiz,
-                    ["available"] = pool.Length
+                    ["required"] = difficulties.ToDictionary(d => d.ToString().ToLowerInvariant(), d => (object?)QuizRules.QuotaFor(d)),
+                    ["available"] = difficulties.ToDictionary(d => d.ToString().ToLowerInvariant(), d => (object?)available[d]),
+                    ["missing"] = missing.Select(d => d.ToString().ToLowerInvariant()).ToArray()
                 });
         }
 
         Random.Shared.Shuffle(pool);
+        var remaining = difficulties.ToDictionary(d => d, QuizRules.QuotaFor);
+        var textLeft = difficulties.ToDictionary(d => d, d => pool.Count(q => q.Difficulty == d && !q.HasImage));
+        var chosen = new List<(int Id, char Correct, Difficulty Difficulty)>(QuizRules.QuestionsPerQuiz);
 
-        var withImage = pool.Where(q => q.HasImage).ToArray();
-        var withoutImage = pool.Where(q => !q.HasImage).ToArray();
-        var textNeeded = QuizRules.QuestionsPerQuiz - QuizRules.ImageQuestionsPerQuiz;
+        // Illustrated questions first (up to the target), but only where the rest of that
+        // difficulty's quota can still be filled from text-only questions. A book with few
+        // or no illustrations simply gets fewer of them; the 3/4/3 mix is never broken.
+        foreach (var q in pool.Where(q => q.HasImage))
+        {
+            if (chosen.Count >= QuizRules.ImageQuestionsPerQuiz) break;
+            if (remaining[q.Difficulty] == 0 || textLeft[q.Difficulty] < remaining[q.Difficulty] - 1) continue;
+            chosen.Add((q.Id, q.CorrectOption, q.Difficulty));
+            remaining[q.Difficulty]--;
+        }
 
-        var chosen = withImage.Length >= QuizRules.ImageQuestionsPerQuiz && withoutImage.Length >= textNeeded
-            ? withImage.Take(QuizRules.ImageQuestionsPerQuiz).Concat(withoutImage.Take(textNeeded)).ToArray()
-            : pool.Take(QuizRules.QuestionsPerQuiz).ToArray(); // not enough of one kind: any 10, as before
+        foreach (var q in pool.Where(q => !q.HasImage))
+        {
+            if (remaining[q.Difficulty] == 0) continue;
+            chosen.Add((q.Id, q.CorrectOption, q.Difficulty));
+            remaining[q.Difficulty]--;
+        }
 
-        Random.Shared.Shuffle(chosen); // image questions must not sit in fixed slots
+        var order = chosen.ToArray();
+        Random.Shared.Shuffle(order); // neither difficulty nor illustrated questions sit in fixed slots
 
-        return chosen
+        return order
             .Select(q =>
             {
                 // Fisher-Yates over the four original option indices (0 = A .. 3 = D).
-                var order = new[] { 0, 1, 2, 3 };
-                Random.Shared.Shuffle(order);
+                var optionOrder = new[] { 0, 1, 2, 3 };
+                Random.Shared.Shuffle(optionOrder);
 
-                var originalIndex = Letters.IndexOf(q.CorrectOption);
-                var displayIndex = Array.IndexOf(order, originalIndex);
+                var originalIndex = Letters.IndexOf(q.Correct);
+                var displayIndex = Array.IndexOf(optionOrder, originalIndex);
 
                 return new SessionQuestion
                 {
                     QuestionId = q.Id,
-                    OptionOrder = order,
-                    CorrectDisplayOption = Letters[displayIndex]
+                    OptionOrder = optionOrder,
+                    CorrectDisplayOption = Letters[displayIndex],
+                    Difficulty = q.Difficulty,
+                    Points = QuizRules.PointsFor(q.Difficulty)
                 };
             })
             .ToArray();

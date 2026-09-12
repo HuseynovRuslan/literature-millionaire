@@ -37,6 +37,9 @@ export interface QuizResult {
   passingScore: number
   passed: boolean
   rewardTitle: string | null
+  /** Weighted score (Easy 1, Medium 2, Hard 3). Informational: passing is decided by correctAnswers. */
+  pointsEarned: number
+  maxPoints: number
 }
 
 /** Progression after an answer or timeout. Carries no correctness information until the final result. */

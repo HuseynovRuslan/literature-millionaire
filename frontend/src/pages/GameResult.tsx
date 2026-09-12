@@ -35,10 +35,13 @@ export default function GameResult() {
 
         {r && (
           <>
-            <p className="text-[clamp(1rem,1.4vw,1.4rem)] text-gold-light">Nəticəniz</p>
+            <p className="text-[clamp(1rem,1.4vw,1.4rem)] text-gold-light">Düzgün cavab</p>
             <p className={`mt-1 font-display text-[clamp(4rem,9vw,9.5rem)] font-bold leading-none tabular-nums ${passed ? 'text-gold' : 'text-ivory'}`}>
               {r.correctAnswers}
               <span className="text-[0.5em] text-mist"> / {r.totalQuestions}</span>
+            </p>
+            <p className="mt-4 text-[clamp(1.2rem,1.9vw,2rem)] text-ivory" data-testid="points">
+              Toplanan xal: <span className="font-semibold tabular-nums text-gold-light">{r.pointsEarned}</span> / {r.maxPoints}
             </p>
             <p className="mt-3 text-[clamp(1rem,1.4vw,1.4rem)] text-mist">
               Keçid üçün ən azı {r.passingScore} / {r.totalQuestions} düzgün cavab lazımdır.

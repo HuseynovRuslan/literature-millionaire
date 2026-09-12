@@ -1,3 +1,5 @@
+using LiteratureMillionaire.API.Entities;
+
 namespace LiteratureMillionaire.API.Services;
 
 /// <summary>
@@ -14,6 +16,11 @@ public sealed class SessionQuestion
 
     /// <summary>Correct answer as the player sees it in this session: A, B, C or D.</summary>
     public required char CorrectDisplayOption { get; init; }
+
+    public required Difficulty Difficulty { get; init; }
+
+    /// <summary>Points awarded for a correct, on-time answer; fixed when the session is created.</summary>
+    public required int Points { get; init; }
 }
 
 /// <summary>
@@ -40,6 +47,9 @@ public class GameSession
 
     public int CorrectAnswers { get; set; }
 
+    /// <summary>Sum of Points of correctly answered questions. Never taken from the client.</summary>
+    public int PointsEarned { get; set; }
+
     public bool IsGameOver { get; set; }
 
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
@@ -57,6 +67,8 @@ public class GameSession
     public int CurrentQuestionId => Current.QuestionId;
 
     public int TotalQuestions => Questions.Count;
+
+    public int MaxPoints => Questions.Sum(q => q.Points);
 
     public bool Passed => CorrectAnswers >= PassingScore;
 }

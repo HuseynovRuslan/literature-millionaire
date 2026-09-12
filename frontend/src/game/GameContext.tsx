@@ -183,7 +183,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           status: 'finished',
           question: null,
           questionExpiresAtUtc: null,
-          result: r.result ?? { correctAnswers: 0, totalQuestions: s.totalQuestions, passingScore: s.passingScore, passed: false, rewardTitle: null },
+          result: r.result ?? { correctAnswers: 0, totalQuestions: s.totalQuestions, passingScore: s.passingScore, passed: false, rewardTitle: null, pointsEarned: 0, maxPoints: 0 },
         })
       }
       return persist({
