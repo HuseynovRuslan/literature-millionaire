@@ -4,6 +4,60 @@ Bu budaqda frontend boşdur. Öz React tətbiqinizi bu qovluğa yerləşdirin.
 
 Backend dəyişdirilməyib: `backend/` qovluğundakı ASP.NET Core API-dən istifadə edin.
 
+## Addımlar
+
+### 1. Repo-nu götürün
+
+```
+git clone https://github.com/HuseynovRuslan/literature-millionaire.git
+cd literature-millionaire
+git checkout cingiz
+```
+
+### 2. Frontu bu qovluğa qoyun
+
+Öz React layihənizin fayllarını `frontend/` qovluğuna köçürün: `src/`, `public/`,
+`package.json`, `vite.config.ts`, `index.html` və s. `node_modules/` və `dist/`
+köçürməyə ehtiyac yoxdur, onlar onsuz da `.gitignore`-dadır.
+
+### 3. Nə göndəriləcəyini yoxlayın
+
+```
+git status
+```
+
+Siyahıda yalnız `frontend/` altındakı fayllar olmalıdır. `backend/` qovluğuna toxunmayın.
+`node_modules` siyahıda görünürsə, dayanın və mənə deyin.
+
+### 4. Commit edin
+
+İlk dəfədirsə, adınızı təyin edin:
+
+```
+git config user.name "Cingiz"
+git config user.email "sizin@email.com"
+```
+
+Sonra:
+
+```
+git add frontend
+git commit -m "Add frontend implementation"
+```
+
+### 5. Push edin
+
+```
+git push origin cingiz
+```
+
+Bu qədər. Kod `cingiz` budağına düşür, `main` budağına toxunulmur.
+Sonrakı dəyişikliklərdə yalnız 4 və 5-ci addımları təkrarlayın.
+
+### Yoxlamaq üçün
+
+https://github.com/HuseynovRuslan/literature-millionaire/tree/cingiz/frontend
+
 ## Backend-i işə salmaq
 
 ```
