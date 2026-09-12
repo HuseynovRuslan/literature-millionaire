@@ -106,12 +106,12 @@ body {
   position: relative;
   color: var(--p-ink);
   background-color: var(--p-paper);
-  /* soft paper gradient + a sparse carpet-lattice texture (diamonds), very light */
+  /* Layer order matters: the transparent lattice texture must sit ABOVE the opaque paper
+     gradient, otherwise the gradient hides it. Kept faint so text contrast is unaffected. */
   background-image:
-    linear-gradient(160deg, #fffdf9 0%, #fbf6ec 55%, #f4ecdd 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='230' height='230' viewBox='0 0 230 230'><g fill='none' stroke='%237d161d' stroke-opacity='0.10' stroke-width='2'><path d='M115 74 L156 115 L115 156 L74 115 Z'/><path d='M115 96 L134 115 L115 134 L96 115 Z'/></g><g fill='%231ea79c' fill-opacity='0.12'><path d='M10 10 L18 18 L10 26 L2 18 Z'/><path d='M225 10 L233 18 L225 26 L217 18 Z'/><path d='M10 225 L18 233 L10 241 L2 233 Z'/><path d='M225 225 L233 233 L225 241 L217 233 Z'/></g><g fill='%23cf9c3c' fill-opacity='0.15'><path d='M115 8 L122 15 L115 22 L108 15 Z'/><path d='M8 115 L15 122 L8 129 L1 122 Z'/><path d='M222 115 L229 122 L222 129 L215 122 Z'/><path d='M115 222 L122 229 L115 236 L108 229 Z'/></g></svg>");
-  background-blend-mode: normal, multiply;
-  background-size: auto, 230px 230px;
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='230' height='230' viewBox='0 0 230 230'><g fill='none' stroke='%237d161d' stroke-opacity='0.07' stroke-width='2'><path d='M115 74 L156 115 L115 156 L74 115 Z'/><path d='M115 96 L134 115 L115 134 L96 115 Z'/></g><g fill='%231ea79c' fill-opacity='0.08'><path d='M10 10 L18 18 L10 26 L2 18 Z'/><path d='M225 10 L233 18 L225 26 L217 18 Z'/><path d='M10 225 L18 233 L10 241 L2 233 Z'/><path d='M225 225 L233 233 L225 241 L217 233 Z'/></g><g fill='%23cf9c3c' fill-opacity='0.10'><path d='M115 8 L122 15 L115 22 L108 15 Z'/><path d='M8 115 L15 122 L8 129 L1 122 Z'/><path d='M222 115 L229 122 L222 129 L215 122 Z'/><path d='M115 222 L122 229 L115 236 L108 229 Z'/></g></svg>"),
+    linear-gradient(160deg, #fffdf9 0%, #fbf6ec 55%, #f4ecdd 100%);
+  background-size: 230px 230px, auto;
 }
 
 .paper .tap:focus-visible {
