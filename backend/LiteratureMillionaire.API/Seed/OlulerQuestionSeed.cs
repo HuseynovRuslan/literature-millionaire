@@ -37,13 +37,74 @@ public static class OlulerQuestionSeed
             .Select(q => { q.BookId = book.Id; q.CreatedAt = now; return q; })
             .ToList();
 
-        if (missing.Count == 0)
+        if (missing.Count > 0)
         {
-            return;
+            db.Questions.AddRange(missing);
+            await db.SaveChangesAsync(ct);
         }
 
-        db.Questions.AddRange(missing);
-        await db.SaveChangesAsync(ct);
+        await ApplyMediaAsync(db, book.Id, ct);
+    }
+
+    /// <summary>
+    /// Approved illustrations for six of the questions, keyed by the exact approved text.
+    /// File names are deliberately neutral so the URL in the DOM never hints at the answer.
+    /// Alt texts describe the picture without naming the correct option.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, (string Url, string Alt)> Media =
+        new Dictionary<string, (string, string)>(StringComparer.Ordinal)
+        {
+            ["İskəndərin çağırdığı itin adı nədir?"] =
+                ("/question-images/oluler-iskender-dog.webp",
+                 "İskəndər həyətdə, əlində kitab, ona tərəf qaçan bir itə əl uzadır."),
+            ["Kərbəlayı Fətullaha aid edilən məktubu camaata kim oxuyur?"] =
+                ("/question-images/oluler-letter-reading.webp",
+                 "Ağsaqqal bir kişi izdihamın qarşısında əlindəki məktubu ucadan oxuyur."),
+            ["Kərbəlayı Fətullah haqqında gələn teleqraf hansı həqiqəti bildirir?"] =
+                ("/question-images/oluler-telegram.webp",
+                 "Teleqraf məntəqəsində məmur bir kağız uzadır; qarşısında dörd nəfər təəccüblə baxır."),
+            ["Şeyx Nəsrullahın yeməklə bağlı davranışındakı ziddiyyət hansıdır?"] =
+                ("/question-images/oluler-sheikh-table.webp",
+                 "Şeyx Nəsrullah zəngin süfrə arxasında oturub; açıq qapıdan həyətdəki camaat görünür."),
+            ["İskəndərin köhnə dərsliklə bağlı çıxışı təhsildə hansı nöqsanı göstərir?"] =
+                ("/question-images/oluler-old-textbook.webp",
+                 "İskəndər masa arxasında köhnə bir kitabı açıb fikirli halda oxuyur; ətrafda kitablar və mürəkkəbqabı."),
+            ["Ölən qohumların adları çəkiləndə adamların bir-bir “fikirləşməyə” getməsi nəyi üzə çıxarır?"] =
+                ("/question-images/oluler-cemetery-ledger.webp",
+                 "Gecə qəbiristanlığında masa arxasında bir kişi dəftərə yazır; ətrafında bir neçə kişi dayanıb baxır."),
+        };
+
+    /// <summary>
+    /// Fills ImageUrl/ImageAltText for the mapped questions of this book only.
+    /// A row is touched only when both media fields are still empty, so anything an
+    /// administrator has set or changed is never overwritten. Limitation: if an
+    /// administrator deliberately clears an image, the next startup restores it.
+    /// </summary>
+    private static async Task ApplyMediaAsync(ApplicationDbContext db, int bookId, CancellationToken ct)
+    {
+        var texts = Media.Keys.ToList();
+        var rows = await db.Questions
+            .Where(q => q.BookId == bookId && texts.Contains(q.Text))
+            .ToListAsync(ct);
+
+        var changed = 0;
+        foreach (var row in rows)
+        {
+            if (!string.IsNullOrWhiteSpace(row.ImageUrl) || !string.IsNullOrWhiteSpace(row.ImageAltText))
+            {
+                continue; // set by an administrator or an earlier run: leave as is
+            }
+
+            var (url, alt) = Media[row.Text];
+            row.ImageUrl = url;
+            row.ImageAltText = alt;
+            changed++;
+        }
+
+        if (changed > 0)
+        {
+            await db.SaveChangesAsync(ct);
+        }
     }
 
     /// <summary>The 30 approved rows in workbook order. Wording is verbatim; do not edit here without updating the workbook.</summary>

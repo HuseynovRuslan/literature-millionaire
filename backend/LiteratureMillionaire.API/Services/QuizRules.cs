@@ -8,4 +8,11 @@ public static class QuizRules
 
     /// <summary>Server-enforced time a player has for each question. The client countdown only mirrors it.</summary>
     public const int SecondsPerQuestion = 15;
+
+    /// <summary>
+    /// Preferred number of illustrated questions per quiz. Applied only when the book has at
+    /// least this many illustrated and enough text-only questions; otherwise selection falls
+    /// back to any QuestionsPerQuiz questions so smaller campaigns are never blocked.
+    /// </summary>
+    public const int ImageQuestionsPerQuiz = 2;
 }

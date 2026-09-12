@@ -191,8 +191,11 @@ public class GameService : IGameService
 
     /// <summary>
     /// Random QuizRules.QuestionsPerQuiz questions from the campaign book's pool, each
-    /// with its own per-session option permutation. Only id + correct letter are read
-    /// here; legacy questions without a book are never candidates.
+    /// with its own per-session option permutation. When the pool allows it, exactly
+    /// QuizRules.ImageQuestionsPerQuiz illustrated questions are included and the final
+    /// order is shuffled again so illustrated questions land in varying positions.
+    /// Only id, correct letter and an image flag are read; legacy questions without a
+    /// book are never candidates.
     /// </summary>
     private async Task<IReadOnlyList<SessionQuestion>> SelectQuestionsAsync(CurrentCampaignDto campaign, CancellationToken ct)
     {
@@ -201,7 +204,7 @@ public class GameService : IGameService
         var pool = await _db.Questions
             .AsNoTracking()
             .Where(q => q.BookId == bookId)
-            .Select(q => new { q.Id, q.CorrectOption })
+            .Select(q => new { q.Id, q.CorrectOption, HasImage = q.ImageUrl != null })
             .ToArrayAsync(ct);
 
         if (pool.Length < QuizRules.QuestionsPerQuiz)
@@ -225,8 +228,17 @@ public class GameService : IGameService
 
         Random.Shared.Shuffle(pool);
 
-        return pool
-            .Take(QuizRules.QuestionsPerQuiz)
+        var withImage = pool.Where(q => q.HasImage).ToArray();
+        var withoutImage = pool.Where(q => !q.HasImage).ToArray();
+        var textNeeded = QuizRules.QuestionsPerQuiz - QuizRules.ImageQuestionsPerQuiz;
+
+        var chosen = withImage.Length >= QuizRules.ImageQuestionsPerQuiz && withoutImage.Length >= textNeeded
+            ? withImage.Take(QuizRules.ImageQuestionsPerQuiz).Concat(withoutImage.Take(textNeeded)).ToArray()
+            : pool.Take(QuizRules.QuestionsPerQuiz).ToArray(); // not enough of one kind: any 10, as before
+
+        Random.Shared.Shuffle(chosen); // image questions must not sit in fixed slots
+
+        return chosen
             .Select(q =>
             {
                 // Fisher-Yates over the four original option indices (0 = A .. 3 = D).
