@@ -1,0 +1,102 @@
+using LiteratureMillionaire.API.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace LiteratureMillionaire.API.Data;
+
+public class ApplicationDbContext : DbContext
+{
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    {
+    }
+
+    public DbSet<Question> Questions => Set<Question>();
+    public DbSet<Book> Books => Set<Book>();
+    public DbSet<MonthlyCampaign> MonthlyCampaigns => Set<MonthlyCampaign>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Question>(entity =>
+        {
+            entity.ToTable("Questions", t =>
+            {
+                // Defense in depth: DTO validation is the first line, the DB is the last.
+                t.HasCheckConstraint("CK_Questions_CorrectOption", "[CorrectOption] IN ('A', 'B', 'C', 'D')");
+                t.HasCheckConstraint("CK_Questions_Difficulty", "[Difficulty] IN (1, 2, 3)");
+                // Media fields travel together: both null, or both present with a non-empty alt text.
+                t.HasCheckConstraint("CK_Questions_ImageMedia",
+                    "([ImageUrl] IS NULL AND [ImageAltText] IS NULL) OR ([ImageUrl] IS NOT NULL AND [ImageAltText] IS NOT NULL AND LEN([ImageAltText]) > 0)");
+            });
+            entity.HasKey(q => q.Id);
+
+            entity.Property(q => q.Text).IsRequired().HasMaxLength(1000);
+            entity.Property(q => q.OptionA).IsRequired().HasMaxLength(300);
+            entity.Property(q => q.OptionB).IsRequired().HasMaxLength(300);
+            entity.Property(q => q.OptionC).IsRequired().HasMaxLength(300);
+            entity.Property(q => q.OptionD).IsRequired().HasMaxLength(300);
+            entity.Property(q => q.CorrectOption).IsRequired().HasMaxLength(1).IsUnicode(false);
+            entity.Property(q => q.Difficulty).IsRequired().HasConversion<int>();
+            entity.Property(q => q.Category).IsRequired().HasMaxLength(100);
+            entity.Property(q => q.Explanation).HasMaxLength(2000);
+            entity.Property(q => q.ImageUrl).HasMaxLength(500);
+            entity.Property(q => q.ImageAltText).HasMaxLength(300);
+            // SQL Server datetime2 has no offset; mark values read back as UTC so they
+            // serialize with a trailing "Z" and compare correctly with DateTime.UtcNow.
+            entity.Property(q => q.CreatedAt)
+                .IsRequired()
+                .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+            // Optional during the transition (legacy rows have no book); Restrict so a
+            // book with questions cannot be deleted out from under them.
+            entity.HasOne(q => q.Book)
+                .WithMany()
+                .HasForeignKey(q => q.BookId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(q => q.Difficulty);
+            entity.HasIndex(q => q.Category);
+            entity.HasIndex(q => q.BookId);
+        });
+
+        modelBuilder.Entity<Book>(entity =>
+        {
+            entity.ToTable("Books");
+            entity.HasKey(b => b.Id);
+
+            entity.Property(b => b.Title).IsRequired().HasMaxLength(200);
+            entity.Property(b => b.Author).IsRequired().HasMaxLength(200);
+            entity.Property(b => b.Description).IsRequired().HasMaxLength(2000);
+            entity.Property(b => b.CoverImageUrl).IsRequired().HasMaxLength(500);
+            entity.Property(b => b.IsActive).IsRequired().HasDefaultValue(true);
+
+            entity.HasIndex(b => b.IsActive);
+        });
+
+        modelBuilder.Entity<MonthlyCampaign>(entity =>
+        {
+            entity.ToTable("MonthlyCampaigns", t =>
+            {
+                t.HasCheckConstraint("CK_MonthlyCampaigns_DateRange", "[EndDate] >= [StartDate]");
+                t.HasCheckConstraint("CK_MonthlyCampaigns_PassingScore", "[PassingScore] BETWEEN 1 AND 10");
+            });
+            entity.HasKey(c => c.Id);
+
+            entity.Property(c => c.StartDate).IsRequired();
+            entity.Property(c => c.EndDate).IsRequired();
+            entity.Property(c => c.PassingScore).IsRequired();
+            entity.Property(c => c.RewardTitle).IsRequired().HasMaxLength(200);
+            entity.Property(c => c.IsEnabled).IsRequired().HasDefaultValue(true);
+
+            // A book that has campaigns must not be silently deleted with them.
+            entity.HasOne(c => c.Book)
+                .WithMany(b => b.Campaigns)
+                .HasForeignKey(c => c.BookId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // "Current campaign" lookup: enabled rows filtered by date range.
+            entity.HasIndex(c => new { c.IsEnabled, c.StartDate, c.EndDate });
+        });
+    }
+}

@@ -1,0 +1,21 @@
+# Build output
+bin/
+obj/
+dist/
+node_modules/
+
+# IDE / OS
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.user
+*.suo
+
+# Local config & logs
+.env
+.env.local
+appsettings.*.local.json
+*.log

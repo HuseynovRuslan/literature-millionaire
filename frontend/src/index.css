@@ -1,0 +1,86 @@
+@import "tailwindcss";
+@import "@fontsource/cormorant-garamond/600.css";
+@import "@fontsource/cormorant-garamond/700.css";
+@import "@fontsource/fira-sans/400.css";
+@import "@fontsource/fira-sans/500.css";
+@import "@fontsource/fira-sans/600.css";
+
+@theme {
+  --font-display: "Cormorant Garamond", "Georgia", "Times New Roman", serif;
+  --font-sans: "Fira Sans", "Segoe UI", system-ui, sans-serif;
+
+  --color-navy-900: #06122a;
+  --color-navy-800: #0b1d3f;
+  --color-navy-700: #14294f;
+  --color-navy-600: #1f3a6b;
+  --color-gold: #d4a83b;
+  --color-gold-light: #f3d77e;
+  --color-ivory: #fbf6ea;
+  --color-mist: #a8b7d1;
+  --color-ok: #2fb67a;
+  --color-bad: #e04e5e;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-navy-900);
+  color: var(--color-ivory);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+/* Kiosk: no accidental zoom, text selection, tap flashes or long-press menus. */
+.kiosk {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+  height: 100dvh;
+}
+
+/* Eight-pointed star tiling (two squares rotated 45deg), drawn in thin gold. */
+.ornament {
+  background-color: var(--color-navy-900);
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(31, 58, 107, 0.55), transparent 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><g fill='none' stroke='%23d4a83b' stroke-opacity='0.09' stroke-width='1'><rect x='40' y='40' width='80' height='80'/><rect x='40' y='40' width='80' height='80' transform='rotate(45 80 80)'/><circle cx='80' cy='80' r='5'/></g></svg>");
+  background-size: auto, 160px 160px;
+}
+
+/* Cormorant defaults to old-style figures; the kiosk needs lining numerals ("1 / 15", ladder). */
+.font-display {
+  font-variant-numeric: lining-nums;
+}
+
+/* Big touch buttons: no hover dependency, obvious pressed state. */
+.tap {
+  transition: transform 120ms ease, background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.tap:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.tap:focus-visible {
+  outline: 3px solid var(--color-gold-light);
+  outline-offset: 4px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.rise { animation: rise 320ms ease-out both; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 900ms linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .spin { animation: none; }
+  .tap { transition: none; }
+}
