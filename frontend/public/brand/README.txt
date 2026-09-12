@@ -1,0 +1,1 @@
+bakiabadliq.jpg: taken from the cingiz branch (commit d8a9df7, added by cingizhumbatov, 2026-09-12). 447x447 JPG, no metadata. Provenance not verified as the official approved logo; replace with the organisation-supplied vector file before public use.
