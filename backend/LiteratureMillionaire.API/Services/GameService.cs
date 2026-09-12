@@ -193,13 +193,10 @@ public class GameService : IGameService
     }
 
     /// <summary>
-    /// Builds the session's question list from the campaign book's pool:
-    /// exactly QuizRules.EasyPerQuiz / MediumPerQuiz / HardPerQuiz questions so every
-    /// player faces the same maximum score, with QuizRules.ImageQuestionsPerQuiz
-    /// illustrated questions whenever the pool can supply them without breaking the
-    /// difficulty mix. The final order is shuffled, and each question gets its own
-    /// option permutation. Only id, correct letter, difficulty and an image flag are
-    /// read; legacy questions without a book are never candidates.
+    /// Loads the campaign book's pool (id, correct letter, difficulty, image flag only) and
+    /// lets <see cref="QuestionMixPlanner"/> build the 3/4/3 mix with the image rule. Each
+    /// selected question then gets its own option permutation. Legacy questions without a
+    /// book are never candidates.
     /// </summary>
     private async Task<IReadOnlyList<SessionQuestion>> SelectQuestionsAsync(CurrentCampaignDto campaign, CancellationToken ct)
     {
@@ -208,12 +205,12 @@ public class GameService : IGameService
         var pool = await _db.Questions
             .AsNoTracking()
             .Where(q => q.BookId == bookId)
-            .Select(q => new { q.Id, q.CorrectOption, q.Difficulty, HasImage = q.ImageUrl != null })
-            .ToArrayAsync(ct);
+            .Select(q => new PoolQuestion(q.Id, q.CorrectOption, q.Difficulty, q.ImageUrl != null))
+            .ToListAsync(ct);
 
         var difficulties = new[] { Difficulty.Easy, Difficulty.Medium, Difficulty.Hard };
         var available = difficulties.ToDictionary(d => d, d => pool.Count(q => q.Difficulty == d));
-        var missing = difficulties.Where(d => available[d] < QuizRules.QuotaFor(d)).ToList();
+        var missing = QuestionMixPlanner.Shortfalls(pool);
 
         if (missing.Count > 0)
         {
@@ -236,40 +233,14 @@ public class GameService : IGameService
                 });
         }
 
-        Random.Shared.Shuffle(pool);
-        var remaining = difficulties.ToDictionary(d => d, QuizRules.QuotaFor);
-        var textLeft = difficulties.ToDictionary(d => d, d => pool.Count(q => q.Difficulty == d && !q.HasImage));
-        var chosen = new List<(int Id, char Correct, Difficulty Difficulty)>(QuizRules.QuestionsPerQuiz);
-
-        // Illustrated questions first (up to the target), but only where the rest of that
-        // difficulty's quota can still be filled from text-only questions. A book with few
-        // or no illustrations simply gets fewer of them; the 3/4/3 mix is never broken.
-        foreach (var q in pool.Where(q => q.HasImage))
-        {
-            if (chosen.Count >= QuizRules.ImageQuestionsPerQuiz) break;
-            if (remaining[q.Difficulty] == 0 || textLeft[q.Difficulty] < remaining[q.Difficulty] - 1) continue;
-            chosen.Add((q.Id, q.CorrectOption, q.Difficulty));
-            remaining[q.Difficulty]--;
-        }
-
-        foreach (var q in pool.Where(q => !q.HasImage))
-        {
-            if (remaining[q.Difficulty] == 0) continue;
-            chosen.Add((q.Id, q.CorrectOption, q.Difficulty));
-            remaining[q.Difficulty]--;
-        }
-
-        var order = chosen.ToArray();
-        Random.Shared.Shuffle(order); // neither difficulty nor illustrated questions sit in fixed slots
-
-        return order
+        return QuestionMixPlanner.Plan(pool, Random.Shared)
             .Select(q =>
             {
                 // Fisher-Yates over the four original option indices (0 = A .. 3 = D).
                 var optionOrder = new[] { 0, 1, 2, 3 };
                 Random.Shared.Shuffle(optionOrder);
 
-                var originalIndex = Letters.IndexOf(q.Correct);
+                var originalIndex = Letters.IndexOf(q.CorrectOption);
                 var displayIndex = Array.IndexOf(optionOrder, originalIndex);
 
                 return new SessionQuestion

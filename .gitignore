@@ -19,3 +19,6 @@ Thumbs.db
 .env.local
 appsettings.*.local.json
 *.log
+
+# Test output
+TestResults/
