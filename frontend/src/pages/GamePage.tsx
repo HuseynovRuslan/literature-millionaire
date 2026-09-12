@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import AnswerButton, { type AnswerVisual } from '../components/AnswerButton'
+import CarpetFrame from '../components/national/CarpetFrame'
+import { Buta } from '../components/national/Ornaments'
 import GameResult from './GameResult'
 import SessionExpired from './SessionExpired'
 import { useGame } from '../game/GameContext'
@@ -121,48 +123,61 @@ export default function GamePage() {
   }
 
   return (
-    <main className="kiosk ornament flex flex-col p-6 lg:p-8">
-      <section key={q.id} className="rise mx-auto flex min-h-0 w-full max-w-[110rem] flex-1 flex-col">
+    <main className="kiosk paper flex flex-col">
+      <CarpetFrame />
+      <section
+        key={q.id}
+        className="rise relative z-0 mx-auto flex min-h-0 w-full max-w-[110rem] flex-1 flex-col"
+        style={{ padding: 'calc(var(--frame) + 0.9rem) calc(var(--frame) + 1.5rem) calc(var(--frame) + 0.8rem)' }}
+      >
         <header className="flex items-center justify-between gap-6 text-[clamp(1rem,1.4vw,1.4rem)]">
-          <p className="font-display text-[1.6em] font-semibold text-gold-light">
-            Sual {state.questionNumber} / {state.totalQuestions}
-          </p>
+          <div className="flex items-center gap-3">
+            <Buta className="h-7 w-5" flip />
+            <p className="font-display text-[1.7em] font-bold text-[var(--p-burgundy)]">
+              Sual {state.questionNumber} / {state.totalQuestions}
+            </p>
+            <Buta className="h-7 w-5" />
+          </div>
           <div
             role="timer"
             aria-live={urgent ? 'assertive' : 'off'}
             aria-label={`Qalan vaxt ${remainingSec} saniyə`}
             data-urgent={urgent ? 'true' : 'false'}
             className={[
-              'flex items-center gap-3 rounded-full border-2 px-5 py-1.5 font-display text-[1.9em] font-bold tabular-nums leading-none transition-colors',
-              remainingMs <= 0
-                ? 'border-bad bg-bad/20 text-bad'
-                : urgent
-                  ? 'border-bad bg-bad/15 text-bad motion-safe:animate-pulse'
-                  : 'border-gold/60 bg-navy-800/70 text-gold-light',
+              'relative grid h-[clamp(4.5rem,7vw,6rem)] w-[clamp(4.5rem,7vw,6rem)] shrink-0 place-items-center rounded-full bg-white font-display text-[clamp(1.8rem,2.8vw,2.7rem)] font-bold tabular-nums leading-none shadow-[var(--p-shadow)] transition-colors',
+              remainingMs <= 0 || urgent ? 'text-[#b32a31]' : 'text-[var(--p-indigo)]',
+              urgent && remainingMs > 0 ? 'motion-safe:animate-pulse' : '',
             ].join(' ')}
           >
-            <span className="font-sans text-[0.55em] font-medium text-mist">Vaxt</span>
-            <span data-testid="countdown">{remainingSec}</span>
-            <span className="h-2 w-28 overflow-hidden rounded-full bg-navy-600/70" aria-hidden>
-              <span
-                className={`block h-full rounded-full ${urgent ? 'bg-bad' : 'bg-gold'}`}
-                style={{ width: `${Math.min(100, (remainingMs / (total * 1000)) * 100)}%` }}
+            <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden>
+              <circle cx="50" cy="50" r="44" fill="none" stroke="var(--p-line)" strokeWidth="7" />
+              <circle
+                cx="50" cy="50" r="44" fill="none"
+                stroke={urgent ? '#b32a31' : 'var(--p-gold)'} strokeWidth="7" strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 44}
+                strokeDashoffset={2 * Math.PI * 44 * (1 - Math.min(1, remainingMs / (total * 1000)))}
               />
-            </span>
+            </svg>
+            <span data-testid="countdown" className="relative">{remainingSec}</span>
           </div>
         </header>
 
-        <div className={`flex min-h-0 flex-1 py-4 ${hasImage ? 'flex-col items-center gap-6 lg:flex-row lg:items-center lg:gap-12' : 'flex-col justify-center'}`}>
+        <div className="relative my-3 flex min-h-0 flex-1">
+          <Buta className="absolute -left-2 -top-3 z-10 h-10 w-7" flip />
+          <Buta className="absolute -right-2 -top-3 z-10 h-10 w-7" />
+          <Buta className="absolute -bottom-3 -left-2 z-10 h-10 w-7 rotate-180" />
+          <Buta className="absolute -bottom-3 -right-2 z-10 h-10 w-7 rotate-180" flip />
+          <div className={`flex min-h-0 w-full flex-1 rounded-xl border-[3px] border-[var(--p-gold)] bg-white px-[clamp(1.5rem,3vw,3.5rem)] py-4 shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)] ${hasImage ? 'flex-col items-center gap-5 lg:flex-row lg:items-center lg:gap-10' : 'flex-col justify-center'}`}>
           <h1
             lang="az"
-            className={`max-w-[28ch] font-display font-semibold leading-[1.18] text-ivory [overflow-wrap:anywhere] ${hasImage ? 'text-[clamp(1.6rem,2.6vw,3rem)] lg:flex-1' : 'text-[clamp(1.9rem,3.2vw,3.6rem)]'}`}
+            className={`max-w-[28ch] font-display font-semibold leading-[1.18] text-[var(--p-ink)] [overflow-wrap:anywhere] ${hasImage ? 'text-[clamp(1.6rem,2.6vw,3rem)] lg:flex-1' : 'text-[clamp(1.9rem,3.2vw,3.6rem)]'}`}
           >
             {q.text}
           </h1>
           {hasImage && (
-            <figure className="flex h-[clamp(12rem,34vh,26rem)] w-full max-w-[44rem] shrink-0 items-center justify-center lg:w-[clamp(20rem,34vw,44rem)]" data-testid="question-image">
+            <figure className="flex h-[clamp(11rem,30vh,24rem)] w-full max-w-[44rem] shrink-0 items-center justify-center lg:w-[clamp(20rem,32vw,42rem)]" data-testid="question-image">
               {imageFailed ? (
-                <p role="img" aria-label={q.imageAltText ?? 'Təsvir'} className="rounded-2xl border border-navy-600/70 bg-navy-800/60 px-8 py-6 text-[clamp(1rem,1.3vw,1.3rem)] text-mist">
+                <p role="img" aria-label={q.imageAltText ?? 'Təsvir'} className="rounded-xl border-2 border-[var(--p-line)] bg-[var(--p-paper-2)] px-8 py-6 text-[clamp(1rem,1.3vw,1.3rem)] text-[var(--p-ink-2)]">
                   Təsvir yüklənmədi
                 </p>
               ) : (
@@ -170,11 +185,12 @@ export default function GamePage() {
                   src={q.imageUrl ?? undefined}
                   alt={q.imageAltText ?? ''}
                   onError={() => setImageFailed(true)}
-                  className="max-h-full max-w-full rounded-2xl object-contain shadow-[0_24px_50px_-24px_rgba(0,0,0,0.8)]"
+                  className="max-h-full max-w-full rounded-lg border-[3px] border-[var(--p-gold-light)] object-contain shadow-[var(--p-shadow)]"
                 />
               )}
             </figure>
           )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
@@ -185,22 +201,22 @@ export default function GamePage() {
 
         <footer className="mt-5 min-h-[5.5rem] text-[clamp(1rem,1.35vw,1.35rem)]" aria-live="polite">
           {phase.kind === 'closed' && (
-            <div className="rise rounded-2xl border border-gold/50 bg-navy-800/70 px-5 py-4">
-              <p className="font-display text-[1.5em] font-bold text-gold-light">
+            <div className="rise rounded-2xl border-2 border-[var(--p-gold-light)] bg-white px-5 py-4 shadow-[var(--p-shadow)]">
+              <p className="font-display text-[1.5em] font-bold text-[var(--p-burgundy)]">
                 {phase.timedOut ? 'Vaxt bitdi. Növbəti sual…' : 'Cavab qeydə alındı. Növbəti sual…'}
               </p>
             </div>
           )}
           {(phase.kind === 'sending' || phase.kind === 'retrying') && (
-            <p className="px-1 text-mist/80">{phase.kind === 'retrying' ? sendError : 'Göndərilir…'}</p>
+            <p className="px-1 text-[var(--p-ink-2)]">{phase.kind === 'retrying' ? sendError : 'Göndərilir…'}</p>
           )}
           {phase.kind === 'open' && sendError && (
-            <p role="alert" className="rounded-2xl border border-bad/60 bg-bad/10 px-5 py-4 text-ivory">{sendError}</p>
+            <p role="alert" className="rounded-2xl border-2 border-[#b32a31] bg-white px-5 py-4 text-[var(--p-ink)]">{sendError}</p>
           )}
           {phase.kind === 'open' && !sendError && (
-            <p className="px-1 text-mist/80">
+            <p className="px-1 text-[var(--p-ink-2)]">
               Hər sual üçün {total} saniyə. Keçid üçün ən azı{' '}
-              <span className="tabular-nums text-gold-light">{state.passingScore}</span> / {state.totalQuestions} düzgün cavab
+              <span className="tabular-nums text-[var(--p-burgundy)] font-semibold">{state.passingScore}</span> / {state.totalQuestions} düzgün cavab
               lazımdır. Nəticə sonda açıqlanır.
             </p>
           )}

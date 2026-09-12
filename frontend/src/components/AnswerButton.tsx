@@ -10,20 +10,22 @@ interface Props {
   onSelect: (option: AnswerOption) => void
 }
 
+// Paper theme (see `.paper` in index.css). During the quiz only idle / selected / dimmed are
+// used, so no colour here can reveal correctness; correct / wrong stay for any future reveal screen.
 const visuals: Record<AnswerVisual, string> = {
-  idle: 'border-navy-600 bg-navy-700/80 text-ivory',
-  selected: 'border-gold bg-gold/15 text-ivory shadow-[0_0_0_3px_rgba(212,168,59,0.45)]',
-  correct: 'border-ok bg-ok/20 text-ivory shadow-[0_0_0_3px_rgba(47,182,122,0.5)]',
-  wrong: 'border-bad bg-bad/20 text-ivory shadow-[0_0_0_3px_rgba(224,78,94,0.5)]',
-  dimmed: 'border-navy-600/50 bg-navy-800/50 text-mist/70',
+  idle: 'border-[var(--p-gold-light)] bg-white text-[var(--p-ink)] shadow-[var(--p-shadow)]',
+  selected: 'border-[var(--p-gold)] bg-[var(--p-burgundy)] text-[var(--p-paper)] shadow-[0_0_0_3px_rgba(207,156,60,0.45)]',
+  correct: 'border-[#189a68] bg-[#e6f5ee] text-[var(--p-ink)]',
+  wrong: 'border-[#b32a31] bg-[#f9e6e7] text-[var(--p-ink)]',
+  dimmed: 'border-[var(--p-line)] bg-[var(--p-paper-2)] text-[var(--p-ink-2)] opacity-80',
 }
 
 const badges: Record<AnswerVisual, string> = {
-  idle: 'border-gold/70 text-gold',
-  selected: 'border-gold bg-gold text-navy-900',
-  correct: 'border-ok bg-ok text-navy-900',
-  wrong: 'border-bad bg-bad text-ivory',
-  dimmed: 'border-mist/40 text-mist/60',
+  idle: 'border-[var(--p-burgundy)] bg-white text-[var(--p-burgundy)]',
+  selected: 'border-[var(--p-gold-light)] bg-[var(--p-gold-light)] text-[var(--p-burgundy)]',
+  correct: 'border-[#189a68] bg-[#189a68] text-white',
+  wrong: 'border-[#b32a31] bg-[#b32a31] text-white',
+  dimmed: 'border-[var(--p-line)] bg-white text-[var(--p-ink-2)]',
 }
 
 export default function AnswerButton({ option, text, visual, disabled, onSelect }: Props) {
@@ -43,13 +45,12 @@ export default function AnswerButton({ option, text, visual, disabled, onSelect 
     >
       <span
         className={[
-          'flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2',
-          'font-display text-[1.9rem] font-bold leading-none',
+          'flex h-14 w-14 shrink-0 rotate-45 items-center justify-center rounded-md border-2',
           badges[visual],
         ].join(' ')}
         aria-hidden
       >
-        {option}
+        <span className="-rotate-45 font-display text-[1.9rem] font-bold leading-none">{option}</span>
       </span>
       <span className="min-w-0 flex-1 break-words [overflow-wrap:anywhere] [hyphens:auto]" lang="az">
         {text}
