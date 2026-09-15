@@ -33,6 +33,9 @@ public class GameSession
 
     public required int CampaignId { get; init; }
 
+    /// <summary>Internal participant identity used only for the post-completion position lookup.</summary>
+    public required int ParticipantId { get; init; }
+
     /// <summary>Database row of this attempt; its result columns are written once when the quiz ends.</summary>
     public required int AttemptId { get; init; }
     public required int BookId { get; init; }

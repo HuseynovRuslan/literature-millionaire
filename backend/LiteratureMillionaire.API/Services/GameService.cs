@@ -22,13 +22,20 @@ public class GameService : IGameService
     private readonly ApplicationDbContext _db;
     private readonly IMemoryCache _cache;
     private readonly ICampaignService _campaigns;
+    private readonly ILeaderboardService _leaderboard;
     private readonly ILogger<GameService> _logger;
 
-    public GameService(ApplicationDbContext db, IMemoryCache cache, ICampaignService campaigns, ILogger<GameService> logger)
+    public GameService(
+        ApplicationDbContext db,
+        IMemoryCache cache,
+        ICampaignService campaigns,
+        ILeaderboardService leaderboard,
+        ILogger<GameService> logger)
     {
         _db = db;
         _cache = cache;
         _campaigns = campaigns;
+        _leaderboard = leaderboard;
         _logger = logger;
     }
 
@@ -45,6 +52,7 @@ public class GameService : IGameService
         var session = new GameSession
         {
             CampaignId = campaign.CampaignId,
+            ParticipantId = participant.Id,
             AttemptId = attempt.Id,
             BookId = campaign.Book.Id,
             PassingScore = campaign.PassingScore,
@@ -152,6 +160,22 @@ public class GameService : IGameService
             session.IsGameOver = true;
             Store(session);
 
+            int? leaderboardPosition = null;
+            try
+            {
+                // The stored attempt is now visible to this query. Ranking always selects this
+                // participant's best completed attempt, which may be an earlier attempt.
+                leaderboardPosition = await _leaderboard.GetPositionAsync(session.CampaignId, session.ParticipantId, ct);
+            }
+            catch (Exception ex)
+            {
+                // Auxiliary ranking must never turn a successfully persisted quiz result into a
+                // failure. Do not pass the exception object/message: either can carry provider data.
+                _logger.LogWarning(
+                    "Leaderboard position lookup failed during {Operation} (campaign {CampaignId}, participant {ParticipantId}, attempt {AttemptId}, {ExceptionType}).",
+                    "leaderboard-position", session.CampaignId, session.ParticipantId, session.AttemptId, ex.GetType().Name);
+            }
+
             return new AnswerResultDto(
                 QuestionNumber: closedNumber,
                 TimedOut: timedOut,
@@ -160,6 +184,8 @@ public class GameService : IGameService
                 NextQuestion: null,
                 NextQuestionExpiresAtUtc: null,
                 Result: new QuizResultDto(
+                    CampaignId: session.CampaignId,
+                    LeaderboardPosition: leaderboardPosition,
                     CorrectAnswers: session.CorrectAnswers,
                     TotalQuestions: session.TotalQuestions,
                     PassingScore: session.PassingScore,

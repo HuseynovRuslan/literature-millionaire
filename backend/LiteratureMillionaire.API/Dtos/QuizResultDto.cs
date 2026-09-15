@@ -2,6 +2,8 @@ namespace LiteratureMillionaire.API.Dtos;
 
 /// <summary>Final outcome of a campaign quiz, computed server-side only.</summary>
 public record QuizResultDto(
+    int CampaignId,
+    int? LeaderboardPosition,
     int CorrectAnswers,
     int TotalQuestions,
     int PassingScore,

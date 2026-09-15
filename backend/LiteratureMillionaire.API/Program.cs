@@ -37,6 +37,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IGameService, GameService>();
 
 builder.Services.AddScoped<ICampaignService, CampaignService>();
+builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddScoped<IBookService, BookService>();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -103,3 +104,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program;

@@ -21,6 +21,10 @@ public class CampaignException : Exception
         new(StatusCodes.Status404NotFound, "No active campaign", "NO_ACTIVE_CAMPAIGN",
             "There is no enabled campaign with an active book covering today's date.");
 
+    public static CampaignException CampaignNotFound(int campaignId) =>
+        new(StatusCodes.Status404NotFound, "Campaign not found", "CAMPAIGN_NOT_FOUND",
+            $"Campaign {campaignId} does not exist.");
+
     public static CampaignException MultipleActiveCampaigns(int count) =>
         new(StatusCodes.Status500InternalServerError, "Campaign configuration error", "MULTIPLE_ACTIVE_CAMPAIGNS",
             $"{count} campaigns match today's date. Exactly one must be current; fix the campaign dates or disable the extras.");
