@@ -21,9 +21,13 @@ public class GameController : ControllerBase
     [ProducesResponseType(typeof(IReadOnlyList<int>), StatusCodes.Status200OK)]
     public ActionResult<IReadOnlyList<int>> Prizes() => Ok(PrizeLadder.All);
 
-    /// <summary>Start a new "Ayın kitabı" quiz (10 questions from the active campaign's book) and receive the first question.</summary>
-    /// <remarks>404 with code NO_ACTIVE_CAMPAIGN when no campaign is current; 409 with code INSUFFICIENT_CAMPAIGN_QUESTIONS when the book has too few questions.</remarks>
-    /// <remarks>Body: fullName + phoneNumber. 409 with code ATTEMPT_LIMIT_REACHED (maxAttempts, attemptsUsed) once the number has used all attempts for the campaign.</remarks>
+    /// <summary>Start a new quiz (10 questions from the campaign's quiz mode) and receive the first question.</summary>
+    /// <remarks>
+    /// Body: fullName + phoneNumber, optionally campaignId (from GET /api/campaigns/available; omitted: the default
+    /// "Bilik Dünyası" campaign). Problem codes: CAMPAIGN_NOT_FOUND and NO_ACTIVE_CAMPAIGN (404); CAMPAIGN_NOT_ACTIVE,
+    /// INSUFFICIENT_DIFFICULTY_QUESTIONS and ATTEMPT_LIMIT_REACHED with maxAttempts/attemptsUsed (409; one attempt per
+    /// phone number per campaign); MULTIPLE_ACTIVE_CAMPAIGNS and CAMPAIGN_BOOK_REQUIRED (500).
+    /// </remarks>
     [HttpPost("start")]
     [ProducesResponseType(typeof(StartGameResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

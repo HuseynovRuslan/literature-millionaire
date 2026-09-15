@@ -12,4 +12,6 @@ public record QuizResultDto(
     string? RewardTitle,
     // Weighted score: Easy 1, Medium 2, Hard 3 per correct answer. Passing is decided by CorrectAnswers, not points.
     int PointsEarned,
-    int MaxPoints);
+    int MaxPoints,
+    // Quiz mode the campaign belongs to; the leaderboard stays per campaign.
+    QuizModeRefDto QuizMode);

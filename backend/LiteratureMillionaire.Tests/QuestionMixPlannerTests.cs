@@ -38,7 +38,7 @@ public class QuestionMixPlannerTests
 
         for (var seed = 0; seed < 50; seed++)
         {
-            var plan = QuestionMixPlanner.Plan(pool, new Random(seed));
+            var plan = QuestionMixPlanner.Plan(pool, QuizRules.DefaultImageQuestionsPerQuiz, new Random(seed));
             AssertFullMix(plan, pool);
             Assert.Equal(2, plan.Count(q => q.HasImage));
             Assert.All(plan.Where(q => q.HasImage), q => Assert.Equal(Difficulty.Easy, q.Difficulty));
@@ -53,7 +53,7 @@ public class QuestionMixPlannerTests
 
         for (var seed = 0; seed < 50; seed++)
         {
-            var plan = QuestionMixPlanner.Plan(pool, new Random(seed));
+            var plan = QuestionMixPlanner.Plan(pool, QuizRules.DefaultImageQuestionsPerQuiz, new Random(seed));
             AssertFullMix(plan, pool);
             Assert.Equal(2, plan.Count(q => q.HasImage));
             Assert.All(plan.Where(q => q.HasImage), q => Assert.Equal(Difficulty.Hard, q.Difficulty));
@@ -70,7 +70,7 @@ public class QuestionMixPlannerTests
 
         for (var seed = 0; seed < 200; seed++)
         {
-            var plan = QuestionMixPlanner.Plan(pool, new Random(seed));
+            var plan = QuestionMixPlanner.Plan(pool, QuizRules.DefaultImageQuestionsPerQuiz, new Random(seed));
             AssertFullMix(plan, pool);
             Assert.Equal(2, plan.Count(q => q.HasImage));
             for (var i = 0; i < plan.Count; i++) if (plan[i].HasImage) imageSlots.Add(i);
@@ -85,7 +85,7 @@ public class QuestionMixPlannerTests
     public void NoIllustrations_StillFullMixWithZeroImages()
     {
         var pool = Pool((Difficulty.Easy, 0, 5), (Difficulty.Medium, 0, 6), (Difficulty.Hard, 0, 4));
-        var plan = QuestionMixPlanner.Plan(pool, new Random(1));
+        var plan = QuestionMixPlanner.Plan(pool, QuizRules.DefaultImageQuestionsPerQuiz, new Random(1));
         AssertFullMix(plan, pool);
         Assert.Equal(0, plan.Count(q => q.HasImage));
     }
@@ -94,7 +94,7 @@ public class QuestionMixPlannerTests
     public void OnlyOneIllustration_UsesOne()
     {
         var pool = Pool((Difficulty.Easy, 1, 5), (Difficulty.Medium, 0, 6), (Difficulty.Hard, 0, 4));
-        var plan = QuestionMixPlanner.Plan(pool, new Random(2));
+        var plan = QuestionMixPlanner.Plan(pool, QuizRules.DefaultImageQuestionsPerQuiz, new Random(2));
         AssertFullMix(plan, pool);
         Assert.Equal(1, plan.Count(q => q.HasImage));
     }
@@ -104,7 +104,7 @@ public class QuestionMixPlannerTests
     {
         // Easy has no text at all: all three Easy slots must be illustrated (documented fallback).
         var pool = Pool((Difficulty.Easy, 3, 0), (Difficulty.Medium, 0, 4), (Difficulty.Hard, 0, 3));
-        var plan = QuestionMixPlanner.Plan(pool, new Random(3));
+        var plan = QuestionMixPlanner.Plan(pool, QuizRules.DefaultImageQuestionsPerQuiz, new Random(3));
         AssertFullMix(plan, pool);
         Assert.Equal(3, plan.Count(q => q.HasImage));
     }
@@ -114,6 +114,6 @@ public class QuestionMixPlannerTests
     {
         var pool = Pool((Difficulty.Easy, 1, 1), (Difficulty.Medium, 0, 4), (Difficulty.Hard, 0, 3));
         Assert.Equal(new[] { Difficulty.Easy }, QuestionMixPlanner.Shortfalls(pool));
-        Assert.Throws<InvalidOperationException>(() => QuestionMixPlanner.Plan(pool, new Random(4)));
+        Assert.Throws<InvalidOperationException>(() => QuestionMixPlanner.Plan(pool, QuizRules.DefaultImageQuestionsPerQuiz, new Random(4)));
     }
 }

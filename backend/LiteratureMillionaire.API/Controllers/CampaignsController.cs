@@ -19,7 +19,7 @@ public class CampaignsController : ControllerBase
         _leaderboard = leaderboard;
     }
 
-    /// <summary>The "Book of the Month" campaign running today, with its book.</summary>
+    /// <summary>The "Bilik Dünyası" campaign running today (the default quiz mode), with its book. Kept for existing kiosk clients.</summary>
     /// <remarks>Problem responses carry a stable <c>code</c>: NO_ACTIVE_CAMPAIGN (404) or MULTIPLE_ACTIVE_CAMPAIGNS (500).</remarks>
     [HttpGet("current")]
     [ProducesResponseType(typeof(CurrentCampaignDto), StatusCodes.Status200OK)]
@@ -33,10 +33,28 @@ public class CampaignsController : ControllerBase
         }
         catch (CampaignException ex)
         {
-            var problem = ProblemDetailsFactory.CreateProblemDetails(
-                HttpContext, statusCode: ex.StatusCode, title: ex.Title, detail: ex.Message);
-            problem.Extensions["code"] = ex.Code;
-            return StatusCode(ex.StatusCode, problem);
+            return CampaignProblem(ex);
+        }
+    }
+
+    /// <summary>Campaigns that can be played today: at most one per active quiz mode, ordered by the mode's display order.</summary>
+    /// <remarks>
+    /// Problem responses carry a stable <c>code</c>: NO_ACTIVE_CAMPAIGN (404) when nothing is playable,
+    /// MULTIPLE_ACTIVE_CAMPAIGNS (500) when a quiz mode has more than one campaign covering today.
+    /// </remarks>
+    [HttpGet("available")]
+    [ProducesResponseType(typeof(IReadOnlyList<CampaignSummaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IReadOnlyList<CampaignSummaryDto>>> Available(CancellationToken ct)
+    {
+        try
+        {
+            return Ok(await _campaigns.GetAvailableAsync(ct));
+        }
+        catch (CampaignException ex)
+        {
+            return CampaignProblem(ex);
         }
     }
 
@@ -57,10 +75,15 @@ public class CampaignsController : ControllerBase
         }
         catch (CampaignException ex)
         {
-            var problem = ProblemDetailsFactory.CreateProblemDetails(
-                HttpContext, statusCode: ex.StatusCode, title: ex.Title, detail: ex.Message);
-            problem.Extensions["code"] = ex.Code;
-            return StatusCode(ex.StatusCode, problem);
+            return CampaignProblem(ex);
         }
+    }
+
+    private ObjectResult CampaignProblem(CampaignException ex)
+    {
+        var problem = ProblemDetailsFactory.CreateProblemDetails(
+            HttpContext, statusCode: ex.StatusCode, title: ex.Title, detail: ex.Message);
+        problem.Extensions["code"] = ex.Code;
+        return StatusCode(ex.StatusCode, problem);
     }
 }

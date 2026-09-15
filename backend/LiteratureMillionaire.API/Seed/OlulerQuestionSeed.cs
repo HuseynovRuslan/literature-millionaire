@@ -31,10 +31,11 @@ public static class OlulerQuestionSeed
             .Select(t => t.Trim())
             .ToHashSet(StringComparer.Ordinal);
 
+        var quizModeId = await QuizModeSeed.GetIdAsync(db, QuizModeSlugs.AyinKitabi, ct);
         var now = DateTime.UtcNow;
         var missing = Questions()
             .Where(q => !existing.Contains(q.Text.Trim()))
-            .Select(q => { q.BookId = book.Id; q.CreatedAt = now; return q; })
+            .Select(q => { q.BookId = book.Id; q.QuizModeId = quizModeId; q.CreatedAt = now; return q; })
             .ToList();
 
         if (missing.Count > 0)
@@ -42,6 +43,11 @@ public static class OlulerQuestionSeed
             db.Questions.AddRange(missing);
             await db.SaveChangesAsync(ct);
         }
+
+        // Rows of this book without a mode (created before quiz modes) are played in "Ayın Kitabı"; an assigned mode is never changed.
+        await db.Questions
+            .Where(q => q.BookId == book.Id && q.QuizModeId == null)
+            .ExecuteUpdateAsync(set => set.SetProperty(q => q.QuizModeId, (int?)quizModeId), ct);
 
         await ApplyMediaAsync(db, book.Id, ct);
     }

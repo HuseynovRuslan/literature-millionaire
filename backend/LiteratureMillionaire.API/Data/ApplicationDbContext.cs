@@ -14,6 +14,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<MonthlyCampaign> MonthlyCampaigns => Set<MonthlyCampaign>();
     public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
+    public DbSet<QuizMode> QuizModes => Set<QuizMode>();
 
     // Schema-level ceiling for AttemptNumber, baked into the InitialPostgreSql migration's CHECK
     // constraint. Deliberately NOT QuizRules.MaxAttemptsPerCampaign: the product rule can be
@@ -70,6 +71,40 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(q => q.Difficulty);
             entity.HasIndex(q => q.Category);
             entity.HasIndex(q => q.BookId);
+
+            // Legacy questions keep a null mode and are never played; a mode with questions cannot be deleted.
+            entity.HasOne(q => q.QuizMode)
+                .WithMany()
+                .HasForeignKey(q => q.QuizModeId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Game pool lookup: questions of a mode, optionally of one book.
+            entity.HasIndex(q => new { q.QuizModeId, q.BookId });
+        });
+
+        modelBuilder.Entity<QuizMode>(entity =>
+        {
+            entity.ToTable("QuizModes", t =>
+            {
+                // PostgreSQL enforces the exact slug pattern (lowercase a-z, 0-9, single inner hyphens). Other
+                // providers - the SQLite test database - get a portable approximation; QuizMode.IsValidSlug is the
+                // application-side check.
+                t.HasCheckConstraint("CK_QuizModes_Slug", Database.IsNpgsql()
+                    ? "\"Slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'"
+                    : "length(\"Slug\") > 0 AND \"Slug\" = lower(\"Slug\") AND \"Slug\" NOT LIKE '% %' AND \"Slug\" NOT LIKE '-%' AND \"Slug\" NOT LIKE '%-'");
+            });
+            entity.HasKey(m => m.Id);
+
+            entity.Property(m => m.Slug).IsRequired().HasMaxLength(QuizMode.SlugMaxLength).IsUnicode(false);
+            entity.Property(m => m.Title).IsRequired().HasMaxLength(QuizMode.TitleMaxLength);
+            entity.Property(m => m.Description).IsRequired().HasMaxLength(QuizMode.DescriptionMaxLength);
+            entity.Property(m => m.IconKey).IsRequired().HasMaxLength(QuizMode.IconKeyMaxLength);
+            entity.Property(m => m.DisplayOrder).IsRequired();
+            entity.Property(m => m.IsActive).IsRequired();
+
+            entity.HasIndex(m => m.Slug).IsUnique();
+            entity.HasIndex(m => m.DisplayOrder);
         });
 
         modelBuilder.Entity<Book>(entity =>
@@ -92,6 +127,7 @@ public class ApplicationDbContext : DbContext
             {
                 t.HasCheckConstraint("CK_MonthlyCampaigns_DateRange", "\"EndDate\" >= \"StartDate\"");
                 t.HasCheckConstraint("CK_MonthlyCampaigns_PassingScore", "\"PassingScore\" BETWEEN 1 AND 10");
+                t.HasCheckConstraint("CK_MonthlyCampaigns_ImageQuestionsPerQuiz", "\"ImageQuestionsPerQuiz\" BETWEEN 0 AND 10");
             });
             entity.HasKey(c => c.Id);
 
@@ -101,14 +137,25 @@ public class ApplicationDbContext : DbContext
             entity.Property(c => c.RewardTitle).IsRequired().HasMaxLength(200);
             entity.Property(c => c.IsEnabled).IsRequired().HasDefaultValue(true);
 
-            // A book that has campaigns must not be silently deleted with them.
+            entity.Property(c => c.ImageQuestionsPerQuiz).IsRequired();
+
+            // A book that has campaigns must not be silently deleted with them. Optional: only "Ayın Kitabı"
+            // campaigns need a book, which CampaignService enforces.
             entity.HasOne(c => c.Book)
                 .WithMany(b => b.Campaigns)
                 .HasForeignKey(c => c.BookId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // "Current campaign" lookup: enabled rows filtered by date range.
+            // Every campaign belongs to exactly one quiz mode.
+            entity.HasOne(c => c.QuizMode)
+                .WithMany()
+                .HasForeignKey(c => c.QuizModeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Playable-campaign lookups: enabled rows filtered by date range, overall and per quiz mode.
             entity.HasIndex(c => new { c.IsEnabled, c.StartDate, c.EndDate });
+            entity.HasIndex(c => new { c.QuizModeId, c.IsEnabled, c.StartDate, c.EndDate });
         });
 
         modelBuilder.Entity<Participant>(entity =>

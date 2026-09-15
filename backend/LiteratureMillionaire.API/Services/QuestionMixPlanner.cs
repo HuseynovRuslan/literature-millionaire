@@ -8,15 +8,15 @@ public readonly record struct PoolQuestion(int Id, char CorrectOption, Difficult
 /// <summary>
 /// Pure, database-free planner for a session's question mix. Guarantees the fixed
 /// difficulty quotas (QuizRules.EasyPerQuiz / MediumPerQuiz / HardPerQuiz) and aims for
-/// exactly QuizRules.ImageQuestionsPerQuiz illustrated questions.
+/// exactly the given image target (the campaign's ImageQuestionsPerQuiz) illustrated questions.
 ///
 /// Image count rule, per difficulty d with quota q, i illustrated and t text-only questions:
 ///   forced  = max(0, q - t)   images that must be used because text alone cannot fill the quota
 ///   ceiling = min(i, q)       images that could be used at most
-/// The session image count is ImageQuestionsPerQuiz clamped to [sum(forced), sum(ceiling)]:
-///   - exactly 2 whenever the pool allows it (the normal case, including "Ölülər");
-///   - fewer than 2 when the book has fewer usable illustrations (never blocks a book);
-///   - more than 2 only when a difficulty has too few text questions and illustrated ones
+/// The session image count is the image target clamped to [sum(forced), sum(ceiling)]:
+///   - exactly the target whenever the pool allows it (the normal case);
+///   - fewer when the pool has fewer usable illustrations (never blocks a campaign);
+///   - more only when a difficulty has too few text questions and illustrated ones
 ///     are needed to reach the quota (quota and 10 questions take priority over the image target).
 /// Extra images beyond the forced minimum are spread over difficulties at random.
 /// </summary>
@@ -32,9 +32,16 @@ public static class QuestionMixPlanner
     /// Returns exactly QuizRules.QuestionsPerQuiz distinct questions in random order,
     /// honouring the quotas and the image rule described above.
     /// </summary>
+    /// <param name="pool">Candidate questions.</param>
+    /// <param name="imageTarget">Preferred number of illustrated questions, 0..QuizRules.QuestionsPerQuiz.</param>
+    /// <param name="rng">Randomness source.</param>
+    /// <exception cref="ArgumentOutOfRangeException">When <paramref name="imageTarget"/> is outside 0..QuizRules.QuestionsPerQuiz.</exception>
     /// <exception cref="InvalidOperationException">When a difficulty quota cannot be met; callers should check <see cref="Shortfalls"/> first.</exception>
-    public static IReadOnlyList<PoolQuestion> Plan(IReadOnlyList<PoolQuestion> pool, Random rng)
+    public static IReadOnlyList<PoolQuestion> Plan(IReadOnlyList<PoolQuestion> pool, int imageTarget, Random rng)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(imageTarget);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(imageTarget, QuizRules.QuestionsPerQuiz);
+
         var shortfalls = Shortfalls(pool);
         if (shortfalls.Count > 0)
         {
@@ -47,7 +54,7 @@ public static class QuestionMixPlanner
         var forced = Difficulties.ToDictionary(d => d, d => Math.Max(0, QuizRules.QuotaFor(d) - texts[d].Count));
         var ceiling = Difficulties.ToDictionary(d => d, d => Math.Min(images[d].Count, QuizRules.QuotaFor(d)));
 
-        var target = Math.Clamp(QuizRules.ImageQuestionsPerQuiz, forced.Values.Sum(), ceiling.Values.Sum());
+        var target = Math.Clamp(imageTarget, forced.Values.Sum(), ceiling.Values.Sum());
         var imageCount = new Dictionary<Difficulty, int>(forced);
 
         // Spread the optional images over difficulties that still have headroom, at random.

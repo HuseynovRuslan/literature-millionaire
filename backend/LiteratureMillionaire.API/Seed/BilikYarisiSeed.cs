@@ -155,6 +155,8 @@ public static class BilikYarisiSeed
 
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
 
+        var quizModeId = await QuizModeSeed.GetIdAsync(db, QuizModeSlugs.BilikDunyasi, ct);
+
         var book = await db.Books.FirstOrDefaultAsync(b => b.Title == BookTitle, ct);
         if (book is null)
         {
@@ -183,6 +185,7 @@ public static class BilikYarisiSeed
             .Select(s => new Question
             {
                 BookId = book.Id,
+                QuizModeId = quizModeId,
                 Text = s.Text,
                 OptionA = s.OptionA,
                 OptionB = s.OptionB,
@@ -204,12 +207,19 @@ public static class BilikYarisiSeed
             await db.SaveChangesAsync(ct);
         }
 
+        // Rows of this book without a mode (created before quiz modes) are played in "Bilik Dünyası"; an assigned mode is never changed.
+        await db.Questions
+            .Where(q => q.BookId == book.Id && q.QuizModeId == null)
+            .ExecuteUpdateAsync(set => set.SetProperty(q => q.QuizModeId, (int?)quizModeId), ct);
+
         var campaignExists = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id && c.StartDate == CampaignStart, ct);
         if (!campaignExists)
         {
             await VerifyStoredBankAsync(db, book.Id, seed, ct);
 
-            // Every other enabled campaign whose dates overlap would compete for "current": switch it off.
+            // First import only: switch off other enabled campaigns overlapping these dates (on the production import this
+            // was the "Ölülər" campaign). Quiz modes now allow campaigns of different modes in parallel; re-enabling one
+            // is an administrator's decision.
             var competing = await db.MonthlyCampaigns
                 .Where(c => c.IsEnabled && c.BookId != book.Id && c.StartDate <= CampaignEnd && c.EndDate >= CampaignStart)
                 .OrderBy(c => c.Id)
@@ -222,7 +232,9 @@ public static class BilikYarisiSeed
 
             db.MonthlyCampaigns.Add(new MonthlyCampaign
             {
+                QuizModeId = quizModeId,
                 BookId = book.Id,
+                ImageQuestionsPerQuiz = QuizRules.DefaultImageQuestionsPerQuiz,
                 StartDate = CampaignStart,
                 EndDate = CampaignEnd,
                 PassingScore = PassingScore,

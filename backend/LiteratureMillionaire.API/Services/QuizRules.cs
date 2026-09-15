@@ -18,11 +18,11 @@ public static class QuizRules
     public const int MaxAttemptsPerCampaign = 1;
 
     /// <summary>
-    /// Preferred number of illustrated questions per quiz. Applied only when the book has at
-    /// least this many illustrated and enough text-only questions; otherwise selection falls
-    /// back to any QuestionsPerQuiz questions so smaller campaigns are never blocked.
+    /// Default number of illustrated questions per quiz for a campaign. The value in force is the campaign's
+    /// MonthlyCampaign.ImageQuestionsPerQuiz (0..QuestionsPerQuiz); QuestionMixPlanner uses fewer when the pool has
+    /// fewer illustrations, so smaller campaigns are never blocked.
     /// </summary>
-    public const int ImageQuestionsPerQuiz = 2;
+    public const int DefaultImageQuestionsPerQuiz = 2;
 
     /// <summary>Fixed difficulty mix per quiz so every player faces the same maximum score.</summary>
     public const int EasyPerQuiz = 3;

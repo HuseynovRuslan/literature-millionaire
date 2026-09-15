@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace LiteratureMillionaire.API.Services;
 
 /// <summary>
-/// "Ayın kitabı" quiz engine: 10 random questions from the active campaign's book,
+/// Campaign quiz engine: 10 random questions from the campaign's quiz mode (and book, when it has one),
 /// options shuffled per session, QuizRules.SecondsPerQuestion seconds per question enforced server-side,
 /// answered in order, judged against the campaign's PassingScore at the end.
 /// </summary>
@@ -46,9 +46,10 @@ public class GameService : IGameService
 
     public async Task<StartGameResponseDto> StartAsync(StartGameRequestDto request, CancellationToken ct = default)
     {
-        // Same selection rules and same calendar date as GET /api/campaigns/current.
+        // The named campaign when it is playable today, otherwise the default mode's campaign (older clients).
+        // Only the campaign id comes from the client; rules, image target and book are read from the campaign.
         // Campaign and question checks come first so a limit-free failure never consumes an attempt.
-        var campaign = await _campaigns.GetCurrentAsync(ct);
+        var campaign = await _campaigns.GetPlayableAsync(request.CampaignId, ct);
         var questions = await SelectQuestionsAsync(campaign, ct);
 
         var participant = await FindOrCreateParticipantAsync(request, ct);
@@ -59,7 +60,8 @@ public class GameService : IGameService
             CampaignId = campaign.CampaignId,
             ParticipantId = participant.Id,
             AttemptId = attempt.Id,
-            BookId = campaign.Book.Id,
+            BookId = campaign.BookId,
+            QuizMode = new QuizModeRefDto(campaign.QuizModeId, campaign.QuizModeSlug, campaign.QuizModeTitle),
             PassingScore = campaign.PassingScore,
             RewardTitle = campaign.RewardTitle,
             Questions = questions,
@@ -79,7 +81,9 @@ public class GameService : IGameService
             QuestionExpiresAtUtc: session.QuestionDeadlineUtc,
             Question: first,
             AttemptNumber: attempt.AttemptNumber,
-            RemainingAttempts: QuizRules.MaxAttemptsPerCampaign - attempt.AttemptNumber);
+            RemainingAttempts: QuizRules.MaxAttemptsPerCampaign - attempt.AttemptNumber,
+            CampaignId: session.CampaignId,
+            QuizMode: session.QuizMode);
     }
 
     public async Task<AnswerResultDto> AnswerAsync(Guid sessionId, SubmitAnswerDto dto, CancellationToken ct = default)
@@ -197,7 +201,8 @@ public class GameService : IGameService
                     Passed: session.Passed,
                     RewardTitle: session.Passed ? session.RewardTitle : null,
                     PointsEarned: session.PointsEarned,
-                    MaxPoints: session.MaxPoints));
+                    MaxPoints: session.MaxPoints,
+                    QuizMode: session.QuizMode));
         }
 
         // The next question's clock starts now, on the server, regardless of client latency.
@@ -240,18 +245,19 @@ public class GameService : IGameService
     }
 
     /// <summary>
-    /// Loads the campaign book's pool (id, correct letter, difficulty, image flag only) and
-    /// lets <see cref="QuestionMixPlanner"/> build the 3/4/3 mix with the image rule. Each
-    /// selected question then gets its own option permutation. Legacy questions without a
-    /// book are never candidates.
+    /// Loads the pool of the campaign's quiz mode, narrowed to the campaign's book when it has one (id, correct
+    /// letter, difficulty, image flag only), and lets <see cref="QuestionMixPlanner"/> build the 3/4/3 mix with the
+    /// campaign's image target. Each selected question then gets its own option permutation. Legacy questions
+    /// without a quiz mode are never candidates.
     /// </summary>
-    private async Task<IReadOnlyList<SessionQuestion>> SelectQuestionsAsync(CurrentCampaignDto campaign, CancellationToken ct)
+    private async Task<IReadOnlyList<SessionQuestion>> SelectQuestionsAsync(ActiveCampaign campaign, CancellationToken ct)
     {
-        var bookId = campaign.Book.Id;
+        var quizModeId = campaign.QuizModeId;
+        var bookId = campaign.BookId;
 
         var pool = await _db.Questions
             .AsNoTracking()
-            .Where(q => q.BookId == bookId)
+            .Where(q => q.QuizModeId == quizModeId && (bookId == null || q.BookId == bookId))
             .Select(q => new PoolQuestion(q.Id, q.CorrectOption, q.Difficulty, q.ImageUrl != null))
             .ToListAsync(ct);
 
@@ -262,8 +268,8 @@ public class GameService : IGameService
         if (missing.Count > 0)
         {
             _logger.LogError(
-                "Campaign {CampaignId} (book {BookId}) cannot fill the difficulty mix. Available Easy/Medium/Hard = {Easy}/{Medium}/{Hard}, required {ReqEasy}/{ReqMedium}/{ReqHard}.",
-                campaign.CampaignId, bookId, available[Difficulty.Easy], available[Difficulty.Medium], available[Difficulty.Hard],
+                "Campaign {CampaignId} (quiz mode {QuizModeSlug}, book {BookId}) cannot fill the difficulty mix. Available Easy/Medium/Hard = {Easy}/{Medium}/{Hard}, required {ReqEasy}/{ReqMedium}/{ReqHard}.",
+                campaign.CampaignId, campaign.QuizModeSlug, bookId, available[Difficulty.Easy], available[Difficulty.Medium], available[Difficulty.Hard],
                 QuizRules.EasyPerQuiz, QuizRules.MediumPerQuiz, QuizRules.HardPerQuiz);
 
             throw GameException.Conflict(
@@ -273,6 +279,7 @@ public class GameService : IGameService
                 {
                     ["code"] = "INSUFFICIENT_DIFFICULTY_QUESTIONS",
                     ["campaignId"] = campaign.CampaignId,
+                    ["quizMode"] = campaign.QuizModeSlug,
                     ["bookId"] = bookId,
                     ["required"] = difficulties.ToDictionary(d => d.ToString().ToLowerInvariant(), d => (object?)QuizRules.QuotaFor(d)),
                     ["available"] = difficulties.ToDictionary(d => d.ToString().ToLowerInvariant(), d => (object?)available[d]),
@@ -280,7 +287,7 @@ public class GameService : IGameService
                 });
         }
 
-        return QuestionMixPlanner.Plan(pool, Random.Shared)
+        return QuestionMixPlanner.Plan(pool, campaign.ImageQuestionsPerQuiz, Random.Shared)
             .Select(q =>
             {
                 // Fisher-Yates over the four original option indices (0 = A .. 3 = D).
@@ -361,7 +368,7 @@ public class GameService : IGameService
     /// (participant, campaign, attemptNumber) index rejects a racing insert, so parallel
     /// starts can never produce a fourth attempt. Any other database failure is a 500.
     /// </summary>
-    private async Task<QuizAttempt> CreateAttemptAsync(Participant participant, CurrentCampaignDto campaign, CancellationToken ct)
+    private async Task<QuizAttempt> CreateAttemptAsync(Participant participant, ActiveCampaign campaign, CancellationToken ct)
     {
         for (var retry = 0; retry < 3; retry++)
         {
@@ -412,7 +419,7 @@ public class GameService : IGameService
             new Dictionary<string, object?> { ["code"] = "ATTEMPT_CONFLICT" });
     }
 
-    private Task<int> CountAttemptsAsync(Participant participant, CurrentCampaignDto campaign, CancellationToken ct) =>
+    private Task<int> CountAttemptsAsync(Participant participant, ActiveCampaign campaign, CancellationToken ct) =>
         _db.QuizAttempts.CountAsync(a => a.ParticipantId == participant.Id && a.CampaignId == campaign.CampaignId, ct);
 
     private static GameException AttemptLimitReached(int used) =>

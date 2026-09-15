@@ -11,4 +11,7 @@ public record StartGameResponseDto(
     GameQuestionDto Question,
     // This start's attempt number (1..MaxAttempts) and how many the participant has left afterwards. No phone number here.
     int AttemptNumber,
-    int RemainingAttempts);
+    int RemainingAttempts,
+    // Campaign being played and its quiz mode (public identifiers only).
+    int CampaignId,
+    QuizModeRefDto QuizMode);

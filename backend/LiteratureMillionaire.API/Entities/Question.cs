@@ -26,6 +26,13 @@ public class Question
     public Book? Book { get; set; }
 
     /// <summary>
+    /// Quiz mode the question is played in ("bilik-dunyasi", "ayin-kitabi", ...). Null for legacy questions, which
+    /// are never selected for a game. Not the same as <see cref="Category"/>, the source sub-category.
+    /// </summary>
+    public int? QuizModeId { get; set; }
+    public QuizMode? QuizMode { get; set; }
+
+    /// <summary>
     /// Optional illustration, a local frontend asset such as "/question-images/name.webp".
     /// Either both media fields are set or both are null (enforced in the API and by a CHECK constraint).
     /// </summary>

@@ -101,15 +101,15 @@ public class BilikYarisiSeedTests
         await using var scope = factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var campaigns = await db.MonthlyCampaigns.Include(c => c.Book).OrderBy(c => c.Id).ToListAsync();
-        var oluler = Assert.Single(campaigns, c => c.Book.Title == OlulerQuestionSeed.BookTitle);
-        var bilik = Assert.Single(campaigns, c => c.Book.Title == BilikYarisiSeed.BookTitle);
+        var oluler = Assert.Single(campaigns, c => c.Book!.Title == OlulerQuestionSeed.BookTitle);
+        var bilik = Assert.Single(campaigns, c => c.Book!.Title == BilikYarisiSeed.BookTitle);
         Assert.False(oluler.IsEnabled);
         Assert.True(bilik.IsEnabled);
         Assert.Single(campaigns, c => c.IsEnabled);
         Assert.Equal((new DateOnly(2026, 9, 15), new DateOnly(2026, 9, 30), 8), (bilik.StartDate, bilik.EndDate, bilik.PassingScore));
         Assert.Equal("Bakı Abadlıq Xidməti MMC-dən hədiyyə", bilik.RewardTitle);
         Assert.NotEqual(oluler.RewardTitle, bilik.RewardTitle);
-        Assert.Equal((BilikYarisiSeed.BookAuthor, string.Empty, true), (bilik.Book.Author, bilik.Book.CoverImageUrl, bilik.Book.IsActive));
+        Assert.Equal((BilikYarisiSeed.BookAuthor, string.Empty, true), (bilik.Book!.Author, bilik.Book!.CoverImageUrl, bilik.Book!.IsActive));
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public class BilikYarisiSeedTests
         var edited = await check.Questions.SingleAsync(q => q.Id == editedId);
         Assert.Equal(("Admin tərəfindən dəyişdirilib", "Admin izahı"), (edited.OptionD, edited.Explanation));
         var enabled = await check.MonthlyCampaigns.Include(c => c.Book).SingleAsync(c => c.IsEnabled);
-        Assert.Equal(OlulerQuestionSeed.BookTitle, enabled.Book.Title);
+        Assert.Equal(OlulerQuestionSeed.BookTitle, enabled.Book!.Title);
     }
 
     // --- sessions ------------------------------------------------------------

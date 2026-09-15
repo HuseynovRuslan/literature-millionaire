@@ -1,3 +1,4 @@
+using LiteratureMillionaire.API.Dtos;
 using LiteratureMillionaire.API.Entities;
 
 namespace LiteratureMillionaire.API.Services;
@@ -38,11 +39,15 @@ public class GameSession
 
     /// <summary>Database row of this attempt; its result columns are written once when the quiz ends.</summary>
     public required int AttemptId { get; init; }
-    public required int BookId { get; init; }
+    /// <summary>Book the questions were drawn from, when the campaign has one.</summary>
+    public required int? BookId { get; init; }
+
+    /// <summary>Quiz mode of the campaign (public id, slug and title only).</summary>
+    public required QuizModeRefDto QuizMode { get; init; }
     public required int PassingScore { get; init; }
     public required string RewardTitle { get; init; }
 
-    /// <summary>Ordered questions for this session (QuizRules.QuestionsPerQuiz of them, all from BookId).</summary>
+    /// <summary>Ordered questions for this session (QuizRules.QuestionsPerQuiz of them, from the campaign's quiz mode).</summary>
     public required IReadOnlyList<SessionQuestion> Questions { get; init; }
 
     /// <summary>0-based index of the question the player must answer next.</summary>

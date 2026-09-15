@@ -121,10 +121,11 @@ public class LeaderboardServiceTests
 
         public async Task<(MonthlyCampaign First, MonthlyCampaign Second)> SeedCampaignsAsync()
         {
+            var mode = new QuizMode { Slug = QuizModeSlugs.BilikDunyasi, Title = "Bilik Dünyası", Description = "Test", IconKey = "globe", DisplayOrder = 1 };
             var firstBook = Book("First");
             var secondBook = Book("Second");
-            var first = Campaign(firstBook);
-            var second = Campaign(secondBook);
+            var first = Campaign(firstBook, mode);
+            var second = Campaign(secondBook, mode);
             second.StartDate = new DateOnly(2025, 1, 1);
             second.EndDate = new DateOnly(2025, 1, 31);
             second.IsEnabled = false;
@@ -142,9 +143,10 @@ public class LeaderboardServiceTests
             IsActive = true
         };
 
-        private static MonthlyCampaign Campaign(Book book) => new()
+        private static MonthlyCampaign Campaign(Book book, QuizMode mode) => new()
         {
             Book = book,
+            QuizMode = mode,
             StartDate = new DateOnly(2026, 1, 1),
             EndDate = new DateOnly(2026, 12, 31),
             PassingScore = 7,

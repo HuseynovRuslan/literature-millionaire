@@ -1,9 +1,11 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using LiteratureMillionaire.API.Data;
 using LiteratureMillionaire.API.Dtos;
 using LiteratureMillionaire.API.Entities;
+using LiteratureMillionaire.API.Seed;
 using LiteratureMillionaire.API.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -12,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace LiteratureMillionaire.Tests;
 
@@ -157,6 +160,9 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
     private readonly bool _failPositionLookup;
 
+    /// <summary>Every log line written by the API during the test (for PII checks).</summary>
+    public ConcurrentQueue<string> Logs { get; } = new();
+
     public LeaderboardApiFactory(bool failPositionLookup = false)
     {
         _failPositionLookup = failPositionLookup;
@@ -167,6 +173,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.ConfigureLogging(logging => logging.AddProvider(new CapturingLoggerProvider(Logs)));
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<ApplicationDbContext>();
@@ -190,11 +197,13 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
         await db.Database.EnsureCreatedAsync();
     }
 
-    public async Task<int> SeedPlayableCampaignAsync(bool includeQuestions)
+    public async Task<int> SeedPlayableCampaignAsync(bool includeQuestions, string modeSlug = QuizModeSlugs.BilikDunyasi)
     {
         await CreateDatabaseAsync();
         await using var scope = Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await QuizModeSeed.SeedAsync(db);
+        var quizModeId = await QuizModeSeed.GetIdAsync(db, modeSlug);
         var book = new Book
         {
             Title = "Test Book",
@@ -206,6 +215,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
         var campaign = new MonthlyCampaign
         {
             Book = book,
+            QuizModeId = quizModeId,
             StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-1)),
             EndDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
             PassingScore = 7,
@@ -226,6 +236,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
                 db.Questions.Add(new Question
                 {
                     Book = book,
+                    QuizModeId = quizModeId,
                     Text = $"Question {number}",
                     OptionA = "A",
                     OptionB = "B",
@@ -255,5 +266,25 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
 
         public Task<int?> GetPositionAsync(int campaignId, int participantId, CancellationToken ct = default) =>
             throw new InvalidOperationException("test failure");
+    }
+}
+
+/// <summary>Collects every log line (message and exception text) written during a test, for PII checks.</summary>
+internal sealed class CapturingLoggerProvider(ConcurrentQueue<string> sink) : ILoggerProvider
+{
+    public ILogger CreateLogger(string categoryName) => new CapturingLogger(sink, categoryName);
+
+    public void Dispose()
+    {
+    }
+
+    private sealed class CapturingLogger(ConcurrentQueue<string> sink, string category) : ILogger
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+            sink.Enqueue($"{logLevel} {category}: {formatter(state, exception)} {exception}");
     }
 }
