@@ -50,7 +50,7 @@ export default function LeaderboardPage() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-3">
               <Buta className="h-7 w-5" flip />
-              <p className="font-display text-[clamp(1rem,1.5vw,1.5rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
+              <p className="font-display text-[clamp(1rem,1.5vw,1.5rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
               <Buta className="h-7 w-5" />
             </div>
             <h1 className="font-display text-[clamp(2.2rem,4.3vw,4.5rem)] font-bold leading-none text-[var(--p-indigo)]">Lider cədvəli</h1>

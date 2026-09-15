@@ -100,8 +100,8 @@ export default function GameResult() {
   const passed = r?.passed ?? false
   const title = passed ? 'Təbriklər!' : 'Bu dəfə alınmadı'
   const line = passed
-    ? 'Siz "Ayın kitabı" viktorinasını uğurla keçdiniz.'
-    : 'Kitabı bir daha oxuyun. Növbəti Ayın kitabı kampaniyasında sizi yenidən gözləyirik.'
+    ? 'Siz bilik yarışını uğurla keçdiniz.'
+    : 'Bu dəfə alınmadı. Növbəti bilik yarışında sizi yenidən gözləyirik.'
 
   return (
     <main className="kiosk paper flex flex-col" data-result={passed ? 'passed' : 'failed'}>

@@ -21,4 +21,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Reviewed "Bilik yarışı" question bank (generated from docs/import/quiz_questions.xlsx at implementation time).
+         Compiled into the assembly; not published as a loose file and never read from Excel at runtime. -->
+    <Content Remove="Seed/Data/bilik-yarisi-questions.json" />
+    <EmbeddedResource Include="Seed/Data/bilik-yarisi-questions.json" LogicalName="LiteratureMillionaire.API.Seed.Data.bilik-yarisi-questions.json" />
+  </ItemGroup>
+
 </Project>

@@ -32,6 +32,10 @@ public static class DbSeeder
 
         // Approved per-book content (guarded by BookId + exact text inside).
         await OlulerQuestionSeed.SeedAsync(db, ct);
+
+        // Demo "Bilik yarışı" bank + campaign. Runs after "Ölülər" so, on first import, it can switch the
+        // "Ölülər" campaign off; the "Ölülər" book, questions and campaign row are kept (transactional, idempotent).
+        await BilikYarisiSeed.SeedAsync(db, ct);
     }
 
     /// <summary>

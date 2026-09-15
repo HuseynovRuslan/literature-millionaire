@@ -113,7 +113,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setErrorCode(code)
       setError(
         status === 404 && code === 'NO_ACTIVE_CAMPAIGN'
-          ? 'Hazırda aktiv "Ayın kitabı" kampaniyası yoxdur.'
+          ? 'Hazırda aktiv "Bilik yarışı" kampaniyası yoxdur.'
           : code === 'ATTEMPT_LIMIT_REACHED'
             ? 'Bu kampaniyada artıq iştirak etmisiniz. Hər telefon nömrəsi ilə yalnız bir dəfə iştirak etmək mümkündür.'
             : code === 'ATTEMPT_CONFLICT'

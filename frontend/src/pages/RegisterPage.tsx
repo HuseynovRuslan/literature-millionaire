@@ -52,7 +52,7 @@ export default function RegisterPage() {
         <CarpetFrame />
         <KioskHeader />
         <div role="alert" className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center text-center" style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 1.5rem)' }} data-testid="attempt-limit">
-          <p className="font-display text-[clamp(1.4rem,2.2vw,2.2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
+          <p className="font-display text-[clamp(1.4rem,2.2vw,2.2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
           <h1 className="mt-4 max-w-[24ch] font-display text-[clamp(2.4rem,4.6vw,4.8rem)] font-bold leading-tight text-[var(--p-ink)]">
             Bu kampaniyada artıq iştirak etmisiniz.
           </h1>
@@ -61,7 +61,7 @@ export default function RegisterPage() {
           </p>
           <ButaRule className="my-7 w-full max-w-[30rem]" />
           <p className="max-w-[44ch] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[var(--p-ink-2)]">
-            Növbəti Ayın kitabı kampaniyasında sizi yenidən gözləyirik.
+            Növbəti bilik yarışında sizi yenidən gözləyirik.
           </p>
           <button type="button" onClick={goHome} className="tap paper-cta mt-10 flex min-h-[clamp(5rem,11vh,7rem)] w-full max-w-[30rem] items-center justify-center rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.05em]">
             Ana səhifə
@@ -80,7 +80,7 @@ export default function RegisterPage() {
           <Buta className="absolute -left-3 -top-4 z-10 h-12 w-9" flip />
           <Buta className="absolute -right-3 -top-4 z-10 h-12 w-9" />
           <div className="flex flex-col items-center rounded-xl border-[3px] border-[var(--p-gold)] bg-white px-[clamp(1.5rem,4vw,4rem)] py-[clamp(1.2rem,2.6vh,2.4rem)] text-center shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]">
-            <p className="font-display text-[clamp(1.3rem,2vw,2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
+            <p className="font-display text-[clamp(1.3rem,2vw,2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
             <h1 className="mt-1 font-display text-[clamp(2.2rem,4.6vw,4.6rem)] font-bold leading-none text-[var(--p-ink)]">Qeydiyyat</h1>
             <p className="mt-2 text-[clamp(1rem,1.4vw,1.4rem)] text-[var(--p-ink-2)]">Quizə başlamaq üçün ad-soyad və telefon nömrənizi yazın.</p>
             <ButaRule className="my-5 w-full max-w-[28rem]" />

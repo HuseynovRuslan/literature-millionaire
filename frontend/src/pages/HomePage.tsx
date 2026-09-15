@@ -20,7 +20,7 @@ function formatRange(startIso: string, endIso: string): string {
 }
 
 const ERROR_COPY: Record<CampaignErrorKind, { title: string; text: string }> = {
-  'no-active': { title: 'Hazırda aktiv kampaniya yoxdur', text: '"Ayın kitabı" viktorinası tezliklə yenidən başlayacaq.' },
+  'no-active': { title: 'Hazırda aktiv kampaniya yoxdur', text: '"Bilik yarışı" tezliklə yenidən başlayacaq.' },
   multiple: { title: 'Kampaniya tənzimlənməsində xəta var', text: 'Eyni vaxtda bir neçə kampaniya aktivdir. Zəhmət olmasa, inzibatçıya müraciət edin.' },
   unavailable: { title: 'Serverlə əlaqə yoxdur', text: 'Şəbəkə bağlantısını yoxlayın və yenidən cəhd edin.' },
   unexpected: { title: 'Gözlənilməz xəta baş verdi', text: 'Bir az sonra yenidən cəhd edin.' },
@@ -143,7 +143,7 @@ export default function HomePage() {
     return (
       <PaperShell alert>
         <div className="flex w-full max-w-[56rem] flex-col items-center text-center">
-          <p className="font-display text-[clamp(1.4rem,2.2vw,2.2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
+          <p className="font-display text-[clamp(1.4rem,2.2vw,2.2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
           <h1 className="mt-4 font-display text-[clamp(2.4rem,5vw,5.2rem)] font-bold leading-tight text-[var(--p-ink)]">{copy.title}</h1>
           <ButaRule className="my-8 w-full max-w-[30rem]" />
           <p className="max-w-[36rem] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[var(--p-ink-2)]">{copy.text}</p>
@@ -166,7 +166,7 @@ export default function HomePage() {
         <div className="flex min-w-0 flex-col text-center lg:text-left">
           <div className="flex items-center justify-center gap-3 lg:justify-start">
             <Buta className="h-7 w-5" flip />
-            <p className="font-display text-[clamp(1.3rem,2vw,2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
+            <p className="font-display text-[clamp(1.3rem,2vw,2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
             <Buta className="h-7 w-5" />
           </div>
           <h1 lang="az" className="mt-2 font-display text-[clamp(3rem,6.2vw,6.8rem)] font-bold leading-[0.98] text-[var(--p-burgundy)] [overflow-wrap:anywhere]">
