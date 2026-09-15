@@ -19,6 +19,11 @@ public class GameService : IGameService
     private static readonly TimeSpan QuestionTime = TimeSpan.FromSeconds(QuizRules.SecondsPerQuestion);
     private const string Letters = "ABCD";
 
+    // Unique index names from the migration. A 23505 unique_violation is only ever treated as a
+    // resolvable race when it names exactly one of these - anything else is a genuine DB failure.
+    private const string ParticipantPhoneUniqueIndex = "IX_Participants_NormalizedPhoneNumber";
+    private const string AttemptUniqueIndex = "IX_QuizAttempts_ParticipantId_CampaignId_AttemptNumber";
+
     private readonly ApplicationDbContext _db;
     private readonly IMemoryCache _cache;
     private readonly ICampaignService _campaigns;
@@ -299,7 +304,22 @@ public class GameService : IGameService
 
     // --- participants and attempts ------------------------------------------
 
-    /// <summary>Finds the participant by normalised phone or creates one. A concurrent creation of the same number is resolved by re-reading after the unique index rejects the duplicate. The number itself is never logged.</summary>
+    /// <summary>
+    /// Finds the participant by normalised phone or creates one. A concurrent creation of the
+    /// same number is resolved by re-reading after the unique index rejects the duplicate. The
+    /// number itself is never logged.
+    /// </summary>
+    /// <remarks>
+    /// Catches <see cref="Exception"/>, not just <see cref="DbUpdateException"/>: Npgsql can
+    /// surface a save failure as <see cref="InvalidOperationException"/> wrapping the
+    /// <see cref="DbUpdateException"/> (e.g. when the failure happens while reading back a
+    /// server-generated value), so narrowing the catch to <see cref="DbUpdateException"/> alone
+    /// lets that shape slip past both the race check and the sanitized-500 fallback and reach
+    /// the framework's own unhandled-exception response, which is not sanitized. Classification
+    /// still walks the full exception chain for the innermost <see cref="Npgsql.PostgresException"/>,
+    /// so this is exactly as precise as catching <see cref="DbUpdateException"/> - it just also
+    /// catches the same failure when Npgsql/EF Core wraps it one level further out.
+    /// </remarks>
     private async Task<Participant> FindOrCreateParticipantAsync(StartGameRequestDto request, CancellationToken ct)
     {
         if (!PhoneNumber.TryNormalize(request.PhoneNumber, out var phone))
@@ -322,19 +342,18 @@ public class GameService : IGameService
             _logger.LogInformation("Participant {ParticipantId} created.", participant.Id);
             return participant;
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _db.Entry(participant).State = EntityState.Detached;
-            var sqlError = SqlServerErrors.GetErrorNumber(ex);
-            if (!SqlServerErrors.IsUniqueViolation(sqlError))
+            if (!PostgresErrors.IsUniqueViolationOn(ex, ParticipantPhoneUniqueIndex))
             {
-                throw DatabaseFailure("participant-create", ex, sqlError, participantId: null, campaignId: null);
+                throw DatabaseFailure("participant-create", ex, participantId: null, campaignId: null);
             }
         }
 
         // The unique phone index rejected the insert, so a racing request created the row.
         return await _db.Participants.FirstOrDefaultAsync(p => p.NormalizedPhoneNumber == phone, ct)
-            ?? throw DatabaseFailure("participant-reread", exception: null, sqlError: null, participantId: null, campaignId: null);
+            ?? throw DatabaseFailure("participant-reread", exception: null, participantId: null, campaignId: null);
     }
 
     /// <summary>
@@ -369,13 +388,12 @@ public class GameService : IGameService
                 _logger.LogInformation("Attempt {AttemptNumber} started for participant {ParticipantId} in campaign {CampaignId}.", attempt.AttemptNumber, participant.Id, campaign.CampaignId);
                 return attempt;
             }
-            catch (DbUpdateException ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _db.Entry(attempt).State = EntityState.Detached;
-                var sqlError = SqlServerErrors.GetErrorNumber(ex);
-                if (!SqlServerErrors.IsUniqueViolation(sqlError))
+                if (!PostgresErrors.IsUniqueViolationOn(ex, AttemptUniqueIndex))
                 {
-                    throw DatabaseFailure("attempt-create", ex, sqlError, participant.Id, campaign.CampaignId);
+                    throw DatabaseFailure("attempt-create", ex, participant.Id, campaign.CampaignId);
                 }
                 // Number taken by a racing start: recount and retry.
             }
@@ -403,14 +421,19 @@ public class GameService : IGameService
             new Dictionary<string, object?> { ["code"] = "ATTEMPT_LIMIT_REACHED", ["maxAttempts"] = QuizRules.MaxAttemptsPerCampaign, ["attemptsUsed"] = used });
 
     /// <summary>
-    /// Logs an unexpected database failure in sanitized form - operation, ids, SQL error number and
-    /// exception types only. The exception object is deliberately not passed to the logger: SQL
-    /// Server's message text can quote row values such as the phone number.
+    /// Logs an unexpected database failure in sanitized form - operation, ids, SQLSTATE, constraint
+    /// name and exception types only. The exception object is deliberately not passed to the
+    /// logger: PostgreSQL's message/detail/where text can quote row values such as the phone
+    /// number. The constraint name is safe to log - it is a schema identifier from our own
+    /// migration, never derived from row data.
     /// </summary>
-    private GameException DatabaseFailure(string operation, Exception? exception, int? sqlError, int? participantId, int? campaignId)
+    private GameException DatabaseFailure(string operation, Exception? exception, int? participantId, int? campaignId)
     {
-        _logger.LogError("Database failure during {Operation} (participant {ParticipantId}, campaign {CampaignId}, sql error {SqlErrorNumber}, {ExceptionType} / {InnerExceptionType}).",
-            operation, participantId, campaignId, sqlError, exception?.GetType().Name, exception?.GetBaseException().GetType().Name);
+        var sqlState = exception is null ? null : PostgresErrors.GetSqlState(exception);
+        var constraintName = exception is null ? null : PostgresErrors.GetConstraintName(exception);
+        _logger.LogError(
+            "Database failure during {Operation} (participant {ParticipantId}, campaign {CampaignId}, sql state {SqlState}, constraint {ConstraintName}, {ExceptionType} / {InnerExceptionType}).",
+            operation, participantId, campaignId, sqlState, constraintName, exception?.GetType().Name, exception?.GetBaseException().GetType().Name);
         return GameException.DatabaseError();
     }
 

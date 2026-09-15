@@ -24,11 +24,15 @@ public class ApplicationDbContext : DbContext
             entity.ToTable("Questions", t =>
             {
                 // Defense in depth: DTO validation is the first line, the DB is the last.
-                t.HasCheckConstraint("CK_Questions_CorrectOption", "[CorrectOption] IN ('A', 'B', 'C', 'D')");
-                t.HasCheckConstraint("CK_Questions_Difficulty", "[Difficulty] IN (1, 2, 3)");
+                t.HasCheckConstraint("CK_Questions_CorrectOption", "\"CorrectOption\" IN ('A', 'B', 'C', 'D')");
+                t.HasCheckConstraint("CK_Questions_Difficulty", "\"Difficulty\" IN (1, 2, 3)");
                 // Media fields travel together: both null, or both present with a non-empty alt text.
+                // length(), not the PostgreSQL-only char_length(): the two are equivalent for text/
+                // varchar in PostgreSQL, and length() is also understood by the SQLite provider the
+                // test project uses for isolated in-memory tests, so this constraint runs unmodified
+                // in both places.
                 t.HasCheckConstraint("CK_Questions_ImageMedia",
-                    "([ImageUrl] IS NULL AND [ImageAltText] IS NULL) OR ([ImageUrl] IS NOT NULL AND [ImageAltText] IS NOT NULL AND LEN([ImageAltText]) > 0)");
+                    "(\"ImageUrl\" IS NULL AND \"ImageAltText\" IS NULL) OR (\"ImageUrl\" IS NOT NULL AND \"ImageAltText\" IS NOT NULL AND length(\"ImageAltText\") > 0)");
             });
             entity.HasKey(q => q.Id);
 
@@ -43,8 +47,8 @@ public class ApplicationDbContext : DbContext
             entity.Property(q => q.Explanation).HasMaxLength(2000);
             entity.Property(q => q.ImageUrl).HasMaxLength(500);
             entity.Property(q => q.ImageAltText).HasMaxLength(300);
-            // SQL Server datetime2 has no offset; mark values read back as UTC so they
-            // serialize with a trailing "Z" and compare correctly with DateTime.UtcNow.
+            // Defense in depth: force Kind=Utc on read so the value serializes with a trailing
+            // "Z" and compares correctly with DateTime.UtcNow, regardless of provider quirks.
             entity.Property(q => q.CreatedAt)
                 .IsRequired()
                 .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
@@ -80,8 +84,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("MonthlyCampaigns", t =>
             {
-                t.HasCheckConstraint("CK_MonthlyCampaigns_DateRange", "[EndDate] >= [StartDate]");
-                t.HasCheckConstraint("CK_MonthlyCampaigns_PassingScore", "[PassingScore] BETWEEN 1 AND 10");
+                t.HasCheckConstraint("CK_MonthlyCampaigns_DateRange", "\"EndDate\" >= \"StartDate\"");
+                t.HasCheckConstraint("CK_MonthlyCampaigns_PassingScore", "\"PassingScore\" BETWEEN 1 AND 10");
             });
             entity.HasKey(c => c.Id);
 
@@ -119,7 +123,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("QuizAttempts", t =>
             {
-                t.HasCheckConstraint("CK_QuizAttempts_AttemptNumber", $"[AttemptNumber] BETWEEN 1 AND {Services.QuizRules.MaxAttemptsPerCampaign}");
+                t.HasCheckConstraint("CK_QuizAttempts_AttemptNumber", $"\"AttemptNumber\" BETWEEN 1 AND {Services.QuizRules.MaxAttemptsPerCampaign}");
             });
             entity.HasKey(a => a.Id);
 

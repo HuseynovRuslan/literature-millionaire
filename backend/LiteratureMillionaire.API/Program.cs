@@ -22,7 +22,7 @@ builder.Services
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options
-        .UseSqlServer(
+        .UseNpgsql(
             builder.Configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured."))
         // A failed SaveChanges is handled (or rethrown) by the caller. EF's own error log for it
