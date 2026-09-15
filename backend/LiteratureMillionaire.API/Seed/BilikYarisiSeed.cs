@@ -35,6 +35,7 @@ public static class BilikYarisiSeed
     public static readonly DateOnly CampaignStart = new(2026, 9, 15);
     public static readonly DateOnly CampaignEnd = new(2026, 9, 30);
     public const int PassingScore = 8;
+    public const string RewardTitle = "Bakı Abadlıq Xidməti MMC-dən hədiyyə";
 
     public const int ExpectedQuestionCount = 441;
     public const int ExpectedImageQuestionCount = 100;
@@ -214,13 +215,6 @@ public static class BilikYarisiSeed
                 .OrderBy(c => c.Id)
                 .ToListAsync(ct);
 
-            var rewardTitle = competing.Select(c => c.RewardTitle).FirstOrDefault(t => !string.IsNullOrWhiteSpace(t))
-                ?? await db.MonthlyCampaigns
-                    .OrderByDescending(c => c.EndDate).ThenByDescending(c => c.Id)
-                    .Select(c => c.RewardTitle)
-                    .FirstOrDefaultAsync(ct)
-                ?? string.Empty;
-
             foreach (var campaign in competing)
             {
                 campaign.IsEnabled = false;
@@ -232,7 +226,7 @@ public static class BilikYarisiSeed
                 StartDate = CampaignStart,
                 EndDate = CampaignEnd,
                 PassingScore = PassingScore,
-                RewardTitle = rewardTitle,
+                RewardTitle = RewardTitle,
                 IsEnabled = true
             });
             await db.SaveChangesAsync(ct);

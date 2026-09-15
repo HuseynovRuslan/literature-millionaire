@@ -107,7 +107,8 @@ public class BilikYarisiSeedTests
         Assert.True(bilik.IsEnabled);
         Assert.Single(campaigns, c => c.IsEnabled);
         Assert.Equal((new DateOnly(2026, 9, 15), new DateOnly(2026, 9, 30), 8), (bilik.StartDate, bilik.EndDate, bilik.PassingScore));
-        Assert.Equal(oluler.RewardTitle, bilik.RewardTitle);
+        Assert.Equal("Bakı Abadlıq Xidməti MMC-dən hədiyyə", bilik.RewardTitle);
+        Assert.NotEqual(oluler.RewardTitle, bilik.RewardTitle);
         Assert.Equal((BilikYarisiSeed.BookAuthor, string.Empty, true), (bilik.Book.Author, bilik.Book.CoverImageUrl, bilik.Book.IsActive));
     }
 
