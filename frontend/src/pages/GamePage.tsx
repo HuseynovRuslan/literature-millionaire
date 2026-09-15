@@ -13,7 +13,7 @@ import { ANSWER_OPTIONS, optionText, type AnswerOption, type AnswerResult } from
 const TRANSITION_MS = 1100
 const TIMEOUT_RETRY_MS = 2000
 // Answer taps are ignored this long after a question appears, so a stray second tap from the
-// previous screen (e.g. a double tap on "Yenidən oyna") cannot answer the first question.
+// previous screen (e.g. a double tap on "NÖVBƏTİ İŞTİRAKÇI") cannot answer the first question.
 // Frontend-only: the server deadline and the countdown are unaffected.
 const QUESTION_INPUT_GUARD_MS = 400
 

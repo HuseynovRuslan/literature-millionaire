@@ -127,7 +127,7 @@ export default function LeaderboardPage() {
 
         <nav aria-label="Lider cədvəli seçimləri" className="mx-auto mt-3 grid w-full max-w-[54rem] shrink-0 grid-cols-2 gap-4">
           <button type="button" onClick={() => go('/', false)} disabled={navigating} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-6 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-semibold disabled:opacity-60">ANA SƏHİFƏ</button>
-          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-6 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.04em] disabled:opacity-60">YENİ İŞTİRAKÇI</button>
+          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-6 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.04em] disabled:opacity-60">NÖVBƏTİ İŞTİRAKÇI</button>
         </nav>
       </div>
     </main>

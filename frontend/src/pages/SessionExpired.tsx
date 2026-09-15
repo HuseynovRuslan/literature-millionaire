@@ -22,16 +22,16 @@ export default function SessionExpired() {
           </h1>
           <GoldRule className="my-8 w-full max-w-[30rem]" />
           <p className="max-w-[36rem] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-mist">
-            Əvvəlki oyun davam etdirilə bilməz. Yeni oyun başladın.
+            Bu cəhd davam etdirilə bilmir. Növbəti iştirakçı qeydiyyatdan keçə bilər.
           </p>
           <button
             type="button"
             onClick={() => startTransition(() => { reset(); navigate('/register') })}
             disabled={starting}
             aria-busy={starting}
-            className="tap mt-12 flex min-h-[7.5rem] w-full max-w-[34rem] items-center justify-center rounded-2xl bg-gold px-10 font-display text-[clamp(2rem,3.4vw,3.4rem)] font-bold tracking-[0.06em] text-navy-900 shadow-[0_18px_50px_-12px_rgba(212,168,59,0.55)] disabled:bg-gold/70"
+            className="tap mt-12 flex min-h-[7.5rem] w-full max-w-[46rem] items-center justify-center whitespace-nowrap rounded-2xl bg-gold px-10 font-display text-[clamp(2rem,3.4vw,3.4rem)] font-bold tracking-[0.06em] text-navy-900 shadow-[0_18px_50px_-12px_rgba(212,168,59,0.55)] disabled:bg-gold/70"
           >
-            {starting ? 'Oyun hazırlanır' : 'YENİ İŞTİRAKÇI'}
+            {starting ? 'Oyun hazırlanır' : 'NÖVBƏTİ İŞTİRAKÇI'}
           </button>
           {error && (
             <p role="alert" className="mt-6 rounded-xl border border-bad/50 bg-bad/10 px-5 py-3 text-[clamp(1rem,1.3vw,1.3rem)]">
