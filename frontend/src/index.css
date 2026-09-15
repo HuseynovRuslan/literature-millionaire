@@ -207,3 +207,42 @@ body {
     border-radius: 0.9rem;
   }
 }
+
+/* ---------- Game-show form inputs (Task 14B, registration). ----------
+   Light fields on the indigo stage: clear gold focus ring, a distinct invalid state (also marked with
+   aria-invalid and an icon + message under the field), and browser autofill kept in the same colours. */
+.gs-input {
+  color: #2a1c14;
+  background-color: #fffdf8;
+  border-color: rgba(233, 192, 105, 0.9);
+  caret-color: #7d161d;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.gs-input::placeholder {
+  color: #8a7a6a;
+  opacity: 1;
+}
+.gs-input:focus {
+  outline: none;
+  border-color: #f3d77e;
+  box-shadow: 0 0 0 4px rgba(243, 215, 126, 0.6);
+}
+.gs-input[aria-invalid="true"] {
+  border-color: #ff9aa2;
+  box-shadow: 0 0 0 3px rgba(255, 154, 162, 0.35);
+}
+.gs-input[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 4px rgba(255, 154, 162, 0.6);
+}
+.gs-input:-webkit-autofill,
+.gs-input:-webkit-autofill:hover,
+.gs-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #2a1c14;
+  -webkit-box-shadow: 0 0 0 1000px #fffdf8 inset;
+  transition: background-color 9999s ease-out 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-input {
+    transition: none;
+  }
+}

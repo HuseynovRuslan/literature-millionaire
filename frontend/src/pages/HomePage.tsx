@@ -2,9 +2,9 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { classifyCampaignError, getCurrentCampaign, type CampaignErrorKind } from '../api/campaigns'
 import { PlayIcon, QuizEmblem, RewardMedal } from '../components/home/GameShowArt'
-import HomeHeader from '../components/home/HomeHeader'
+import { PRIMARY_CTA as PRIMARY, SECONDARY_CTA as SECONDARY } from '../components/home/gameShowClasses'
+import GameShowShell from '../components/home/GameShowShell'
 import { BRAND_NAME } from '../components/national/BrandMark'
-import CarpetFrame from '../components/national/CarpetFrame'
 import { useGame } from '../game/GameContext'
 import type { CampaignBook, CurrentCampaign } from '../types/campaign'
 
@@ -31,13 +31,6 @@ type CampaignLoad =
   | { kind: 'loading' }
   | { kind: 'ready'; data: CurrentCampaign }
   | { kind: 'error'; error: CampaignErrorKind }
-
-/** The one action the screen is about: large, burgundy, touch-friendly (>= 88px on the kiosk). */
-const PRIMARY =
-  'tap paper-cta flex min-h-[clamp(5.5rem,11vh,7.5rem)] items-center justify-center gap-[clamp(0.8rem,1.2vw,1.2rem)] rounded-full px-[clamp(2rem,3vw,3.5rem)] font-display text-[clamp(2.1rem,3.1vw,3.6rem)] font-bold tracking-[0.06em] max-sm:min-h-[3.75rem] max-sm:flex-none max-sm:px-6 max-sm:text-[1.65rem]'
-/** Same height as the primary so the row stays tidy, but narrower, lighter and in a smaller type. */
-const SECONDARY =
-  'tap paper-ghost flex min-h-[clamp(5.5rem,11vh,7.5rem)] items-center justify-center rounded-full px-[clamp(1.5rem,2.2vw,2.5rem)] font-display text-[clamp(1.3rem,1.75vw,2rem)] font-semibold tracking-[0.05em] max-sm:min-h-[3.25rem] max-sm:flex-none max-sm:text-[1.2rem]'
 
 /** Shows the author only when it adds something: not empty and not just the organisation already in the header. */
 function meaningfulAuthor(author: string): string | null {
@@ -66,20 +59,6 @@ function CampaignArt({ book }: { book: CampaignBook }) {
     <div className="self-center justify-self-center [grid-area:art]" data-testid="campaign-art" data-kind="emblem">
       <QuizEmblem className="size-[clamp(15rem,min(22vw,42vh),27rem)] max-lg:size-[11rem] max-sm:size-[5.75rem]" />
     </div>
-  )
-}
-
-/** Paper page with the carpet border, the brand bar and a vertically centred content column. */
-function HomeShell({ children }: { children: ReactNode }) {
-  return (
-    <main className="kiosk kiosk-scroll paper flex flex-col">
-      <CarpetFrame />
-      <HomeHeader />
-      {/* safe center: content taller than the space grows downwards instead of sliding under the header */}
-      <div className="relative z-0 mx-auto flex min-h-0 w-full max-w-[118rem] flex-1 flex-col [justify-content:safe_center] gap-[clamp(1rem,2.6vh,2.2rem)] px-[calc(var(--frame)_+_2rem)] pb-[calc(var(--frame)_+_1rem)] pt-[clamp(0.6rem,1.6vh,1.4rem)] max-sm:justify-start max-sm:gap-4 max-sm:px-[calc(var(--frame)_+_0.75rem)] max-sm:pb-[calc(var(--frame)_+_1rem_+_var(--safe-bottom))] max-sm:pt-3">
-        {children}
-      </div>
-    </main>
   )
 }
 
@@ -127,20 +106,20 @@ export default function HomePage() {
 
   if (campaign.kind === 'loading') {
     return (
-      <HomeShell>
+      <GameShowShell>
         <StatusStage>
           <QuizEmblem className="size-[clamp(7rem,13vh,10rem)] max-sm:size-24" />
           <span className="spin mt-6 inline-block h-12 w-12 rounded-full border-4 border-white/20 border-t-[var(--p-gold-light)]" aria-hidden />
           <p className="mt-5 font-display text-[clamp(1.8rem,2.8vw,3rem)] font-semibold max-sm:text-[1.6rem]">Kampaniya yüklənir…</p>
         </StatusStage>
-      </HomeShell>
+      </GameShowShell>
     )
   }
 
   if (campaign.kind === 'error') {
     const copy = ERROR_COPY[campaign.error]
     return (
-      <HomeShell>
+      <GameShowShell>
         <StatusStage alert>
           <QuizEmblem className="size-[clamp(6rem,11vh,9rem)] max-sm:size-20" />
           <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2.4rem,4.4vw,4.8rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2rem]">{copy.title}</h1>
@@ -151,7 +130,7 @@ export default function HomePage() {
             Yenidən yoxla
           </button>
         </div>
-      </HomeShell>
+      </GameShowShell>
     )
   }
 
@@ -174,7 +153,7 @@ export default function HomePage() {
   ]
 
   return (
-    <HomeShell>
+    <GameShowShell>
       <section
         aria-labelledby="campaign-title"
         data-testid="home-stage"
@@ -267,6 +246,6 @@ export default function HomePage() {
           <p className="text-[clamp(0.85rem,1vw,1.05rem)] text-[var(--p-ink-2)] max-sm:hidden">Ekrana toxunaraq oynayın</p>
         )}
       </nav>
-    </HomeShell>
+    </GameShowShell>
   )
 }

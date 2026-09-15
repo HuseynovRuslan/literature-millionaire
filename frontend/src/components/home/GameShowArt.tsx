@@ -77,6 +77,26 @@ export function RewardMedal({ className = '' }: { className?: string }) {
   )
 }
 
+/** "One attempt" badge: gold star medallion with the number 1. */
+export function RuleBadge({ className = '' }: { className?: string }) {
+  const id = useId().replace(/:/g, '')
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id={`${id}-gold`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f7df93" />
+          <stop offset="0.6" stopColor="#d4a83b" />
+          <stop offset="1" stopColor="#9a6c21" />
+        </linearGradient>
+      </defs>
+      <polygon points={starPoints(32, 32, 30)} fill={`url(#${id}-gold)`} stroke="#6f4d1c" strokeWidth="1.2" strokeLinejoin="round" />
+      <circle cx="32" cy="32" r="17" fill="#7d161d" stroke="#f3d77e" strokeWidth="2" />
+      {/* Sans digit: the display serif draws an old-style "1" that reads like an "I" at this size. */}
+      <text x="32" y="41" textAnchor="middle" fontFamily="'Fira Sans', 'Segoe UI', sans-serif" fontWeight="700" fontSize="24" fill="#fbf6ec">1</text>
+    </svg>
+  )
+}
+
 export function PlayIcon({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
