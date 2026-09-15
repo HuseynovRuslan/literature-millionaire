@@ -121,7 +121,8 @@ export default function GameResult() {
         </section>
       </div>
 
-      <div className="absolute z-20" style={{ right: 'calc(var(--frame) + 1rem)', bottom: 'calc(var(--frame) + 0.7rem)' }}>
+      {/* Brand mark only on wide screens: at 1024x768 the card fills the height and the mark would touch its frame. */}
+      <div className="absolute z-20 hidden xl:block" style={{ right: 'calc(var(--frame) + 1rem)', bottom: 'calc(var(--frame) + 0.7rem)' }}>
         <BrandMark />
       </div>
     </main>

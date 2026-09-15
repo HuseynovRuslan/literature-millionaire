@@ -11,6 +11,10 @@ import { ANSWER_OPTIONS, optionText, type AnswerOption, type AnswerResult } from
 
 const TRANSITION_MS = 1100
 const TIMEOUT_RETRY_MS = 2000
+// Answer taps are ignored this long after a question appears, so a stray second tap from the
+// previous screen (e.g. a double tap on "Yenidən oyna") cannot answer the first question.
+// Frontend-only: the server deadline and the countdown are unaffected.
+const QUESTION_INPUT_GUARD_MS = 400
 
 type Phase =
   | { kind: 'open' }
@@ -26,6 +30,7 @@ export default function GamePage() {
   const timer = useRef<number | null>(null)
   const inFlight = useRef(false)
   const timeoutSentFor = useRef<number | null>(null)
+  const questionShownAt = useRef(Date.now())
 
   const q = state.question
   const deadline = state.questionExpiresAtUtc ? Date.parse(state.questionExpiresAtUtc) : null
@@ -52,6 +57,7 @@ export default function GamePage() {
     setSendError(null)
     setImageFailed(false)
     timeoutSentFor.current = null
+    questionShownAt.current = Date.now()
   }, [q?.id])
 
   function scheduleAdvance(result: AnswerResult) {
@@ -60,6 +66,7 @@ export default function GamePage() {
 
   async function choose(option: AnswerOption) {
     if (phase.kind !== 'open' || inFlight.current || remainingMs <= 0) return
+    if (Date.now() - questionShownAt.current < QUESTION_INPUT_GUARD_MS) return // input guard, see constant above
     inFlight.current = true
     setPhase({ kind: 'sending', selected: option })
     setSendError(null)
