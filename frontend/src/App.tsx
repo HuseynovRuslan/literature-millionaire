@@ -4,6 +4,7 @@ import { GameProvider } from './game/GameContext'
 import HomePage from './pages/HomePage'
 import RegisterPage from './pages/RegisterPage'
 import GamePage from './pages/GamePage'
+import LeaderboardPage from './pages/LeaderboardPage'
 import AdminQuestionsPage from './pages/AdminQuestionsPage'
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="game" element={<GamePage />} />
+        <Route path="leaderboard/:campaignId" element={<LeaderboardPage />} />
 
         {/* Admin keeps the plain layout with navigation. */}
         <Route element={<Layout />}>

@@ -32,7 +32,7 @@ type CampaignLoad =
   | { kind: 'error'; error: CampaignErrorKind }
 
 const CTA =
-  'tap flex min-h-[7rem] w-full items-center justify-center gap-4 rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.06em]'
+  'tap flex min-h-[clamp(4.5rem,10vh,7rem)] w-full items-center justify-center gap-4 rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.06em]'
 
 /** Gold-framed cover with buta corners. Real image when it loads; otherwise a designed paper placeholder. */
 function BookCover({ book }: { book: CampaignBook }) {
@@ -200,14 +200,24 @@ export default function HomePage() {
                 <p className="text-center text-[clamp(0.95rem,1.2vw,1.25rem)] text-[var(--p-ink-2)] lg:text-left">
                   Başlanmış quiz var: sual {activeGame.questionNumber} / {activeGame.totalQuestions}. Davam etsəniz, vaxt sıfırlanmır.
                 </p>
-                <button type="button" onClick={goRegister} className="tap paper-ghost min-h-[4rem] rounded-full px-8 text-[clamp(1rem,1.3vw,1.3rem)] font-medium">
-                  Əvvəlkini ləğv et və yeni quiz başlat
-                </button>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(1rem,1.3vw,1.3rem)] font-semibold">
+                    LİDER CƏDVƏLİ
+                  </button>
+                  <button type="button" onClick={goRegister} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(0.9rem,1.15vw,1.15rem)] font-medium">
+                    Əvvəlkini ləğv et və yeni quiz başlat
+                  </button>
+                </div>
               </>
             ) : (
-              <button type="button" onClick={goRegister} className={`${CTA} paper-cta`}>
-                QUİZƏ BAŞLA
-              </button>
+              <>
+                <button type="button" onClick={goRegister} className={`${CTA} paper-cta`}>
+                  QUİZƏ BAŞLA
+                </button>
+                <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-8 font-display text-[clamp(1.2rem,1.8vw,1.8rem)] font-semibold tracking-[0.04em]">
+                  LİDER CƏDVƏLİ
+                </button>
+              </>
             )}
           </div>
         </div>

@@ -41,6 +41,9 @@ export interface StartGameInput {
 
 /** Final outcome, computed by the backend. rewardTitle is present only when passed. */
 export interface QuizResult {
+  /** Campaign and rank are authoritative server values; the frontend never derives either one. */
+  campaignId: number
+  leaderboardPosition: number | null
   correctAnswers: number
   totalQuestions: number
   passingScore: number

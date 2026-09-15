@@ -1,9 +1,12 @@
-import { startTransition } from 'react'
+import { startTransition, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import LeaderboardRankBadge from '../components/LeaderboardRankBadge'
 import BrandMark from '../components/national/BrandMark'
 import CarpetFrame from '../components/national/CarpetFrame'
 import { Buta, ButaRule, Octagram } from '../components/national/Ornaments'
 import { useGame } from '../game/GameContext'
+import { useLeaderboard, type LeaderboardLoad } from '../hooks/useLeaderboard'
+import { formatRank } from '../utils/leaderboard'
 
 /** Open book, outline only: the "read it again" symbol for a failed quiz. */
 function OpenBook({ className = '' }: { className?: string }) {
@@ -18,29 +21,79 @@ function OpenBook({ className = '' }: { className?: string }) {
   )
 }
 
-/** Final screen shown inside /game once the quiz has ended. Visual only: all values come from state.result. */
+function TopFive({ load, retry }: { load: LeaderboardLoad; retry: () => void }) {
+  return (
+    <section className="relative flex min-h-0 flex-col rounded-xl border-[3px] border-[var(--p-gold)] bg-white px-[clamp(1rem,2.2vw,2rem)] py-[clamp(1rem,2vh,1.6rem)] shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]" aria-labelledby="top-five-title">
+      <div className="flex items-center justify-center gap-3">
+        <Octagram className="h-9 w-9" inner={false} />
+        <div className="text-center">
+          <p className="text-xs font-semibold tracking-[0.16em] text-[var(--p-ink-2)]">KAMPANİYA NƏTİCƏLƏRİ</p>
+          <h2 id="top-five-title" className="font-display text-[clamp(1.8rem,3vw,3rem)] font-bold leading-none text-[var(--p-burgundy)]">İlk beşlik</h2>
+        </div>
+      </div>
+      <ButaRule className="my-[clamp(0.5rem,1.2vh,1rem)] w-full" />
+
+      {load.kind === 'idle' && (
+        <div className="flex min-h-0 flex-1 items-center justify-center text-center">
+          <p className="font-display text-[clamp(1.35rem,2vw,2rem)] font-semibold text-[var(--p-indigo)]">Lider cədvəli hazırda əlçatan deyil</p>
+        </div>
+      )}
+
+      {load.kind === 'loading' && (
+        <div role="status" aria-live="polite" className="flex min-h-0 flex-1 flex-col justify-center gap-3">
+          <p className="text-center font-medium text-[var(--p-ink-2)]">Lider cədvəli yüklənir…</p>
+          {[1, 2, 3, 4, 5].map((row) => <span key={row} aria-hidden className="h-11 animate-pulse rounded-xl bg-[var(--p-paper-2)] motion-reduce:animate-none" />)}
+        </div>
+      )}
+
+      {load.kind === 'error' && (
+        <div role="alert" className="flex min-h-0 flex-1 flex-col items-center justify-center text-center">
+          <p className="font-display text-[clamp(1.35rem,2vw,2rem)] font-semibold text-[var(--p-indigo)]">Lider cədvəlini yükləmək mümkün olmadı</p>
+          <button type="button" onClick={retry} className="tap paper-ghost mt-5 min-h-[4.5rem] rounded-full px-8 font-semibold">Yenidən yoxla</button>
+        </div>
+      )}
+
+      {load.kind === 'ready' && load.data.entries.length === 0 && (
+        <div className="flex min-h-0 flex-1 items-center justify-center text-center">
+          <p className="font-display text-[clamp(1.35rem,2vw,2rem)] font-semibold text-[var(--p-indigo)]">Hələ tamamlanmış nəticə yoxdur</p>
+        </div>
+      )}
+
+      {load.kind === 'ready' && load.data.entries.length > 0 && (
+        <ol className="flex min-h-0 flex-1 flex-col justify-center gap-[clamp(0.35rem,0.8vh,0.65rem)]" aria-label="İlk beş iştirakçı">
+          {load.data.entries.map((entry) => (
+            <li key={entry.rank} className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-[var(--p-line)] bg-[var(--p-paper)] px-3 py-2">
+              <LeaderboardRankBadge rank={entry.rank} compact />
+              <span className="min-w-0 truncate font-semibold text-[var(--p-ink)]" title={entry.displayName}>{entry.displayName}</span>
+              <span className="text-right text-sm tabular-nums text-[var(--p-ink-2)]">
+                <strong className="block text-base text-[var(--p-burgundy)]">{entry.pointsEarned}/{entry.maxPoints} xal</strong>
+                {entry.correctAnswers}/{entry.totalQuestions} düzgün
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  )
+}
+
+/** Final screen shown inside /game once the quiz has ended. All score and position values come from state.result. */
 export default function GameResult() {
   const navigate = useNavigate()
   const { state, reset, error } = useGame()
-  const starting = state.status === 'starting'
   const r = state.result
+  const campaignId = r && Number.isSafeInteger(r.campaignId) && r.campaignId > 0 ? r.campaignId : null
+  const { load, retry } = useLeaderboard(campaignId, 5)
+  const navigationLocked = useRef(false)
+  const [navigating, setNavigating] = useState(false)
 
-  // Every quiz needs its own registration: clear this participant's state and go to /register,
-  // so the next visitor never plays on the previous participant's attempt.
-  // React Router applies the navigation inside a transition, i.e. after a plain reset() render;
-  // in between GamePage would see status "idle" and redirect to "/". Doing both inside one
-  // transition commits the idle state and the new location together.
-  function playAgain() {
+  function go(path: string, clearGame: boolean) {
+    if (navigationLocked.current) return
+    navigationLocked.current = true
+    setNavigating(true)
     startTransition(() => {
-      reset()
-      navigate('/register')
-    })
-  }
-
-  function goHome() {
-    startTransition(() => {
-      reset()
-      navigate('/')
+      if (clearGame) reset()
+      navigate(path)
     })
   }
 
@@ -54,87 +107,53 @@ export default function GameResult() {
     <main className="kiosk paper flex flex-col" data-result={passed ? 'passed' : 'failed'}>
       <CarpetFrame />
       <div
-        className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center"
-        style={{ padding: 'calc(var(--frame) + 0.8rem) calc(var(--frame) + 2rem) calc(var(--frame) + 4.2rem)' }}
+        className="relative z-0 mx-auto flex min-h-0 w-full max-w-[112rem] flex-1 flex-col"
+        style={{ padding: 'calc(var(--frame) + 0.65rem) calc(var(--frame) + 1.2rem)' }}
       >
-        <section className="rise relative w-full max-w-[64rem]">
-          <Buta className="absolute -left-3 -top-4 z-10 h-12 w-9" flip />
-          <Buta className="absolute -right-3 -top-4 z-10 h-12 w-9" />
-          <Buta className="absolute -bottom-4 -left-3 z-10 h-12 w-9 rotate-180" />
-          <Buta className="absolute -bottom-4 -right-3 z-10 h-12 w-9 rotate-180" flip />
-
-          <div className="flex flex-col items-center rounded-xl border-[3px] border-[var(--p-gold)] bg-white px-[clamp(1.5rem,4vw,4rem)] py-[clamp(1.2rem,2.6vh,2.4rem)] text-center shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]">
-            {passed ? (
-              <Octagram className="h-[clamp(4rem,7vh,5.5rem)] w-[clamp(4rem,7vh,5.5rem)]" />
-            ) : (
-              <OpenBook className="h-[clamp(3.6rem,6.5vh,5rem)] w-auto" />
-            )}
-            <h1 className={`mt-2 font-display text-[clamp(2.6rem,6vw,5.6rem)] font-bold leading-none ${passed ? 'text-[var(--p-burgundy)]' : 'text-[var(--p-indigo)]'}`}>
-              {title}
-            </h1>
-            <p className="mt-2 max-w-[40ch] text-[clamp(1.05rem,1.5vw,1.55rem)] leading-relaxed text-[var(--p-ink-2)]">{line}</p>
-
-            <ButaRule className="my-[clamp(0.6rem,1.6vh,1.4rem)] w-full max-w-[30rem]" />
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,1.1fr)] lg:gap-5">
+          <section className="rise relative flex min-h-0 flex-col items-center justify-center rounded-xl border-[3px] border-[var(--p-gold)] bg-white px-[clamp(1rem,2.4vw,2.4rem)] py-[clamp(0.8rem,1.8vh,1.6rem)] text-center shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]">
+            <Buta className="absolute -left-3 -top-4 z-10 h-12 w-9" flip />
+            <Buta className="absolute -right-3 -top-4 z-10 h-12 w-9" />
+            {passed ? <Octagram className="h-[clamp(3rem,5.5vh,4.5rem)] w-[clamp(3rem,5.5vh,4.5rem)]" /> : <OpenBook className="h-[clamp(2.8rem,5vh,4rem)] w-auto" />}
+            <h1 className={`mt-1 font-display text-[clamp(2.1rem,4.2vw,4.4rem)] font-bold leading-none ${passed ? 'text-[var(--p-burgundy)]' : 'text-[var(--p-indigo)]'}`}>{title}</h1>
+            <p className="mt-1 max-w-[40ch] text-[clamp(0.9rem,1.25vw,1.25rem)] leading-snug text-[var(--p-ink-2)]">{line}</p>
+            <ButaRule className="my-[clamp(0.35rem,1vh,0.8rem)] w-full max-w-[24rem]" />
 
             {r && (
               <>
-                <p className="text-[clamp(0.95rem,1.3vw,1.3rem)] font-medium text-[var(--p-ink-2)]">Düzgün cavab</p>
-                <p
-                  className={`mt-1 font-display text-[clamp(3.6rem,8vw,8rem)] font-bold leading-none tabular-nums ${passed ? 'text-[var(--p-burgundy)]' : 'text-[var(--p-indigo)]'}`}
-                  data-testid="score"
-                >
-                  {r.correctAnswers}
-                  <span className="text-[0.5em] text-[var(--p-ink-2)]"> / {r.totalQuestions}</span>
+                <p className="text-sm font-medium text-[var(--p-ink-2)]">Düzgün cavab</p>
+                <p className={`font-display text-[clamp(3rem,6.5vw,6rem)] font-bold leading-none tabular-nums ${passed ? 'text-[var(--p-burgundy)]' : 'text-[var(--p-indigo)]'}`} data-testid="score">
+                  {r.correctAnswers}<span className="text-[0.48em] text-[var(--p-ink-2)]"> / {r.totalQuestions}</span>
                 </p>
-
-                <p className="mt-3 rounded-full border border-[var(--p-line)] bg-[var(--p-paper)] px-6 py-2 text-[clamp(1.05rem,1.6vw,1.65rem)] text-[var(--p-ink)]" data-testid="points">
+                <p className="mt-2 rounded-full border border-[var(--p-line)] bg-[var(--p-paper)] px-5 py-1.5 text-[clamp(0.95rem,1.35vw,1.3rem)] text-[var(--p-ink)]" data-testid="points">
                   Toplanan xal: <span className="font-semibold tabular-nums text-[var(--p-burgundy)]">{r.pointsEarned}</span> / {r.maxPoints}
                 </p>
-                <p className="mt-2 text-[clamp(0.95rem,1.3vw,1.3rem)] text-[var(--p-ink-2)]">
-                  Keçid üçün ən azı {r.passingScore} / {r.totalQuestions} düzgün cavab lazımdır.
+                <p className="mt-1.5 text-[clamp(0.82rem,1.05vw,1.05rem)] text-[var(--p-ink-2)]">Keçid üçün ən azı {r.passingScore} / {r.totalQuestions} düzgün cavab lazımdır.</p>
+                <p className="mt-2 font-semibold text-[clamp(0.95rem,1.25vw,1.2rem)] text-[var(--p-indigo)]" data-testid="leaderboard-position">
+                  {r.leaderboardPosition === null
+                    ? 'Lider cədvəlində mövqe hazırda hesablanmadı'
+                    : `Lider cədvəlində yeriniz: ${formatRank(r.leaderboardPosition)} yer`}
                 </p>
-
                 {passed && r.rewardTitle && (
-                  <p className="mt-4 rounded-2xl border-2 border-[var(--p-gold)] bg-[var(--p-paper)] px-8 py-3 font-display text-[clamp(1.3rem,2vw,2rem)] font-semibold text-[var(--p-burgundy)]" data-testid="reward">
-                    Mükafat: {r.rewardTitle}
-                  </p>
+                  <p className="mt-2 rounded-2xl border-2 border-[var(--p-gold)] bg-[var(--p-paper)] px-6 py-2 font-display text-[clamp(1.05rem,1.55vw,1.55rem)] font-semibold text-[var(--p-burgundy)]" data-testid="reward">Mükafat: {r.rewardTitle}</p>
                 )}
               </>
             )}
 
-            <div className="mt-[clamp(1rem,2.6vh,2.2rem)] flex w-full max-w-[44rem] flex-col gap-4 sm:flex-row">
-              <button
-                type="button"
-                onClick={playAgain}
-                disabled={starting}
-                aria-busy={starting}
-                className="tap paper-cta flex min-h-[6rem] flex-1 items-center justify-center rounded-full font-display text-[clamp(1.6rem,2.6vw,2.6rem)] font-bold tracking-[0.04em]"
-              >
-                {starting ? 'Oyun hazırlanır' : 'Yenidən oyna'}
-              </button>
-              <button
-                type="button"
-                onClick={goHome}
-                disabled={starting}
-                className="tap paper-ghost flex min-h-[6rem] flex-1 items-center justify-center rounded-full font-display text-[clamp(1.6rem,2.6vw,2.6rem)] font-semibold disabled:opacity-60"
-              >
-                Ana səhifə
-              </button>
-            </div>
+            {error && <p role="alert" className="mt-2 rounded-xl border-2 border-[#b32a31] bg-white px-4 py-2 text-sm text-[var(--p-ink)]">{error}</p>}
+          </section>
 
-            {error && (
-              <p role="alert" className="mt-4 rounded-2xl border-2 border-[#b32a31] bg-white px-5 py-3 text-[clamp(1rem,1.3vw,1.3rem)] text-[var(--p-ink)]">
-                {error}
-              </p>
-            )}
-          </div>
-        </section>
+          <TopFive load={load} retry={retry} />
+        </div>
+
+        <nav aria-label="Nəticə seçimləri" className="mx-auto mt-4 grid w-full max-w-[76rem] grid-cols-1 gap-3 sm:grid-cols-3">
+          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.03em] disabled:opacity-60">YENİDƏN OYNA</button>
+          <button type="button" onClick={() => campaignId && go(`/leaderboard/${campaignId}`, false)} disabled={navigating || campaignId === null} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.05rem,1.65vw,1.65rem)] font-bold tracking-[0.02em] disabled:opacity-60">TAM LİDER CƏDVƏLİ</button>
+          <button type="button" onClick={() => go('/', true)} disabled={navigating} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-semibold disabled:opacity-60">ANA SƏHİFƏ</button>
+        </nav>
       </div>
 
-      {/* Brand mark only on wide screens: at 1024x768 the card fills the height and the mark would touch its frame. */}
-      <div className="absolute z-20 hidden xl:block" style={{ right: 'calc(var(--frame) + 1rem)', bottom: 'calc(var(--frame) + 0.7rem)' }}>
-        <BrandMark />
-      </div>
+      <div className="absolute z-20 hidden xl:block" style={{ right: 'calc(var(--frame) + 1rem)', bottom: 'calc(var(--frame) + 0.7rem)' }}><BrandMark /></div>
     </main>
   )
 }
