@@ -79,7 +79,7 @@ var app = builder.Build();
 // against a database that hasn't been migrated yet.
 if (args.Contains("--migrate-only"))
 {
-    var migrated = await MigrateAndSeedAsync(app.Services, throwOnFailure: false);
+    var migrated = await MigrateAndSeedAsync(app.Services);
     return migrated ? 0 : 1;
 }
 
@@ -90,7 +90,7 @@ if (args.Contains("--migrate-only"))
 
 if (app.Environment.IsDevelopment())
 {
-    await MigrateAndSeedAsync(app.Services, throwOnFailure: false);
+    await MigrateAndSeedAsync(app.Services);
 }
 
 // --- Pipeline ---------------------------------------------------------------
@@ -115,11 +115,11 @@ app.MapGet("/health", async (ApplicationDbContext db, CancellationToken ct) =>
     {
         return await db.Database.CanConnectAsync(ct)
             ? Results.Ok(new { status = "healthy" })
-            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            : Results.Json(new { status = "unhealthy" }, statusCode: StatusCodes.Status503ServiceUnavailable);
     }
     catch (Exception)
     {
-        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        return Results.Json(new { status = "unhealthy" }, statusCode: StatusCodes.Status503ServiceUnavailable);
     }
 });
 
@@ -127,9 +127,10 @@ app.Run();
 return 0;
 
 // Shared by the Development auto-migrate convenience and the production `--migrate-only`
-// mode, so the two never drift. `throwOnFailure` lets a future caller opt into a hard crash;
-// both current callers pass false and instead observe the returned success flag.
-static async Task<bool> MigrateAndSeedAsync(IServiceProvider services, bool throwOnFailure)
+// mode, so the two never drift. Both callers only observe the returned success flag - one
+// logs nothing further (dev server still starts either way), the other maps it to the
+// process exit code.
+static async Task<bool> MigrateAndSeedAsync(IServiceProvider services)
 {
     using var scope = services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -141,13 +142,19 @@ static async Task<bool> MigrateAndSeedAsync(IServiceProvider services, bool thro
         await DbSeeder.SeedAsync(db);
         return true;
     }
-    catch (Exception ex)
+    catch (Exception ex) when (ex is not OperationCanceledException)
     {
-        logger.LogError(ex, "Database migration/seeding failed. Check the 'DefaultConnection' connection string.");
-        if (throwOnFailure)
-        {
-            throw;
-        }
+        // Sanitized, same as GameService's DatabaseFailure: PostgreSQL's own exception
+        // message/Detail/Where can quote row values, and this runs against the very
+        // database participant/phone data lives in, so the exception object itself is
+        // never passed to the logger - only its type and the safe, schema-level fields
+        // PostgresErrors extracts (SQLSTATE, and a constraint/index name we chose
+        // ourselves in the migration, never derived from row data).
+        var sqlState = PostgresErrors.GetSqlState(ex);
+        var constraintName = PostgresErrors.GetConstraintName(ex);
+        logger.LogError(
+            "Database failure during {Operation} (sql state {SqlState}, constraint {ConstraintName}, {ExceptionType} / {InnerExceptionType}).",
+            "migrate-and-seed", sqlState, constraintName, ex.GetType().Name, ex.GetBaseException().GetType().Name);
         return false;
     }
 }

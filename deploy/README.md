@@ -79,7 +79,7 @@ silently fill the VPS disk.
 ## 8. Health check
 
 ```bash
-curl -f http://127.0.0.1:${APP_HTTP_PORT:-8080}/health
+curl -f http://127.0.0.1:8080/health   # or your APP_HTTP_PORT from deploy/.env, if you changed it
 ```
 
 This reaches Nginx, which proxies to the API's `/health` endpoint (a real PostgreSQL
@@ -118,12 +118,12 @@ need to restore:
 ```bash
 # ⚠ DESTRUCTIVE. This replaces the CURRENT contents of the application database. Take a
 # fresh backup-postgres.sh backup first if you might need to undo this.
-docker compose --env-file deploy/.env -f deploy/compose.yml exec -T \
-  -e PGPASSWORD="$APP_DB_PASSWORD" db \
-  pg_restore --clean --if-exists --no-owner \
-    --username "$APP_DB_USER" --dbname "$APP_DB_NAME" \
+docker compose --env-file deploy/.env -f deploy/compose.yml exec -T db \
+  sh -ec 'PGPASSWORD="$APP_DB_PASSWORD" pg_restore --clean --if-exists --no-owner --username "$APP_DB_USER" --dbname "$APP_DB_NAME"' \
   < deploy/backups/the-file-you-want.dump
 ```
+
+`$APP_DB_USER`/`$APP_DB_NAME`/`$APP_DB_PASSWORD` inside the single-quoted `sh -ec '...'` script are expanded by a shell *inside the `db` container*, against the environment Compose already gave that container from `deploy/.env` - not by your host shell (which never has those variables unless you explicitly exported them yourself, and the command above does not rely on that). The password is never written to your terminal or shell history.
 
 Stop the `api` service first if you want to be certain nothing writes to the database
 while you restore.
