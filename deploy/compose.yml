@@ -4,18 +4,26 @@
 # (or `cd deploy && docker compose ...` - compose.yml resolves build contexts relative to
 # its own location). See deploy/README.md for the full walkthrough.
 #
-# TLS/domain/host reverse proxy is Task 11B.2's job. This file only exposes the frontend on
-# 127.0.0.1 for local verification; a host-level reverse proxy will sit in front of that in
-# 11B.2 and terminate HTTPS there.
+# Public traffic reaches this stack through an existing reverse proxy that runs in its own
+# container on the VPS (the QRLog stack's Caddy, which terminates HTTPS). That proxy joins the
+# external "shared-proxy" network and forwards to literature-millionaire-web:80. Nothing in this
+# file or in the images names a domain or an IP.
 
 name: literature-millionaire
 
 networks:
-  # The only network any service is on. db/migrate/api publish no host port at all - they
-  # are reachable only from other containers on this network. Only "web" additionally
-  # publishes a host port (127.0.0.1 only - see its `ports:` below).
+  # Private to this project. db, migrate and api are ONLY on this network and publish no host
+  # port at all - nothing outside this stack can reach them.
   internal:
     driver: bridge
+
+  # Pre-existing network owned by the VPS's reverse proxy (created by another stack, never by
+  # this one - `external: true` makes Compose refuse to start instead of creating it). Only
+  # "web" joins it, under a project-unique alias, so the proxy can reach Nginx while the API
+  # and the database stay invisible to every other project on that shared network.
+  shared-proxy:
+    external: true
+    name: ${SHARED_PROXY_NETWORK:?SHARED_PROXY_NETWORK must be set in deploy/.env}
 
 volumes:
   postgres-data:
@@ -84,7 +92,12 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-    networks: [internal]
+    networks:
+      internal:
+        # Project-unique name the web container's Nginx proxies to. A generic "api" could
+        # collide with another project's container if this stack ever shares a network.
+        aliases:
+          - literature-millionaire-api
     # No `ports:` here on purpose - the API is reachable only via the "web" (Nginx)
     # container's allowlisted proxy, never directly from the host or the internet.
     healthcheck:
@@ -104,10 +117,15 @@ services:
     depends_on:
       api:
         condition: service_healthy
-    networks: [internal]
+    networks:
+      internal: {}
+      shared-proxy:
+        # The reverse proxy's upstream: literature-millionaire-web:80.
+        aliases:
+          - literature-millionaire-web
     ports:
-      # Local verification / the eventual 11B.2 host reverse proxy target only - bound to
-      # loopback, never 0.0.0.0.
+      # Local verification and emergency diagnostics on the VPS itself only - bound to
+      # loopback, never 0.0.0.0. Public traffic arrives over shared-proxy, not this port.
       - "127.0.0.1:${APP_HTTP_PORT:-8080}:80"
     restart: unless-stopped
     logging: *default-logging

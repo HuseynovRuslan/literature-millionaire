@@ -5,8 +5,8 @@ proxying a small allowlist of API routes to the ASP.NET Core backend, PostgreSQL
 persistent volume, and a one-shot migration step. It does **not** connect to any real
 server by itself and ships no real credentials.
 
-TLS, a domain name and a host-level reverse proxy in front of this stack are
-**Task 11B.2's job**, not this one - see the note at the end of this file.
+Public HTTPS comes from a reverse proxy that already runs on the VPS in its own container
+(the QRLog stack's Caddy), reached over a shared Docker network - see §17 and §18.
 
 ## 1. Prerequisites
 
@@ -38,6 +38,10 @@ docker compose --env-file deploy/.env -f deploy/compose.yml config
 If any required variable in `deploy/.env` is missing or empty, this fails immediately with
 a clear message naming the variable (every secret in `compose.yml` uses the
 `${VARIABLE:?error message}` syntax) - it does not silently start with an empty password.
+
+`SHARED_PROXY_NETWORK` must name a network that **already exists** (on the production VPS:
+`attendanceqr_default`). Compose never creates it; check first with
+`docker network inspect attendanceqr_default`.
 
 ## 4. Build
 
@@ -168,11 +172,16 @@ treat any other production credential rotation.
 
 ## 15. Only Nginx is public
 
-Only the `web` (Nginx) service publishes a host port
-(`127.0.0.1:${APP_HTTP_PORT:-8080} → 80`). `db`, `migrate` and `api` publish **no** host
-port at all - they are reachable only from other containers on the `internal` Docker
-network. Nothing about PostgreSQL or the raw API is ever exposed to the internet or even
-to the host's other processes directly.
+Only the `web` (Nginx) service is reachable from outside this stack, and only two ways:
+
+- over the shared reverse-proxy network as `literature-millionaire-web:80` (§17), and
+- on the host's loopback, `127.0.0.1:${APP_HTTP_PORT:-8080} → 80`, for verification and
+  diagnostics on the server itself.
+
+`db`, `migrate` and `api` publish **no** host port and are **not** on the shared network -
+they are reachable only from other containers of this project on the `internal` network.
+Nothing about PostgreSQL or the raw API is exposed to the internet, to other projects on
+the VPS, or to the host's other processes.
 
 ## 16. Admin/CRUD endpoints are blocked at Nginx, not just "not linked to"
 
@@ -198,9 +207,38 @@ directly (i.e. anyone with shell access to the VPS) can still reach the full API
 present this as a security boundary beyond "the public internet only sees the kiosk
 routes".
 
-## 17. TLS and the domain are Task 11B.2
+## 17. Shared reverse-proxy network
 
-This compose stack intentionally stops at "Nginx reachable on `127.0.0.1:8080` on the VPS
-itself". A host-level reverse proxy (Task 11B.2) will sit in front of that port, terminate
-HTTPS for the real domain, and forward to it - nothing here assumes or hardcodes a
-domain/IP, and no certificate/key handling exists in this task.
+The production VPS has no host Nginx or Caddy. Ports 80/443 belong to the Caddy container of
+the QRLog stack, which issues and renews certificates itself. A proxy inside a container
+cannot reach `127.0.0.1` on the host, so Caddy reaches this project over a Docker network it
+is already on:
+
+| | |
+|---|---|
+| `SHARED_PROXY_NETWORK` on the VPS | `attendanceqr_default` (declared `external: true` - must already exist) |
+| Caddy upstream for this project | `literature-millionaire-web:80` |
+| On the shared network | `web` only |
+| On the `internal` network only | `api` (alias `literature-millionaire-api`), `migrate`, `db` |
+
+Both aliases are project-unique on purpose. The shared network already carries several
+containers named generically (`web`, `db`, `app`), and a name collision there once made
+another project connect to the wrong database. The web container's Nginx therefore proxies
+to `literature-millionaire-api`, which exists only on `internal`, never to a bare `api`.
+
+Compose also registers each service's own name (`web`) as an alias on every network it
+joins, the same as the other projects already on that network. Nothing should ever target
+that generic name - only `literature-millionaire-web`.
+
+## 18. Public domain and where the Caddy config lives
+
+The public domain for this project is **`book.qrlog.az`**. It is deliberately **not** in the
+Docker images, the frontend bundle or `compose.yml`: the frontend calls same-origin `/api`,
+so the same images work on any hostname. The domain appears only in DNS and in the Caddy
+site block.
+
+That site block does **not** belong to this repository. The Caddyfile is tracked in the
+**QRLog repository** and bind-mounted into its Caddy container, and QRLog's deploy resets its
+working tree - a block typed into the Caddyfile on the server is silently deleted by the next
+QRLog deploy. Every Caddy change for this project must therefore be committed to the QRLog
+repository, validated, and only then reloaded; never edited in place on the server.
