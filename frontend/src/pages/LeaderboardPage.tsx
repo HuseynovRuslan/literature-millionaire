@@ -1,9 +1,8 @@
-import { startTransition, useRef, useState } from 'react'
+import { startTransition, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import LeaderboardRankBadge from '../components/LeaderboardRankBadge'
-import CarpetFrame from '../components/national/CarpetFrame'
-import KioskBrand from '../components/national/KioskBrand'
-import { Buta, ButaRule } from '../components/national/Ornaments'
+import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
+import GameShowShell from '../components/home/GameShowShell'
+import RankMedal from '../components/home/RankMedal'
 import { useGame } from '../game/GameContext'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 
@@ -19,6 +18,18 @@ function formatDuration(seconds: number): string {
   const remainder = total % 60
   return `${minutes.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`
 }
+
+/** Centred message block inside the stage (loading, empty, error, not found). */
+function StageMessage({ children, role }: { children: ReactNode; role?: 'status' | 'alert' }) {
+  return (
+    <div role={role} aria-live={role === 'status' ? 'polite' : undefined} className="flex min-h-[clamp(16rem,42vh,28rem)] flex-col items-center justify-center px-6 text-center max-sm:min-h-[16rem] max-sm:px-2">
+      {children}
+    </div>
+  )
+}
+
+const MESSAGE_TITLE = 'font-display text-[clamp(1.8rem,3vw,3.2rem)] font-bold text-[#fbf6ec] max-sm:text-[1.6rem]'
+const MESSAGE_TEXT = 'mt-2 max-w-[40rem] text-[clamp(1.05rem,1.35vw,1.5rem)] text-[#d6deec] max-sm:text-[0.98rem]'
 
 export default function LeaderboardPage() {
   const { campaignId: routeCampaignId } = useParams()
@@ -42,94 +53,93 @@ export default function LeaderboardPage() {
   const invalidRoute = campaignId === null
 
   return (
-    <main className="kiosk kiosk-scroll paper flex flex-col">
-      <CarpetFrame />
-      <div className="relative z-0 mx-auto flex min-h-0 w-full max-w-[112rem] flex-1 flex-col max-sm:px-[calc(var(--frame)_+_0.7rem)]! max-sm:pt-[calc(var(--frame)_+_0.6rem_+_var(--safe-top))]! max-sm:pb-[calc(var(--frame)_+_1rem_+_var(--safe-bottom))]!" style={{ padding: 'calc(var(--frame) + 0.7rem) calc(var(--frame) + 1.3rem)' }}>
-        <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 max-sm:grid-cols-1 max-sm:gap-3">
-          <KioskBrand compact className="justify-self-start" />
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-3">
-              <Buta className="h-7 w-5" flip />
-              <p className="font-display text-[clamp(1rem,1.5vw,1.5rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
-              <Buta className="h-7 w-5" />
-            </div>
-            <h1 className="font-display text-[clamp(2.2rem,4.3vw,4.5rem)] font-bold leading-none text-[var(--p-indigo)]">Lider cədvəli</h1>
-            <ButaRule className="mx-auto mt-2 w-full max-w-[30rem]" />
-          </div>
-          <span aria-hidden className="max-sm:hidden" />
+    <GameShowShell>
+      <section
+        data-testid="leaderboard-stage"
+        aria-labelledby="leaderboard-title"
+        className="home-stage rise flex min-h-0 flex-col rounded-[clamp(1.2rem,1.6vw,2rem)] px-[clamp(1.2rem,2.8vw,3.6rem)] py-[clamp(0.9rem,2.2vh,2rem)] max-sm:rounded-2xl max-sm:px-3 max-sm:py-4"
+      >
+        <header className="px-[clamp(0rem,0.6vw,0.8rem)]">
+          <p className="text-[clamp(0.85rem,1vw,1.15rem)] font-semibold uppercase tracking-[0.16em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]">KAMPANİYA NƏTİCƏLƏRİ</p>
+          <h1 id="leaderboard-title" className="font-display text-[clamp(2.2rem,min(3.6vw,6.2vh),4.4rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.9rem]">Lider cədvəli</h1>
         </header>
 
-        <section className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden max-sm:flex-none rounded-xl border-[3px] border-[var(--p-gold)] bg-white p-2 shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]" aria-labelledby="leaderboard-table-title">
-          <h2 id="leaderboard-table-title" className="sr-only">İlk on iştirakçı</h2>
-
+        <div className="mt-[clamp(0.4rem,1.2vh,1rem)]">
           {invalidRoute && (
-            <div role="alert" className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
-              <p className="font-display text-[clamp(1.7rem,3vw,3rem)] font-bold text-[var(--p-indigo)]">Kampaniya ünvanı düzgün deyil</p>
-              <p className="mt-2 text-[var(--p-ink-2)]">Lider cədvəlini açmaq üçün etibarlı kampaniya seçin.</p>
-            </div>
+            <StageMessage role="alert">
+              <p className={MESSAGE_TITLE}>Kampaniya ünvanı düzgün deyil</p>
+              <p className={MESSAGE_TEXT}>Lider cədvəlini açmaq üçün etibarlı kampaniya seçin.</p>
+            </StageMessage>
           )}
 
           {!invalidRoute && load.kind === 'loading' && (
-            <div role="status" aria-live="polite" className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5">
-              <span className="spin inline-block h-12 w-12 rounded-full border-4 border-[var(--p-gold-light)] border-t-[var(--p-burgundy)]" aria-hidden />
-              <p className="font-display text-[clamp(1.4rem,2.4vw,2.4rem)] font-semibold text-[var(--p-burgundy)]">Lider cədvəli yüklənir…</p>
-            </div>
+            <StageMessage role="status">
+              <span className="spin inline-block h-12 w-12 rounded-full border-4 border-white/20 border-t-[var(--p-gold-light)]" aria-hidden />
+              <p className={`${MESSAGE_TITLE} mt-5`}>Lider cədvəli yüklənir…</p>
+            </StageMessage>
           )}
 
           {!invalidRoute && load.kind === 'error' && load.notFound && (
-            <div role="alert" className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
-              <p className="font-display text-[clamp(1.7rem,3vw,3rem)] font-bold text-[var(--p-indigo)]">Kampaniya tapılmadı</p>
-              <p className="mt-2 text-[var(--p-ink-2)]">Bu ünvanda lider cədvəli yoxdur. Ana səhifədən cari kampaniyanı açın.</p>
-            </div>
+            <StageMessage role="alert">
+              <p className={MESSAGE_TITLE}>Kampaniya tapılmadı</p>
+              <p className={MESSAGE_TEXT}>Bu ünvanda lider cədvəli yoxdur. Ana səhifədən cari kampaniyanı açın.</p>
+            </StageMessage>
           )}
 
           {!invalidRoute && load.kind === 'error' && !load.notFound && (
-            <div role="alert" className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
-              <p className="font-display text-[clamp(1.7rem,3vw,3rem)] font-bold text-[var(--p-indigo)]">Lider cədvəlini yükləmək mümkün olmadı</p>
-              <p className="mt-2 text-[var(--p-ink-2)]">Şəbəkə bağlantısını yoxlayın və yenidən cəhd edin.</p>
-              <button type="button" onClick={retry} className="tap paper-ghost mt-5 min-h-[4.5rem] rounded-full px-10 font-semibold">Yenidən yoxla</button>
-            </div>
+            <StageMessage role="alert">
+              <p className={MESSAGE_TITLE}>Lider cədvəlini yükləmək mümkün olmadı</p>
+              <p className={MESSAGE_TEXT}>Şəbəkə bağlantısını yoxlayın və yenidən cəhd edin.</p>
+              <button type="button" onClick={retry} className={`${SECONDARY_CTA} mt-5 min-h-[clamp(4.5rem,8vh,5.5rem)]! px-10`}>Yenidən yoxla</button>
+            </StageMessage>
           )}
 
           {!invalidRoute && load.kind === 'ready' && load.data.entries.length === 0 && (
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
-              <p className="font-display text-[clamp(1.7rem,3vw,3rem)] font-bold text-[var(--p-indigo)]">Hələ tamamlanmış nəticə yoxdur</p>
-              <p className="mt-2 text-[var(--p-ink-2)]">İlk tamamlanmış quiz nəticəsi burada görünəcək.</p>
-            </div>
+            <StageMessage>
+              <p className={MESSAGE_TITLE}>Hələ tamamlanmış nəticə yoxdur</p>
+              <p className={MESSAGE_TEXT}>İlk tamamlanmış quiz nəticəsi burada görünəcək.</p>
+            </StageMessage>
           )}
 
           {!invalidRoute && load.kind === 'ready' && load.data.entries.length > 0 && (
-            <table className="h-full w-full table-fixed border-separate border-spacing-y-1 text-left text-[clamp(0.78rem,1.15vw,1.1rem)] max-sm:text-[0.8rem] max-sm:[&_td]:px-1.5 max-sm:[&_th]:px-1.5" data-testid="leaderboard-table">
+            <table
+              className="w-full table-fixed border-separate border-spacing-y-[clamp(0.2rem,0.55vh,0.45rem)] text-left text-[clamp(1rem,min(1.3vw,2.3vh),1.5rem)] text-[#fbf6ec] max-sm:text-[0.82rem] max-sm:[&_td]:px-1.5 max-sm:[&_th]:px-1.5"
+              data-testid="leaderboard-table"
+            >
               <caption className="sr-only">Kampaniyanın ilk on iştirakçısı və nəticələri</caption>
               <thead>
-                <tr className="text-[var(--p-ink-2)]">
-                  <th scope="col" className="w-[15%] max-sm:w-[25%] px-3 py-1 font-semibold">Yer</th>
-                  <th scope="col" className="w-[35%] max-sm:w-[26%] px-3 py-1 font-semibold">İştirakçı</th>
-                  <th scope="col" className="w-[17%] max-sm:w-[14%] px-3 py-1 text-right font-semibold">Xal</th>
-                  <th scope="col" className="w-[20%] max-sm:w-[18%] px-3 py-1 text-right font-semibold">Düzgün cavab</th>
-                  <th scope="col" className="w-[13%] max-sm:w-[17%] px-3 py-1 text-right font-semibold">Müddət</th>
+                <tr className="text-[clamp(0.78rem,0.9vw,1rem)] uppercase tracking-[0.1em] text-[var(--p-gold-light)] max-sm:text-[0.66rem] max-sm:tracking-[0.02em]">
+                  <th scope="col" className="w-[12%] px-4 py-1 font-semibold max-sm:w-[17%]">Yer</th>
+                  <th scope="col" className="w-[40%] px-4 py-1 font-semibold max-sm:w-[31%]">İştirakçı</th>
+                  <th scope="col" className="w-[16%] px-4 py-1 text-right font-semibold max-sm:w-[16%]">Xal</th>
+                  <th scope="col" className="w-[17%] px-4 py-1 text-right font-semibold max-sm:w-[19%]">Düzgün cavab</th>
+                  <th scope="col" className="w-[15%] px-4 py-1 text-right font-semibold max-sm:w-[17%]">Müddət</th>
                 </tr>
               </thead>
               <tbody>
                 {load.data.entries.map((entry) => (
-                  <tr key={entry.rank} className="bg-[var(--p-paper)] text-[var(--p-ink)]">
-                    <th scope="row" className="rounded-l-xl px-3 py-1"><LeaderboardRankBadge rank={entry.rank} compact /></th>
-                    <td className="min-w-0 px-3 py-1 font-semibold"><span className="block truncate" title={entry.displayName}>{entry.displayName}</span></td>
-                    <td className="px-3 py-1 text-right font-semibold tabular-nums text-[var(--p-burgundy)]">{entry.pointsEarned}/{entry.maxPoints}</td>
-                    <td className="px-3 py-1 text-right tabular-nums">{entry.correctAnswers}/{entry.totalQuestions}</td>
-                    <td className="rounded-r-xl px-3 py-1 text-right font-medium tabular-nums text-[var(--p-indigo)]">{formatDuration(entry.durationSeconds)}</td>
+                  <tr key={entry.rank} className={entry.rank <= 3 ? 'bg-[rgba(243,215,126,0.1)]' : 'bg-white/[0.06]'}>
+                    <th scope="row" className="h-[clamp(2rem,4.2vh,3.6rem)] rounded-l-xl px-4 py-0.5 max-sm:h-11">
+                      <RankMedal rank={entry.rank} compact />
+                    </th>
+                    <td className="px-4 py-0.5 font-semibold">
+                      <span className="block [overflow-wrap:anywhere]" data-testid="participant-name">{entry.displayName}</span>
+                    </td>
+                    <td className="px-4 py-0.5 text-right font-display font-bold tabular-nums text-[var(--p-gold-light)]">{entry.pointsEarned}/{entry.maxPoints}</td>
+                    <td className="px-4 py-0.5 text-right tabular-nums">{entry.correctAnswers}/{entry.totalQuestions}</td>
+                    <td className="rounded-r-xl px-4 py-0.5 text-right tabular-nums text-[#c9d3e6]">{formatDuration(entry.durationSeconds)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
-        </section>
+        </div>
+      </section>
 
-        <nav aria-label="Lider cədvəli seçimləri" className="mx-auto mt-3 grid w-full max-w-[54rem] shrink-0 grid-cols-2 gap-4 max-sm:grid-cols-1 max-sm:gap-3">
-          <button type="button" onClick={() => go('/', false)} disabled={navigating} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-6 max-sm:min-h-14 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-semibold disabled:opacity-60">ANA SƏHİFƏ</button>
-          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-6 max-sm:min-h-14 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.04em] disabled:opacity-60">NÖVBƏTİ İŞTİRAKÇI</button>
-        </nav>
-      </div>
-    </main>
+      <nav aria-label="Lider cədvəli seçimləri" data-testid="leaderboard-actions" className="rise flex w-full max-w-[78rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.5rem)] self-center [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
+        <button type="button" onClick={() => go('/register', true)} disabled={navigating} className={`${PRIMARY_CTA} min-h-[clamp(4.5rem,9.5vh,6.5rem)]! flex-[1.5] text-[clamp(1.5rem,2.3vw,2.8rem)]! disabled:opacity-60 max-sm:min-h-[3.75rem]! max-sm:text-[1.35rem]!`} data-testid="leaderboard-next">NÖVBƏTİ İŞTİRAKÇI</button>
+        <button type="button" onClick={() => go('/', false)} disabled={navigating} className={`${SECONDARY_CTA} min-h-[clamp(4.5rem,9.5vh,6.5rem)]! flex-1 disabled:opacity-60 max-sm:min-h-[3.25rem]!`} data-testid="leaderboard-home">ANA SƏHİFƏ</button>
+      </nav>
+    </GameShowShell>
   )
 }
