@@ -1,0 +1,20 @@
+# Build context for frontend/Dockerfile.
+
+node_modules
+dist
+
+# Not needed to build dist/: raw source images (pre-processing material, not served) and
+# throwaway dev-only tooling.
+question-images-src
+tools
+
+# Local-only config and secrets - never baked into an image layer.
+.env
+.env.local
+*.log
+
+.git
+.gitignore
+.dockerignore
+Dockerfile
+README.md

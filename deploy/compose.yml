@@ -1,0 +1,113 @@
+# Production deployment stack for the "Ayın kitabı" kiosk.
+# Run everything from here with:
+#   docker compose --env-file deploy/.env -f deploy/compose.yml <command>
+# (or `cd deploy && docker compose ...` - compose.yml resolves build contexts relative to
+# its own location). See deploy/README.md for the full walkthrough.
+#
+# TLS/domain/host reverse proxy is Task 11B.2's job. This file only exposes the frontend on
+# 127.0.0.1 for local verification; a host-level reverse proxy will sit in front of that in
+# 11B.2 and terminate HTTPS there.
+
+name: literature-millionaire
+
+networks:
+  # The only network any service is on. db/migrate/api publish no host port at all - they
+  # are reachable only from other containers on this network. Only "web" additionally
+  # publishes a host port (127.0.0.1 only - see its `ports:` below).
+  internal:
+    driver: bridge
+
+volumes:
+  postgres-data:
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      # Admin/bootstrap credential, used only once by the init script below to create the
+      # application role and database - the app itself never connects as this user.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in deploy/.env}
+      # Read by deploy/db/init/01-init-app-role-and-db.sh on first volume creation.
+      APP_DB_NAME: ${APP_DB_NAME:?APP_DB_NAME must be set in deploy/.env}
+      APP_DB_USER: ${APP_DB_USER:?APP_DB_USER must be set in deploy/.env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD must be set in deploy/.env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    networks: [internal]
+    # No `ports:` here on purpose - PostgreSQL is never reachable from the host, only from
+    # other containers on the internal network.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    logging: *default-logging
+
+  # One-shot: applies EF Core migrations and runs the seed, then exits. The "api" service
+  # below only starts once this has exited 0 (depends_on: service_completed_successfully),
+  # so the production HTTP server never comes up against an unmigrated database.
+  migrate:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    image: literature-millionaire-api:${IMAGE_TAG:-local}
+    command: ["--migrate-only"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >-
+        Host=db;Port=5432;Database=${APP_DB_NAME:?APP_DB_NAME must be set in deploy/.env};Username=${APP_DB_USER:?APP_DB_USER must be set in deploy/.env};Password=${APP_DB_PASSWORD:?APP_DB_PASSWORD must be set in deploy/.env}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+    restart: "no"
+    logging: *default-logging
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    image: literature-millionaire-api:${IMAGE_TAG:-local}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >-
+        Host=db;Port=5432;Database=${APP_DB_NAME:?APP_DB_NAME must be set in deploy/.env};Username=${APP_DB_USER:?APP_DB_USER must be set in deploy/.env};Password=${APP_DB_PASSWORD:?APP_DB_PASSWORD must be set in deploy/.env}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks: [internal]
+    # No `ports:` here on purpose - the API is reachable only via the "web" (Nginx)
+    # container's allowlisted proxy, never directly from the host or the internet.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    logging: *default-logging
+
+  web:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    image: literature-millionaire-web:${IMAGE_TAG:-local}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [internal]
+    ports:
+      # Local verification / the eventual 11B.2 host reverse proxy target only - bound to
+      # loopback, never 0.0.0.0.
+      - "127.0.0.1:${APP_HTTP_PORT:-8080}:80"
+    restart: unless-stopped
+    logging: *default-logging

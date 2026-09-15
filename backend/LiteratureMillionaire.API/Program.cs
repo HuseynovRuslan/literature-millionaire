@@ -71,23 +71,26 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// --- Production one-shot migration mode --------------------------------------
+//
+// `dotnet LiteratureMillionaire.API.dll --migrate-only` runs the migration/seed step and
+// exits without starting Kestrel, so a Compose `migrate` service can complete (or fail)
+// before the `api` service is allowed to start - the production HTTP server never comes up
+// against a database that hasn't been migrated yet.
+if (args.Contains("--migrate-only"))
+{
+    var migrated = await MigrateAndSeedAsync(app.Services, throwOnFailure: false);
+    return migrated ? 0 : 1;
+}
+
 // --- Database: apply migrations + seed (development convenience) ------------
+//
+// Production uses the explicit `--migrate-only` step above instead; this block only ever
+// runs in Development, where a failure is logged (not fatal) so the dev server still starts.
 
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-    try
-    {
-        await db.Database.MigrateAsync();
-        await DbSeeder.SeedAsync(db);
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Database migration/seeding failed. Check the 'DefaultConnection' connection string.");
-    }
+    await MigrateAndSeedAsync(app.Services, throwOnFailure: false);
 }
 
 // --- Pipeline ---------------------------------------------------------------
@@ -103,6 +106,50 @@ app.UseCors(FrontendCorsPolicy);
 app.UseAuthorization();
 app.MapControllers();
 
+// Liveness/readiness probe for the container orchestrator: DB reachability only, nothing else.
+// No exception, connection string, host or credential ever reaches the response - only a
+// stable {"status": "..."} body, so this is safe to expose without authentication.
+app.MapGet("/health", async (ApplicationDbContext db, CancellationToken ct) =>
+{
+    try
+    {
+        return await db.Database.CanConnectAsync(ct)
+            ? Results.Ok(new { status = "healthy" })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (Exception)
+    {
+        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+});
+
 app.Run();
+return 0;
+
+// Shared by the Development auto-migrate convenience and the production `--migrate-only`
+// mode, so the two never drift. `throwOnFailure` lets a future caller opt into a hard crash;
+// both current callers pass false and instead observe the returned success flag.
+static async Task<bool> MigrateAndSeedAsync(IServiceProvider services, bool throwOnFailure)
+{
+    using var scope = services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        await db.Database.MigrateAsync();
+        await DbSeeder.SeedAsync(db);
+        return true;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Database migration/seeding failed. Check the 'DefaultConnection' connection string.");
+        if (throwOnFailure)
+        {
+            throw;
+        }
+        return false;
+    }
+}
 
 public partial class Program;

@@ -1,0 +1,10 @@
+# Shell scripts run inside Linux containers / on a Linux VPS. Force LF regardless of a
+# contributor's local core.autocrlf setting - a CRLF shebang line breaks the interpreter.
+*.sh text eol=lf
+
+# Everything the deployment package touches: keep it byte-for-byte the same on every
+# platform that checks this repo out (no CRLF surprises in Dockerfiles/config consumed by
+# Linux containers).
+deploy/** text eol=lf
+Dockerfile text eol=lf
+*.conf text eol=lf

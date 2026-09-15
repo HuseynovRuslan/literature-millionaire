@@ -22,3 +22,14 @@ appsettings.*.local.json
 
 # Test output
 TestResults/
+
+# Deployment secrets & artifacts (deploy/.env.example is intentionally NOT ignored)
+deploy/.env
+deploy/backups/*
+!deploy/backups/.gitkeep
+*.dump
+*.sql.gz
+*.pem
+*.key
+*.crt
+
