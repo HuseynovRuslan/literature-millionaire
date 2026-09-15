@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CarpetFrame from '../components/national/CarpetFrame'
+import { KioskHeader } from '../components/national/KioskBrand'
 import { Buta, ButaRule } from '../components/national/Ornaments'
 import { useGame } from '../game/GameContext'
 
@@ -22,16 +23,22 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [fieldError, setFieldError] = useState<string | null>(null)
+  // One start per registration. The context only ignores taps while a request is in flight; once it
+  // succeeds, the form is briefly interactive again before navigation. With one attempt per campaign
+  // a second tap in that window would get a 409 and wipe the quiz that was just started.
+  const submittedRef = useRef(false)
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (starting) return
+    if (starting || submittedRef.current) return
     const name = fullName.trim().replace(/\s+/g, ' ')
     if (name.length < 2) return setFieldError('Ad və soyadınızı yazın (ən azı 2 hərf).')
     if (!PHONE.test(compact(phone))) return setFieldError('Telefon nömrəsi düzgün deyil. Nümunə: 050 123 45 67')
     setFieldError(null)
-    const ok = await startGame({ fullName: name, phoneNumber: compact(phone) }) // context ignores a second call while one is in flight
+    submittedRef.current = true
+    const ok = await startGame({ fullName: name, phoneNumber: compact(phone) })
     if (ok) navigate('/game')
+    else submittedRef.current = false // a failed start (network, validation) may be retried
   }
 
   function goHome() {
@@ -43,14 +50,20 @@ export default function RegisterPage() {
     return (
       <main className="kiosk paper flex flex-col">
         <CarpetFrame />
-        <div role="alert" className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center text-center" style={{ padding: 'calc(var(--frame) + 1.5rem) calc(var(--frame) + 2rem)' }}>
+        <KioskHeader />
+        <div role="alert" className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center text-center" style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 1.5rem)' }} data-testid="attempt-limit">
           <p className="font-display text-[clamp(1.4rem,2.2vw,2.2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
-          <h1 className="mt-4 max-w-[22ch] font-display text-[clamp(2.4rem,5vw,5rem)] font-bold leading-tight text-[var(--p-ink)]">{error}</h1>
-          <ButaRule className="my-8 w-full max-w-[30rem]" />
-          <p className="max-w-[40ch] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[var(--p-ink-2)]">
-            Hər telefon nömrəsi bir kampaniyada məhdud sayda cəhd edə bilər. Növbəti kampaniyada yenidən gözləyirik.
+          <h1 className="mt-4 max-w-[24ch] font-display text-[clamp(2.4rem,4.6vw,4.8rem)] font-bold leading-tight text-[var(--p-ink)]">
+            Bu kampaniyada artıq iştirak etmisiniz.
+          </h1>
+          <p className="mt-4 max-w-[44ch] font-display text-[clamp(1.4rem,2.2vw,2.3rem)] font-semibold leading-snug text-[var(--p-indigo)]">
+            Hər telefon nömrəsi ilə yalnız bir dəfə iştirak etmək mümkündür.
           </p>
-          <button type="button" onClick={goHome} className="tap paper-cta mt-12 flex min-h-[7rem] w-full max-w-[30rem] items-center justify-center rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.05em]">
+          <ButaRule className="my-7 w-full max-w-[30rem]" />
+          <p className="max-w-[44ch] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[var(--p-ink-2)]">
+            Növbəti Ayın kitabı kampaniyasında sizi yenidən gözləyirik.
+          </p>
+          <button type="button" onClick={goHome} className="tap paper-cta mt-10 flex min-h-[clamp(5rem,11vh,7rem)] w-full max-w-[30rem] items-center justify-center rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.05em]">
             Ana səhifə
           </button>
         </div>
@@ -61,7 +74,8 @@ export default function RegisterPage() {
   return (
     <main className="kiosk paper flex flex-col">
       <CarpetFrame />
-      <div className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center" style={{ padding: 'calc(var(--frame) + 1.2rem) calc(var(--frame) + 2rem)' }}>
+      <KioskHeader />
+      <div className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center" style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 1.2rem)' }}>
         <form onSubmit={submit} noValidate className="relative w-full max-w-[56rem]">
           <Buta className="absolute -left-3 -top-4 z-10 h-12 w-9" flip />
           <Buta className="absolute -right-3 -top-4 z-10 h-12 w-9" />

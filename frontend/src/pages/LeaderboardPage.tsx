@@ -1,8 +1,8 @@
 import { startTransition, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import LeaderboardRankBadge from '../components/LeaderboardRankBadge'
-import BrandMark from '../components/national/BrandMark'
 import CarpetFrame from '../components/national/CarpetFrame'
+import KioskBrand from '../components/national/KioskBrand'
 import { Buta, ButaRule } from '../components/national/Ornaments'
 import { useGame } from '../game/GameContext'
 import { useLeaderboard } from '../hooks/useLeaderboard'
@@ -45,14 +45,18 @@ export default function LeaderboardPage() {
     <main className="kiosk paper flex flex-col">
       <CarpetFrame />
       <div className="relative z-0 mx-auto flex min-h-0 w-full max-w-[112rem] flex-1 flex-col" style={{ padding: 'calc(var(--frame) + 0.7rem) calc(var(--frame) + 1.3rem)' }}>
-        <header className="shrink-0 text-center">
-          <div className="flex items-center justify-center gap-3">
-            <Buta className="h-7 w-5" flip />
-            <p className="font-display text-[clamp(1rem,1.5vw,1.5rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
-            <Buta className="h-7 w-5" />
+        <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
+          <KioskBrand compact className="justify-self-start" />
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3">
+              <Buta className="h-7 w-5" flip />
+              <p className="font-display text-[clamp(1rem,1.5vw,1.5rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
+              <Buta className="h-7 w-5" />
+            </div>
+            <h1 className="font-display text-[clamp(2.2rem,4.3vw,4.5rem)] font-bold leading-none text-[var(--p-indigo)]">Lider cədvəli</h1>
+            <ButaRule className="mx-auto mt-2 w-full max-w-[30rem]" />
           </div>
-          <h1 className="font-display text-[clamp(2.2rem,4.3vw,4.5rem)] font-bold leading-none text-[var(--p-indigo)]">Lider cədvəli</h1>
-          <ButaRule className="mx-auto mt-2 w-full max-w-[30rem]" />
+          <span aria-hidden />
         </header>
 
         <section className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-[var(--p-gold)] bg-white p-2 shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]" aria-labelledby="leaderboard-table-title">
@@ -126,8 +130,6 @@ export default function LeaderboardPage() {
           <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-6 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.04em] disabled:opacity-60">YENİ OYUN</button>
         </nav>
       </div>
-
-      <div className="absolute z-20 hidden xl:block" style={{ right: 'calc(var(--frame) + 1rem)', bottom: 'calc(var(--frame) + 0.7rem)' }}><BrandMark /></div>
     </main>
   )
 }

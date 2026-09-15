@@ -5,6 +5,9 @@
 @import "@fontsource/fira-sans/500.css";
 @import "@fontsource/fira-sans/600.css";
 
+/* Kiosk screens shorter than ~860px (e.g. 1024x768, 1280x800): tighter vertical rhythm, same design. */
+@custom-variant short (@media (max-height: 860px));
+
 @theme {
   --font-display: "Cormorant Garamond", "Georgia", "Times New Roman", serif;
   --font-sans: "Fira Sans", "Segoe UI", system-ui, sans-serif;

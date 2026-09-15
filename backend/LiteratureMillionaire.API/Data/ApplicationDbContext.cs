@@ -15,6 +15,12 @@ public class ApplicationDbContext : DbContext
     public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
 
+    // Schema-level ceiling for AttemptNumber, baked into the InitialPostgreSql migration's CHECK
+    // constraint. Deliberately NOT QuizRules.MaxAttemptsPerCampaign: the product rule can be
+    // tightened (it is 1 today) without a schema change. The application enforces the real limit,
+    // and the unique (ParticipantId, CampaignId, AttemptNumber) index keeps parallel starts safe.
+    private const int MaxStoredAttemptNumber = 3;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -123,7 +129,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("QuizAttempts", t =>
             {
-                t.HasCheckConstraint("CK_QuizAttempts_AttemptNumber", $"\"AttemptNumber\" BETWEEN 1 AND {Services.QuizRules.MaxAttemptsPerCampaign}");
+                t.HasCheckConstraint("CK_QuizAttempts_AttemptNumber", $"\"AttemptNumber\" BETWEEN 1 AND {MaxStoredAttemptNumber}");
             });
             entity.HasKey(a => a.Id);
 

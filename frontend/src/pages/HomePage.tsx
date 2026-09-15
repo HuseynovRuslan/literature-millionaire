@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { classifyCampaignError, getCurrentCampaign, type CampaignErrorKind } from '../api/campaigns'
-import BrandMark from '../components/national/BrandMark'
+import { KioskHeader } from '../components/national/KioskBrand'
 import CarpetFrame from '../components/national/CarpetFrame'
 import { Buta, ButaRule } from '../components/national/Ornaments'
 import { useGame } from '../game/GameContext'
@@ -76,15 +76,16 @@ function BookCover({ book }: { book: CampaignBook }) {
   )
 }
 
-/** Shared shell for every home state: paper background, carpet border, brand mark, footer hint. */
+/** Shared shell for every home state: paper background, carpet border, product/brand header, footer hint. */
 function PaperShell({ children, alert = false }: { children: ReactNode; alert?: boolean }) {
   return (
     <main className="kiosk paper flex flex-col">
       <CarpetFrame />
+      <KioskHeader />
       <div
         role={alert ? 'alert' : undefined}
         className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center"
-        style={{ padding: 'calc(var(--frame) + 1.2rem) calc(var(--frame) + 2rem) calc(var(--frame) + 4.5rem)' }}
+        style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 2.4rem)' }}
       >
         {children}
       </div>
@@ -94,9 +95,6 @@ function PaperShell({ children, alert = false }: { children: ReactNode; alert?: 
       >
         Ekrana toxunaraq oynayın
       </p>
-      <div className="absolute z-20" style={{ right: 'calc(var(--frame) + 1rem)', bottom: 'calc(var(--frame) + 0.7rem)' }}>
-        <BrandMark />
-      </div>
     </main>
   )
 }
@@ -174,13 +172,13 @@ export default function HomePage() {
           <h1 lang="az" className="mt-2 font-display text-[clamp(3rem,6.2vw,6.8rem)] font-bold leading-[0.98] text-[var(--p-burgundy)] [overflow-wrap:anywhere]">
             {book.title}
           </h1>
-          <p className="mt-3 text-[clamp(1.2rem,1.9vw,2rem)] font-medium text-[var(--p-indigo)]">{book.author}</p>
+          <p className="mt-3 text-[clamp(1.2rem,1.9vw,2rem)] font-medium text-[var(--p-indigo)] short:mt-2">{book.author}</p>
 
-          <p lang="az" className="mt-5 line-clamp-4 max-w-[60ch] text-[clamp(1.05rem,1.4vw,1.45rem)] leading-relaxed text-[var(--p-ink)] [overflow-wrap:anywhere] lg:line-clamp-5">
+          <p lang="az" className="mt-5 line-clamp-4 max-w-[60ch] text-[clamp(1.05rem,1.4vw,1.45rem)] leading-relaxed text-[var(--p-ink)] [overflow-wrap:anywhere] lg:line-clamp-5 short:mt-3 short:line-clamp-3">
             {book.description}
           </p>
 
-          <ButaRule className="my-6 w-full max-w-[40rem] self-center lg:self-start" />
+          <ButaRule className="my-6 w-full max-w-[40rem] self-center lg:self-start short:my-4" />
 
           <dl className="flex flex-wrap justify-center gap-x-10 gap-y-3 text-[clamp(1rem,1.35vw,1.4rem)] lg:justify-start">
             <div><dt className="text-[var(--p-ink-2)]">Kampaniya</dt><dd className="font-semibold text-[var(--p-ink)]">{formatRange(data.startDate, data.endDate)}</dd></div>
@@ -191,7 +189,7 @@ export default function HomePage() {
             )}
           </dl>
 
-          <div className="mt-8 flex w-full max-w-[44rem] flex-col gap-4 self-center lg:self-start">
+          <div className="mt-8 flex w-full max-w-[44rem] flex-col gap-4 self-center lg:self-start short:mt-5 short:gap-3">
             {activeGame ? (
               <>
                 <button type="button" onClick={() => navigate('/game')} className={`${CTA} paper-cta`}>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import AnswerButton, { type AnswerVisual } from '../components/AnswerButton'
 import CarpetFrame from '../components/national/CarpetFrame'
+import KioskBrand from '../components/national/KioskBrand'
 import { Buta } from '../components/national/Ornaments'
 import GameResult from './GameResult'
 import SessionExpired from './SessionExpired'
@@ -138,21 +139,22 @@ export default function GamePage() {
         className="rise relative z-0 mx-auto flex min-h-0 w-full max-w-[110rem] flex-1 flex-col"
         style={{ padding: 'calc(var(--frame) + 0.9rem) calc(var(--frame) + 1.5rem) calc(var(--frame) + 0.8rem)' }}
       >
-        <header className="flex items-center justify-between gap-6 text-[clamp(1rem,1.4vw,1.4rem)]">
-          <div className="flex items-center gap-3">
+        <header className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6 text-[clamp(1rem,1.4vw,1.4rem)]">
+          <div className="flex items-center gap-3 justify-self-start">
             <Buta className="h-7 w-5" flip />
             <p className="font-display text-[1.7em] font-bold text-[var(--p-burgundy)]">
               Sual {state.questionNumber} / {state.totalQuestions}
             </p>
             <Buta className="h-7 w-5" />
           </div>
+          <KioskBrand compact className="justify-self-center" />
           <div
             role="timer"
             aria-live={urgent ? 'assertive' : 'off'}
             aria-label={`Qalan vaxt ${remainingSec} saniyə`}
             data-urgent={urgent ? 'true' : 'false'}
             className={[
-              'relative grid h-[clamp(4.5rem,7vw,6rem)] w-[clamp(4.5rem,7vw,6rem)] shrink-0 place-items-center rounded-full bg-white font-display text-[clamp(1.8rem,2.8vw,2.7rem)] font-bold tabular-nums leading-none shadow-[var(--p-shadow)] transition-colors',
+              'relative grid h-[clamp(4.5rem,7vw,6rem)] w-[clamp(4.5rem,7vw,6rem)] shrink-0 justify-self-end place-items-center rounded-full bg-white font-display text-[clamp(1.8rem,2.8vw,2.7rem)] font-bold tabular-nums leading-none shadow-[var(--p-shadow)] transition-colors',
               remainingMs <= 0 || urgent ? 'text-[#b32a31]' : 'text-[var(--p-indigo)]',
               urgent && remainingMs > 0 ? 'motion-safe:animate-pulse' : '',
             ].join(' ')}

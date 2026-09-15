@@ -115,7 +115,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         status === 404 && code === 'NO_ACTIVE_CAMPAIGN'
           ? 'Hazırda aktiv "Ayın kitabı" kampaniyası yoxdur.'
           : code === 'ATTEMPT_LIMIT_REACHED'
-            ? `Bu kampaniya üçün ${data?.maxAttempts ?? 3} cəhd limitindən istifadə etmisiniz.`
+            ? 'Bu kampaniyada artıq iştirak etmisiniz. Hər telefon nömrəsi ilə yalnız bir dəfə iştirak etmək mümkündür.'
             : code === 'ATTEMPT_CONFLICT'
               ? 'Cəhd qeydə alına bilmədi. Zəhmət olmasa yenidən cəhd edin.'
               : code === 'DATABASE_ERROR'

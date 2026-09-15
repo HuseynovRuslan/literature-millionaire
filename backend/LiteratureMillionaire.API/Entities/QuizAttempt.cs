@@ -14,7 +14,7 @@ public class QuizAttempt
     public int CampaignId { get; set; }
     public MonthlyCampaign Campaign { get; set; } = null!;
 
-    /// <summary>1..QuizRules.MaxAttemptsPerCampaign, unique per participant and campaign.</summary>
+    /// <summary>1..QuizRules.MaxAttemptsPerCampaign (the schema's CHECK allows up to 3), unique per participant and campaign.</summary>
     public int AttemptNumber { get; set; }
 
     public DateTime StartedAtUtc { get; set; }

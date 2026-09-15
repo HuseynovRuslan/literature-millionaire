@@ -1,8 +1,8 @@
 import { startTransition, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import LeaderboardRankBadge from '../components/LeaderboardRankBadge'
-import BrandMark from '../components/national/BrandMark'
 import CarpetFrame from '../components/national/CarpetFrame'
+import KioskBrand from '../components/national/KioskBrand'
 import { Buta, ButaRule, Octagram } from '../components/national/Ornaments'
 import { useGame } from '../game/GameContext'
 import { useLeaderboard, type LeaderboardLoad } from '../hooks/useLeaderboard'
@@ -101,7 +101,7 @@ export default function GameResult() {
   const title = passed ? 'Təbriklər!' : 'Bu dəfə alınmadı'
   const line = passed
     ? 'Siz "Ayın kitabı" viktorinasını uğurla keçdiniz.'
-    : 'Kitabı bir daha oxuyun və yenidən cəhd edin.'
+    : 'Kitabı bir daha oxuyun. Növbəti Ayın kitabı kampaniyasında sizi yenidən gözləyirik.'
 
   return (
     <main className="kiosk paper flex flex-col" data-result={passed ? 'passed' : 'failed'}>
@@ -110,6 +110,9 @@ export default function GameResult() {
         className="relative z-0 mx-auto flex min-h-0 w-full max-w-[112rem] flex-1 flex-col"
         style={{ padding: 'calc(var(--frame) + 0.65rem) calc(var(--frame) + 1.2rem)' }}
       >
+        <header className="mb-[clamp(0.4rem,1vh,0.8rem)] flex shrink-0 items-center">
+          <KioskBrand compact />
+        </header>
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,1.1fr)] lg:gap-5">
           <section className="rise relative flex min-h-0 flex-col items-center justify-center rounded-xl border-[3px] border-[var(--p-gold)] bg-white px-[clamp(1rem,2.4vw,2.4rem)] py-[clamp(0.8rem,1.8vh,1.6rem)] text-center shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]">
             <Buta className="absolute -left-3 -top-4 z-10 h-12 w-9" flip />
@@ -147,13 +150,11 @@ export default function GameResult() {
         </div>
 
         <nav aria-label="Nəticə seçimləri" className="mx-auto mt-4 grid w-full max-w-[76rem] grid-cols-1 gap-3 sm:grid-cols-3">
-          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.03em] disabled:opacity-60">YENİDƏN OYNA</button>
+          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.03em] disabled:opacity-60">YENİ OYUN</button>
           <button type="button" onClick={() => campaignId && go(`/leaderboard/${campaignId}`, false)} disabled={navigating || campaignId === null} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.05rem,1.65vw,1.65rem)] font-bold tracking-[0.02em] disabled:opacity-60">TAM LİDER CƏDVƏLİ</button>
           <button type="button" onClick={() => go('/', true)} disabled={navigating} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-semibold disabled:opacity-60">ANA SƏHİFƏ</button>
         </nav>
       </div>
-
-      <div className="absolute z-20 hidden xl:block" style={{ right: 'calc(var(--frame) + 1rem)', bottom: 'calc(var(--frame) + 0.7rem)' }}><BrandMark /></div>
     </main>
   )
 }
