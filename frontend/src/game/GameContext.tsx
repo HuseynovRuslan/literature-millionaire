@@ -116,11 +116,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ? 'Hazırda aktiv "Ayın kitabı" kampaniyası yoxdur.'
           : code === 'ATTEMPT_LIMIT_REACHED'
             ? `Bu kampaniya üçün ${data?.maxAttempts ?? 3} cəhd limitindən istifadə etmisiniz.`
-            : status === 400
-              ? 'Ad, soyad və ya telefon nömrəsi düzgün deyil.'
-              : status === 409
-                ? 'Bu kampaniya üçün kifayət qədər sual yoxdur.'
-                : 'Oyunu başlatmaq mümkün olmadı. Server cavab vermir.',
+            : code === 'ATTEMPT_CONFLICT'
+              ? 'Cəhd qeydə alına bilmədi. Zəhmət olmasa yenidən cəhd edin.'
+              : code === 'DATABASE_ERROR'
+                ? 'Müvəqqəti server xətası. Zəhmət olmasa yenidən cəhd edin.'
+                : status === 400
+                  ? 'Ad, soyad və ya telefon nömrəsi düzgün deyil.'
+                  : status === 409
+                    ? 'Bu kampaniya üçün kifayət qədər sual yoxdur.'
+                    : 'Oyunu başlatmaq mümkün olmadı. Server cavab vermir.',
       )
       return false
     } finally {

@@ -296,28 +296,34 @@ public class GameService : IGameService
             _logger.LogInformation("Participant {ParticipantId} created.", participant.Id);
             return participant;
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex)
         {
             _db.Entry(participant).State = EntityState.Detached;
-            return await _db.Participants.FirstAsync(p => p.NormalizedPhoneNumber == phone, ct); // created by a racing request
+            var sqlError = SqlServerErrors.GetErrorNumber(ex);
+            if (!SqlServerErrors.IsUniqueViolation(sqlError))
+            {
+                throw DatabaseFailure("participant-create", ex, sqlError, participantId: null, campaignId: null);
+            }
         }
+
+        // The unique phone index rejected the insert, so a racing request created the row.
+        return await _db.Participants.FirstOrDefaultAsync(p => p.NormalizedPhoneNumber == phone, ct)
+            ?? throw DatabaseFailure("participant-reread", exception: null, sqlError: null, participantId: null, campaignId: null);
     }
 
     /// <summary>
     /// Consumes one attempt. The count is re-read and the insert retried when the unique
     /// (participant, campaign, attemptNumber) index rejects a racing insert, so parallel
-    /// starts can never produce a fourth attempt.
+    /// starts can never produce a fourth attempt. Any other database failure is a 500.
     /// </summary>
     private async Task<QuizAttempt> CreateAttemptAsync(Participant participant, CurrentCampaignDto campaign, CancellationToken ct)
     {
         for (var retry = 0; retry < 3; retry++)
         {
-            var used = await _db.QuizAttempts.CountAsync(a => a.ParticipantId == participant.Id && a.CampaignId == campaign.CampaignId, ct);
+            var used = await CountAttemptsAsync(participant, campaign, ct);
             if (used >= QuizRules.MaxAttemptsPerCampaign)
             {
-                throw GameException.Conflict("Attempt limit reached",
-                    $"This phone number has used all {QuizRules.MaxAttemptsPerCampaign} attempts for the current campaign.",
-                    new Dictionary<string, object?> { ["code"] = "ATTEMPT_LIMIT_REACHED", ["maxAttempts"] = QuizRules.MaxAttemptsPerCampaign, ["attemptsUsed"] = used });
+                throw AttemptLimitReached(used);
             }
 
             var attempt = new QuizAttempt
@@ -337,14 +343,49 @@ public class GameService : IGameService
                 _logger.LogInformation("Attempt {AttemptNumber} started for participant {ParticipantId} in campaign {CampaignId}.", attempt.AttemptNumber, participant.Id, campaign.CampaignId);
                 return attempt;
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
-                _db.Entry(attempt).State = EntityState.Detached; // number taken by a racing start: recount
+                _db.Entry(attempt).State = EntityState.Detached;
+                var sqlError = SqlServerErrors.GetErrorNumber(ex);
+                if (!SqlServerErrors.IsUniqueViolation(sqlError))
+                {
+                    throw DatabaseFailure("attempt-create", ex, sqlError, participant.Id, campaign.CampaignId);
+                }
+                // Number taken by a racing start: recount and retry.
             }
         }
 
+        // Every retry lost the race. If the racers used the limit up, that is the real answer;
+        // only an unresolved race below the limit is reported as a retryable conflict.
+        var finalCount = await CountAttemptsAsync(participant, campaign, ct);
+        if (finalCount >= QuizRules.MaxAttemptsPerCampaign)
+        {
+            throw AttemptLimitReached(finalCount);
+        }
+
+        _logger.LogWarning("Attempt for participant {ParticipantId} in campaign {CampaignId} lost the insert race 3 times at {AttemptsUsed} attempts used.", participant.Id, campaign.CampaignId, finalCount);
         throw GameException.Conflict("Attempt could not be recorded", "Could not record the attempt after several tries. Please try again.",
             new Dictionary<string, object?> { ["code"] = "ATTEMPT_CONFLICT" });
+    }
+
+    private Task<int> CountAttemptsAsync(Participant participant, CurrentCampaignDto campaign, CancellationToken ct) =>
+        _db.QuizAttempts.CountAsync(a => a.ParticipantId == participant.Id && a.CampaignId == campaign.CampaignId, ct);
+
+    private static GameException AttemptLimitReached(int used) =>
+        GameException.Conflict("Attempt limit reached",
+            $"This phone number has used all {QuizRules.MaxAttemptsPerCampaign} attempts for the current campaign.",
+            new Dictionary<string, object?> { ["code"] = "ATTEMPT_LIMIT_REACHED", ["maxAttempts"] = QuizRules.MaxAttemptsPerCampaign, ["attemptsUsed"] = used });
+
+    /// <summary>
+    /// Logs an unexpected database failure in sanitized form - operation, ids, SQL error number and
+    /// exception types only. The exception object is deliberately not passed to the logger: SQL
+    /// Server's message text can quote row values such as the phone number.
+    /// </summary>
+    private GameException DatabaseFailure(string operation, Exception? exception, int? sqlError, int? participantId, int? campaignId)
+    {
+        _logger.LogError("Database failure during {Operation} (participant {ParticipantId}, campaign {CampaignId}, sql error {SqlErrorNumber}, {ExceptionType} / {InnerExceptionType}).",
+            operation, participantId, campaignId, sqlError, exception?.GetType().Name, exception?.GetBaseException().GetType().Name);
+        return GameException.DatabaseError();
     }
 
     /// <summary>Writes the server-computed result exactly once (only where CompletedAtUtc is still null). Throws if nothing was stored, so no unstored result is ever reported.</summary>

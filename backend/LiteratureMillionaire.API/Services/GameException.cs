@@ -23,4 +23,10 @@ public class GameException : Exception
 
     public static GameException Conflict(string title, string detail, IDictionary<string, object?>? extensions = null) =>
         new(StatusCodes.Status409Conflict, title, detail, extensions);
+
+    /// <summary>500 with a generic detail: the database failed in a way the caller cannot resolve. Nothing from the underlying exception is exposed.</summary>
+    public static GameException DatabaseError() =>
+        new(StatusCodes.Status500InternalServerError, "Database error",
+            "The request could not be completed because of a database error. Please try again.",
+            new Dictionary<string, object?> { ["code"] = "DATABASE_ERROR" });
 }
