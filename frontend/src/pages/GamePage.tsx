@@ -35,9 +35,10 @@ export default function GamePage() {
   const q = state.question
   const deadline = state.questionExpiresAtUtc ? Date.parse(state.questionExpiresAtUtc) : null
   const remainingMs = deadline === null ? Infinity : Math.max(0, deadline - now)
-  const remainingSec = Math.ceil(remainingMs / 1000)
   const total = state.secondsPerQuestion
-  // Warning window scales with the question time: 5 s of 15, 10 s of 30.
+  // Cap at the API value: network latency can put the deadline a few ms beyond N seconds, which would round up to N+1.
+  const remainingSec = Math.min(total, Math.ceil(remainingMs / 1000))
+  // Warning window scales with the question time: 5 s of 10 or 15, 10 s of 30.
   const urgentSeconds = Math.max(5, Math.round(total / 3))
   const [imageFailed, setImageFailed] = useState(false)
 

@@ -9,7 +9,7 @@ public static class QuizRules
     public const int QuestionsPerQuiz = 10;
 
     /// <summary>Server-enforced time a player has for each question. The client countdown only mirrors it.</summary>
-    public const int SecondsPerQuestion = 15;
+    public const int SecondsPerQuestion = 10;
 
     /// <summary>
     /// Preferred number of illustrated questions per quiz. Applied only when the book has at
