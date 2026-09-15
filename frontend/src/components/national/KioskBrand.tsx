@@ -22,7 +22,7 @@ export default function KioskBrand({
       <p
         className={[
           'whitespace-nowrap font-display font-bold leading-none',
-          compact ? 'text-[clamp(1.3rem,1.9vw,2.2rem)]' : 'text-[clamp(1.5rem,2.3vw,2.7rem)]',
+          compact ? 'text-[clamp(1.3rem,1.9vw,2.2rem)]' : 'text-[clamp(1.4rem,min(2.3vw,4vh),2.7rem)]',
           tone === 'dark' ? 'text-ivory' : 'text-[var(--p-burgundy)]',
         ].join(' ')}
         data-testid="product-name"

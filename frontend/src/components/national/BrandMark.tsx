@@ -28,7 +28,7 @@ export default function BrandMark({ className = '', size = 'md' }: { className?:
           src="/brand/bakiabadliq.jpg"
           alt={BRAND_NAME}
           onError={() => setFailed(true)}
-          className={small ? 'h-[clamp(2.6rem,4vw,3.9rem)] w-auto' : 'h-[clamp(3rem,5vw,5.2rem)] w-auto'}
+          className={small ? 'h-[clamp(2.6rem,4vw,3.9rem)] w-auto' : 'h-[clamp(2.8rem,min(5vw,7.5vh),5.2rem)] w-auto'}
           draggable={false}
         />
       )}

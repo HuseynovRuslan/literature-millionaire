@@ -31,15 +31,18 @@ type CampaignLoad =
   | { kind: 'ready'; data: CurrentCampaign }
   | { kind: 'error'; error: CampaignErrorKind }
 
+// Sizes below use min(vw, vh) so short windows (e.g. 1920x937 browser) shrink the layout instead of overflowing it;
+// at 1920x1080 they resolve to the same sizes as before.
 const CTA =
-  'tap flex min-h-[clamp(4.5rem,10vh,7rem)] w-full items-center justify-center gap-4 rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.06em]'
+  'tap flex min-h-[clamp(3.6rem,10vh,7rem)] w-full items-center justify-center gap-4 rounded-full px-10 font-display text-[clamp(1.5rem,min(3vw,4.6vh),3rem)] font-bold tracking-[0.06em]'
+const GHOST_MIN_H = 'min-h-[clamp(3.4rem,7vh,4.5rem)]'
 
 /** Gold-framed cover with buta corners. Real image when it loads; otherwise a designed paper placeholder. */
 function BookCover({ book }: { book: CampaignBook }) {
   const [status, setStatus] = useState<'pending' | 'ok' | 'failed'>(book.coverImageUrl ? 'pending' : 'failed')
   const showImage = status === 'ok'
   return (
-    <div className="relative mx-auto w-[clamp(13rem,21vw,25rem)] max-w-full shrink-0" data-testid="cover-frame">
+    <div className="relative mx-auto w-[clamp(10rem,min(21vw,42vh),25rem)] max-w-full shrink-0" data-testid="cover-frame">
       <div className="relative aspect-[2/3] rounded-md border-[6px] border-[var(--p-gold)] bg-[var(--p-paper-2)] p-1.5 shadow-[var(--p-shadow)]">
         <div className="relative h-full w-full overflow-hidden rounded-sm border border-[var(--p-gold-light)]">
           {status !== 'failed' && (
@@ -82,16 +85,18 @@ function PaperShell({ children, alert = false }: { children: ReactNode; alert?: 
     <main className="kiosk paper flex flex-col">
       <CarpetFrame />
       <KioskHeader />
+      {/* safe center: if content is ever taller than this area it grows downwards, never under the header */}
       <div
         role={alert ? 'alert' : undefined}
-        className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center"
-        style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 2.4rem)' }}
+        className="relative z-0 flex min-h-0 flex-1 flex-col items-center [justify-content:safe_center]"
+        style={{ padding: '0.4rem calc(var(--frame) + 2rem)' }}
       >
         {children}
       </div>
+      {/* In the layout flow (not absolutely positioned), so it can never sit on top of the buttons. */}
       <p
-        className="absolute left-1/2 -translate-x-1/2 text-[clamp(0.8rem,1vw,1rem)] text-[var(--p-ink-2)]"
-        style={{ bottom: 'calc(var(--frame) + 0.7rem)' }}
+        className="relative z-0 shrink-0 text-center text-[clamp(0.8rem,1vw,1rem)] text-[var(--p-ink-2)] tiny:hidden"
+        style={{ paddingBottom: 'calc(var(--frame) + 0.6rem)' }}
       >
         Ekrana toxunaraq oynayın
       </p>
@@ -166,21 +171,21 @@ export default function HomePage() {
         <div className="flex min-w-0 flex-col text-center lg:text-left">
           <div className="flex items-center justify-center gap-3 lg:justify-start">
             <Buta className="h-7 w-5" flip />
-            <p className="font-display text-[clamp(1.3rem,2vw,2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
+            <p className="font-display text-[clamp(1.1rem,min(2vw,2.8vh),2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">AYIN KİTABI</p>
             <Buta className="h-7 w-5" />
           </div>
-          <h1 lang="az" className="mt-2 font-display text-[clamp(3rem,6.2vw,6.8rem)] font-bold leading-[0.98] text-[var(--p-burgundy)] [overflow-wrap:anywhere]">
+          <h1 lang="az" className="mt-2 font-display text-[clamp(2.4rem,min(6.2vw,10vh),6.8rem)] font-bold leading-[0.98] text-[var(--p-burgundy)] [overflow-wrap:anywhere]">
             {book.title}
           </h1>
-          <p className="mt-3 text-[clamp(1.2rem,1.9vw,2rem)] font-medium text-[var(--p-indigo)] short:mt-2">{book.author}</p>
+          <p className="mt-[clamp(0.4rem,1.1vh,0.75rem)] text-[clamp(1.05rem,min(1.9vw,2.8vh),2rem)] font-medium text-[var(--p-indigo)]">{book.author}</p>
 
-          <p lang="az" className="mt-5 line-clamp-4 max-w-[60ch] text-[clamp(1.05rem,1.4vw,1.45rem)] leading-relaxed text-[var(--p-ink)] [overflow-wrap:anywhere] lg:line-clamp-5 short:mt-3 short:line-clamp-3">
+          <p lang="az" className="mt-[clamp(0.6rem,1.9vh,1.25rem)] line-clamp-4 max-w-[60ch] text-[clamp(0.95rem,min(1.4vw,2vh),1.45rem)] leading-relaxed text-[var(--p-ink)] [overflow-wrap:anywhere] lg:line-clamp-5 short:line-clamp-3 tiny:line-clamp-2">
             {book.description}
           </p>
 
-          <ButaRule className="my-6 w-full max-w-[40rem] self-center lg:self-start short:my-4" />
+          <ButaRule className="my-[clamp(0.6rem,2.2vh,1.5rem)] w-full max-w-[40rem] self-center lg:self-start" />
 
-          <dl className="flex flex-wrap justify-center gap-x-10 gap-y-3 text-[clamp(1rem,1.35vw,1.4rem)] lg:justify-start">
+          <dl className="flex flex-wrap justify-center gap-x-10 gap-y-[clamp(0.3rem,1.1vh,0.75rem)] text-[clamp(0.9rem,min(1.35vw,1.9vh),1.4rem)] lg:justify-start">
             <div><dt className="text-[var(--p-ink-2)]">Kampaniya</dt><dd className="font-semibold text-[var(--p-ink)]">{formatRange(data.startDate, data.endDate)}</dd></div>
             <div><dt className="text-[var(--p-ink-2)]">Suallar</dt><dd className="font-semibold text-[var(--p-ink)]">{data.questionCount} sual</dd></div>
             <div><dt className="text-[var(--p-ink-2)]">Keçid balı</dt><dd className="font-semibold text-[var(--p-ink)]">{data.passingScore}/{data.questionCount}</dd></div>
@@ -189,7 +194,7 @@ export default function HomePage() {
             )}
           </dl>
 
-          <div className="mt-8 flex w-full max-w-[44rem] flex-col gap-4 self-center lg:self-start short:mt-5 short:gap-3">
+          <div className="mt-[clamp(0.9rem,3vh,2rem)] flex w-full max-w-[44rem] flex-col gap-[clamp(0.6rem,1.5vh,1rem)] self-center lg:self-start">
             {activeGame ? (
               <>
                 <button type="button" onClick={() => navigate('/game')} className={`${CTA} paper-cta`}>
@@ -199,10 +204,10 @@ export default function HomePage() {
                   Başlanmış quiz var: sual {activeGame.questionNumber} / {activeGame.totalQuestions}. Davam etsəniz, vaxt sıfırlanmır.
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(1rem,1.3vw,1.3rem)] font-semibold">
+                  <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className={`tap paper-ghost ${GHOST_MIN_H} rounded-full px-6 text-[clamp(1rem,1.3vw,1.3rem)] font-semibold`}>
                     LİDER CƏDVƏLİ
                   </button>
-                  <button type="button" onClick={goRegister} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(0.9rem,1.15vw,1.15rem)] font-medium">
+                  <button type="button" onClick={goRegister} className={`tap paper-ghost ${GHOST_MIN_H} rounded-full px-6 text-[clamp(0.9rem,1.15vw,1.15rem)] font-medium`}>
                     Növbəti iştirakçı üçün başlat
                   </button>
                 </div>
@@ -212,7 +217,7 @@ export default function HomePage() {
                 <button type="button" onClick={goRegister} className={`${CTA} paper-cta`}>
                   QUİZƏ BAŞLA
                 </button>
-                <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-8 font-display text-[clamp(1.2rem,1.8vw,1.8rem)] font-semibold tracking-[0.04em]">
+                <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className={`tap paper-ghost ${GHOST_MIN_H} rounded-full px-8 font-display text-[clamp(1.1rem,min(1.8vw,2.6vh),1.8rem)] font-semibold tracking-[0.04em]`}>
                   LİDER CƏDVƏLİ
                 </button>
               </>
