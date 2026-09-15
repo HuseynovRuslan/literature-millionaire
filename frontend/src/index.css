@@ -246,3 +246,101 @@ body {
     transition: none;
   }
 }
+
+/* ---------- Game stage (Task 14C). Only used by GamePage. ----------
+   Dark indigo broadcast stage with a faint star lattice and a thin gold frame; the question sits on a
+   high-contrast paper card; answers are dark tiles told apart by brand accents (never green/red). */
+.game-stage {
+  position: relative;
+  color: #fbf6ec;
+  background-color: #0d1d3f;
+  background-image:
+    radial-gradient(ellipse 75% 45% at 50% -5%, rgba(64, 108, 186, 0.38), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(125, 22, 29, 0.28), transparent 70%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><g fill='none' stroke='%23e9c069' stroke-opacity='0.055' stroke-width='1.2'><rect x='50' y='50' width='80' height='80'/><rect x='50' y='50' width='80' height='80' transform='rotate(45 90 90)'/><circle cx='90' cy='90' r='6'/></g></svg>"),
+    linear-gradient(180deg, #142b57 0%, #0e1f44 55%, #0a1834 100%);
+  background-size: auto, auto, 180px 180px, auto;
+}
+
+.game-stage::before {
+  content: "";
+  position: absolute;
+  inset: clamp(5px, 0.5vw, 10px);
+  z-index: 0;
+  border: 1px solid rgba(233, 192, 105, 0.4);
+  border-radius: clamp(10px, 0.9vw, 16px);
+  pointer-events: none;
+}
+
+.gs-question-card {
+  color: #2a1c14;
+  background: linear-gradient(180deg, #fffdf8 0%, #f8f1e3 100%);
+  border-radius: clamp(1rem, 1.3vw, 1.75rem);
+  box-shadow:
+    inset 0 0 0 2px #d4a83b,
+    inset 0 0 0 7px #fffdf8,
+    inset 0 0 0 8px rgba(212, 168, 59, 0.45),
+    0 1.2rem 2.6rem -1rem rgba(0, 0, 0, 0.55);
+}
+
+.gs-answer {
+  --accent: #b8323c;
+  color: #fbf6ec;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035));
+  border: 2px solid color-mix(in srgb, var(--accent) 70%, rgba(255, 255, 255, 0.2));
+  box-shadow: inset 0.4rem 0 0 var(--accent), 0 0.6rem 1.2rem -0.6rem rgba(0, 0, 0, 0.5);
+  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, opacity 160ms ease;
+}
+.gs-answer-badge {
+  background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(251, 246, 236, 0.85), 0 0 0 4px var(--accent);
+}
+/* Chosen answer: neutral gold outline and glow, identical for every letter. */
+.gs-answer[data-visual="selected"] {
+  border-color: #f3d77e;
+  background: linear-gradient(180deg, rgba(243, 215, 126, 0.22), rgba(243, 215, 126, 0.08));
+  box-shadow: inset 0.4rem 0 0 var(--accent), 0 0 0 3px rgba(243, 215, 126, 0.55), 0 0 1.8rem rgba(243, 215, 126, 0.4);
+}
+.gs-answer[data-visual="dimmed"] {
+  opacity: 0.5;
+}
+.gs-answer:focus-visible {
+  outline: 3px solid #f3d77e;
+  outline-offset: 3px;
+}
+
+/* Last seconds: a gentle beat, only while time is left. */
+.gs-timer-urgent {
+  animation: gs-timer-beat 1s ease-in-out infinite;
+}
+@keyframes gs-timer-beat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-timer-urgent { animation: none; }
+  .gs-answer { transition: none; }
+}
+
+@media (max-width: 639.98px) {
+  .game-stage {
+    background-image:
+      radial-gradient(ellipse 90% 40% at 50% -5%, rgba(64, 108, 186, 0.35), transparent 70%),
+      linear-gradient(180deg, #142b57 0%, #0e1f44 55%, #0a1834 100%);
+    background-size: auto, auto;
+  }
+  .game-stage::before {
+    inset: 4px;
+    border-radius: 10px;
+  }
+  .gs-answer {
+    box-shadow: inset 0 0.25rem 0 var(--accent), 0 0.4rem 0.8rem -0.5rem rgba(0, 0, 0, 0.5);
+  }
+  .gs-answer[data-visual="selected"] {
+    box-shadow: inset 0 0.25rem 0 var(--accent), 0 0 0 3px rgba(243, 215, 126, 0.55), 0 0 1.2rem rgba(243, 215, 126, 0.4);
+  }
+  .gs-answer-badge {
+    box-shadow: 0 0 0 1.5px rgba(251, 246, 236, 0.85);
+  }
+}

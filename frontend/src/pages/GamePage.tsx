@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import AnswerButton, { type AnswerVisual } from '../components/AnswerButton'
-import CarpetFrame from '../components/national/CarpetFrame'
-import KioskBrand from '../components/national/KioskBrand'
-import { Buta } from '../components/national/Ornaments'
+import GameStageHeader from '../components/game/GameStageHeader'
 import GameResult from './GameResult'
 import SessionExpired from './SessionExpired'
 import { useGame } from '../game/GameContext'
@@ -125,71 +123,59 @@ export default function GamePage() {
   const urgent = remainingSec <= urgentSeconds
   const hasImage = typeof q.imageUrl === 'string' && q.imageUrl.length > 0
   const selected = phase.kind === 'sending' || phase.kind === 'closed' ? phase.selected : null
+  // Presentation only: long question texts use a smaller type so they fit without truncation.
+  const longText = q.text.length > 90
 
   function visualFor(option: AnswerOption): AnswerVisual {
     if (option === selected) return 'selected'
     return locked ? 'dimmed' : 'idle'
   }
 
+  const alertClass =
+    'inline-flex items-center gap-3 rounded-2xl bg-[rgba(125,22,29,0.7)] px-5 py-2.5 text-left font-medium text-[#fbf6ec] ring-1 ring-[#ff9aa2] max-sm:gap-2 max-sm:rounded-xl max-sm:px-3 max-sm:py-1.5'
+  const alertIcon = (
+    <span aria-hidden className="grid size-[1.5em] shrink-0 place-items-center rounded-full bg-[#fbf6ec] font-bold text-[#7d161d]">!</span>
+  )
+
   return (
-    <main className="kiosk paper flex flex-col">
-      <CarpetFrame />
+    <main className="kiosk game-stage flex flex-col" data-testid="game-page">
       <section
         key={q.id}
-        className="rise relative z-0 mx-auto flex min-h-0 w-full max-w-[110rem] flex-1 flex-col max-sm:px-[calc(var(--frame)_+_0.5rem)]! max-sm:pt-[calc(var(--frame)_+_0.5rem_+_var(--safe-top))]! max-sm:pb-[calc(var(--frame)_+_0.4rem_+_var(--safe-bottom))]!"
-        style={{ padding: 'calc(var(--frame) + 0.9rem) calc(var(--frame) + 1.5rem) calc(var(--frame) + 0.8rem)' }}
+        className="rise relative z-10 mx-auto flex min-h-0 w-full max-w-[120rem] flex-1 flex-col px-[clamp(1.2rem,2.6vw,3.4rem)] pb-[clamp(0.8rem,1.8vh,1.6rem)] pt-[clamp(0.8rem,1.8vh,1.6rem)] max-sm:px-3 max-sm:pb-[calc(0.6rem_+_var(--safe-bottom))] max-sm:pt-[calc(0.6rem_+_var(--safe-top))]"
       >
-        {/* Phones: brand on the first row, "Sual N / 10" on the second, the timer spans both on the right. */}
-        <header className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6 text-[clamp(1rem,1.4vw,1.4rem)] max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-x-3 max-sm:gap-y-1 max-sm:text-[0.8rem]">
-          <div className="flex items-center gap-3 justify-self-start max-sm:col-start-1 max-sm:row-start-2 max-sm:gap-1.5">
-            <Buta className="h-7 w-5 max-sm:h-5 max-sm:w-3.5" flip />
-            <p className="font-display text-[1.7em] font-bold text-[var(--p-burgundy)]">
-              Sual {state.questionNumber} / {state.totalQuestions}
-            </p>
-            <Buta className="h-7 w-5 max-sm:h-5 max-sm:w-3.5" />
-          </div>
-          <KioskBrand compact className="justify-self-center max-sm:col-start-1 max-sm:row-start-1 max-sm:justify-self-start" />
-          <div
-            role="timer"
-            aria-live={urgent ? 'assertive' : 'off'}
-            aria-label={`Qalan vaxt ${remainingSec} saniyə`}
-            data-urgent={urgent ? 'true' : 'false'}
-            className={[
-              'relative grid h-[clamp(4.5rem,7vw,6rem)] w-[clamp(4.5rem,7vw,6rem)] shrink-0 justify-self-end place-items-center rounded-full max-sm:col-start-2 max-sm:row-span-2 max-sm:row-start-1 max-sm:h-14 max-sm:w-14 max-sm:text-[1.6rem] bg-white font-display text-[clamp(1.8rem,2.8vw,2.7rem)] font-bold tabular-nums leading-none shadow-[var(--p-shadow)] transition-colors',
-              remainingMs <= 0 || urgent ? 'text-[#b32a31]' : 'text-[var(--p-indigo)]',
-              urgent && remainingMs > 0 ? 'motion-safe:animate-pulse' : '',
-            ].join(' ')}
-          >
-            <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden>
-              <circle cx="50" cy="50" r="44" fill="none" stroke="var(--p-line)" strokeWidth="7" />
-              <circle
-                cx="50" cy="50" r="44" fill="none"
-                stroke={urgent ? '#b32a31' : 'var(--p-gold)'} strokeWidth="7" strokeLinecap="round"
-                strokeDasharray={2 * Math.PI * 44}
-                strokeDashoffset={2 * Math.PI * 44 * (1 - Math.min(1, remainingMs / (total * 1000)))}
-              />
-            </svg>
-            <span data-testid="countdown" className="relative">{remainingSec}</span>
-          </div>
-        </header>
+        <GameStageHeader
+          questionNumber={state.questionNumber}
+          totalQuestions={state.totalQuestions}
+          remainingSec={remainingSec}
+          fraction={Math.min(1, remainingMs / (total * 1000))}
+          urgent={urgent}
+          expired={remainingMs <= 0}
+        />
 
-        <div className="relative my-3 flex min-h-0 flex-1 max-sm:my-2.5">
-          <Buta className="absolute -left-2 -top-3 z-10 h-10 w-7 max-sm:h-7 max-sm:w-5" flip />
-          <Buta className="absolute -right-2 -top-3 z-10 h-10 w-7 max-sm:h-7 max-sm:w-5" />
-          <Buta className="absolute -bottom-3 -left-2 z-10 h-10 w-7 rotate-180 max-sm:h-7 max-sm:w-5" />
-          <Buta className="absolute -bottom-3 -right-2 z-10 h-10 w-7 rotate-180 max-sm:h-7 max-sm:w-5" flip />
-          <div className={`flex min-h-0 w-full flex-1 rounded-xl border-[3px] border-[var(--p-gold)] bg-white px-[clamp(1.5rem,3vw,3.5rem)] py-4 shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)] max-sm:px-3.5 max-sm:py-3 ${hasImage ? 'flex-col items-center gap-5 lg:flex-row lg:items-center lg:gap-10 max-sm:gap-2.5' : 'flex-col justify-center'}`}>
+        <div
+          data-testid="question-card"
+          className={`gs-question-card relative my-[clamp(0.6rem,1.6vh,1.4rem)] min-h-0 flex-1 px-[clamp(1.4rem,3vw,4rem)] py-[clamp(1rem,2.4vh,2.2rem)] max-sm:my-2 max-sm:px-3.5 max-sm:py-3 ${
+            hasImage
+              ? 'grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] items-center gap-[clamp(1.4rem,3vw,4rem)] max-lg:flex max-lg:flex-col max-lg:justify-center max-lg:gap-3'
+              : 'flex flex-col justify-center'
+          }`}
+        >
           <h1
+            id="question-text"
             lang="az"
-            className={`max-w-[28ch] font-display font-semibold leading-[1.18] text-[var(--p-ink)] [overflow-wrap:anywhere] ${hasImage ? 'text-[clamp(1.6rem,2.6vw,3rem)] lg:flex-1 max-sm:text-[1.3rem]' : 'text-[clamp(1.9rem,3.2vw,3.6rem)] max-sm:text-[1.45rem]'}`}
+            className={`font-display font-semibold leading-[1.15] text-[#2a1c14] [overflow-wrap:anywhere] [text-wrap:balance] ${
+              hasImage
+                ? 'text-[clamp(1.9rem,min(2.9vw,5.4vh),3.6rem)] max-lg:text-center max-sm:text-[1.3rem]'
+                : `mx-auto max-w-[34ch] text-center ${longText ? 'text-[clamp(2rem,min(3.1vw,5.8vh),3.9rem)] max-sm:text-[1.3rem]' : 'text-[clamp(2.3rem,min(3.8vw,7vh),4.8rem)] max-sm:text-[1.5rem]'}`
+            }`}
           >
             {q.text}
           </h1>
           {hasImage && (
-            // Phones: the picture takes whatever height the card has left (object-contain, never cropped).
-            <figure className="flex h-[clamp(11rem,30vh,24rem)] w-full max-w-[44rem] shrink-0 items-center justify-center lg:w-[clamp(20rem,32vw,42rem)] max-sm:h-auto max-sm:min-h-0 max-sm:flex-1 max-sm:shrink" data-testid="question-image">
+            // The picture takes the space the card has (object-contain, never cropped or stretched); on the kiosk it sits left.
+            <figure className="flex h-full min-h-0 w-full items-center justify-center lg:order-first max-lg:flex-1" data-testid="question-image">
               {imageFailed ? (
-                <p role="img" aria-label={q.imageAltText ?? 'Təsvir'} className="rounded-xl border-2 border-[var(--p-line)] bg-[var(--p-paper-2)] px-8 py-6 text-[clamp(1rem,1.3vw,1.3rem)] text-[var(--p-ink-2)]">
+                <p role="img" aria-label={q.imageAltText ?? 'Təsvir'} className="rounded-xl border-2 border-[#e3d5bb] bg-[#f4ecdd] px-8 py-6 text-[clamp(1rem,1.3vw,1.3rem)] text-[#6a594a]">
                   Təsvir yüklənmədi
                 </p>
               ) : (
@@ -197,38 +183,41 @@ export default function GamePage() {
                   src={q.imageUrl ?? undefined}
                   alt={q.imageAltText ?? ''}
                   onError={() => setImageFailed(true)}
-                  className="max-h-full max-w-full rounded-lg border-[3px] border-[var(--p-gold-light)] object-contain shadow-[var(--p-shadow)]"
+                  className="max-h-full max-w-full rounded-xl border-4 border-[#e9c069] bg-white object-contain shadow-[0_0.8rem_1.8rem_-0.8rem_rgba(42,28,20,0.45)] max-sm:rounded-lg max-sm:border-2"
                 />
               )}
             </figure>
           )}
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6 max-sm:grid-cols-2 max-sm:gap-2">
+        <div data-testid="answers" className="grid grid-cols-2 gap-[clamp(0.6rem,1.2vw,1.3rem)] max-sm:gap-2">
           {ANSWER_OPTIONS.map((o) => (
             <AnswerButton key={o} option={o} text={optionText(q, o)} visual={visualFor(o)} disabled={locked} onSelect={choose} />
           ))}
         </div>
 
-        <footer className="mt-5 min-h-[5.5rem] text-[clamp(1rem,1.35vw,1.35rem)] max-sm:mt-2 max-sm:min-h-[2.75rem] max-sm:text-[0.78rem] max-sm:leading-snug" aria-live="polite">
+        <footer
+          data-testid="game-status"
+          aria-live="polite"
+          className="mt-[clamp(0.6rem,1.4vh,1.1rem)] flex min-h-[clamp(2.8rem,5vh,3.8rem)] items-center justify-center text-center text-[clamp(1rem,1.3vw,1.35rem)] max-sm:mt-2 max-sm:min-h-[2.6rem] max-sm:text-[0.78rem] max-sm:leading-snug"
+        >
           {phase.kind === 'closed' && (
-            <div className="rise rounded-2xl border-2 border-[var(--p-gold-light)] bg-white px-5 py-4 shadow-[var(--p-shadow)] max-sm:px-3 max-sm:py-2">
-              <p className="font-display text-[1.5em] font-bold text-[var(--p-burgundy)] max-sm:text-[1.35em]">
-                {phase.timedOut ? 'Vaxt bitdi. Növbəti sual…' : 'Cavab qeydə alındı. Növbəti sual…'}
-              </p>
-            </div>
+            <p className="rise inline-flex items-center gap-3 rounded-full bg-white/10 px-6 py-2 font-display text-[1.35em] font-bold text-[#fbf6ec] ring-1 ring-[rgba(243,215,126,0.55)] max-sm:gap-2 max-sm:px-4 max-sm:py-1 max-sm:text-[1.3em]">
+              <span aria-hidden className="size-2.5 shrink-0 rounded-full bg-[#f3d77e]" />
+              {phase.timedOut ? 'Vaxt bitdi. Növbəti sual…' : 'Cavab qeydə alındı. Növbəti sual…'}
+            </p>
           )}
-          {(phase.kind === 'sending' || phase.kind === 'retrying') && (
-            <p className="px-1 text-[var(--p-ink-2)]">{phase.kind === 'retrying' ? sendError : 'Göndərilir…'}</p>
+          {phase.kind === 'sending' && <p className="text-[#c9d3e6]">Göndərilir…</p>}
+          {phase.kind === 'retrying' && (
+            <p role="alert" className={alertClass}>{alertIcon}{sendError}</p>
           )}
           {phase.kind === 'open' && sendError && (
-            <p role="alert" className="rounded-2xl border-2 border-[#b32a31] bg-white px-5 py-4 text-[var(--p-ink)] max-sm:px-3 max-sm:py-2">{sendError}</p>
+            <p role="alert" className={alertClass}>{alertIcon}{sendError}</p>
           )}
           {phase.kind === 'open' && !sendError && (
-            <p className="px-1 text-[var(--p-ink-2)]">
+            <p className="text-[#aab8d4]">
               Hər sual üçün {total} saniyə. Keçid üçün ən azı{' '}
-              <span className="tabular-nums text-[var(--p-burgundy)] font-semibold">{state.passingScore}</span> / {state.totalQuestions} düzgün cavab
+              <span className="font-semibold tabular-nums text-[#f3d77e]">{state.passingScore}</span> / {state.totalQuestions} düzgün cavab
               lazımdır. Nəticə sonda açıqlanır.
             </p>
           )}
