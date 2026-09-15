@@ -153,7 +153,7 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(a => a.CampaignId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // The attempt limit is enforced by this index: two racing starts cannot both take number 3.
+            // The unique index prevents concurrent starts from claiming the same attempt number.
             entity.HasIndex(a => new { a.ParticipantId, a.CampaignId, a.AttemptNumber }).IsUnique();
             entity.HasIndex(a => new { a.CampaignId, a.ParticipantId });
         });

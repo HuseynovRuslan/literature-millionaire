@@ -203,7 +203,7 @@ export default function HomePage() {
                     LİDER CƏDVƏLİ
                   </button>
                   <button type="button" onClick={goRegister} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(0.9rem,1.15vw,1.15rem)] font-medium">
-                    Əvvəlkini ləğv et və yeni quiz başlat
+                    Yeni iştirakçı üçün başlat
                   </button>
                 </div>
               </>

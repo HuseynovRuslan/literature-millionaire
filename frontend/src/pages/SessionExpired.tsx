@@ -31,7 +31,7 @@ export default function SessionExpired() {
             aria-busy={starting}
             className="tap mt-12 flex min-h-[7.5rem] w-full max-w-[34rem] items-center justify-center rounded-2xl bg-gold px-10 font-display text-[clamp(2rem,3.4vw,3.4rem)] font-bold tracking-[0.06em] text-navy-900 shadow-[0_18px_50px_-12px_rgba(212,168,59,0.55)] disabled:bg-gold/70"
           >
-            {starting ? 'Oyun hazırlanır' : 'YENİ OYUN'}
+            {starting ? 'Oyun hazırlanır' : 'YENİ İŞTİRAKÇI'}
           </button>
           {error && (
             <p role="alert" className="mt-6 rounded-xl border border-bad/50 bg-bad/10 px-5 py-3 text-[clamp(1rem,1.3vw,1.3rem)]">

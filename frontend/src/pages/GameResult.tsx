@@ -150,7 +150,7 @@ export default function GameResult() {
         </div>
 
         <nav aria-label="Nəticə seçimləri" className="mx-auto mt-4 grid w-full max-w-[76rem] grid-cols-1 gap-3 sm:grid-cols-3">
-          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.03em] disabled:opacity-60">YENİ OYUN</button>
+          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.03em] disabled:opacity-60">YENİ İŞTİRAKÇI</button>
           <button type="button" onClick={() => campaignId && go(`/leaderboard/${campaignId}`, false)} disabled={navigating || campaignId === null} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.05rem,1.65vw,1.65rem)] font-bold tracking-[0.02em] disabled:opacity-60">TAM LİDER CƏDVƏLİ</button>
           <button type="button" onClick={() => go('/', true)} disabled={navigating} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-5 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-semibold disabled:opacity-60">ANA SƏHİFƏ</button>
         </nav>
