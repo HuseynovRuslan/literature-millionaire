@@ -142,3 +142,26 @@ body {
   border: 2px solid var(--p-gold-light);
   box-shadow: var(--p-shadow);
 }
+
+/* ---------- Phones (portrait, narrower than Tailwind's sm breakpoint, 640px). ----------
+   Everything below only applies under 640px, so the kiosk/desktop layouts are untouched.
+   Safe-area insets are exposed as variables (0 on devices without notches) for max-sm: paddings. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+@media (max-width: 639.98px) {
+  .paper {
+    --frame: 10px;
+  }
+  /* Information screens (home, registration, result, leaderboard, session expired) may scroll
+     vertically on a phone when their content is taller than the screen. The game screen does not use this. */
+  .kiosk.kiosk-scroll {
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+}

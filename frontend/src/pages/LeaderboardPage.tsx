@@ -42,10 +42,10 @@ export default function LeaderboardPage() {
   const invalidRoute = campaignId === null
 
   return (
-    <main className="kiosk paper flex flex-col">
+    <main className="kiosk kiosk-scroll paper flex flex-col">
       <CarpetFrame />
-      <div className="relative z-0 mx-auto flex min-h-0 w-full max-w-[112rem] flex-1 flex-col" style={{ padding: 'calc(var(--frame) + 0.7rem) calc(var(--frame) + 1.3rem)' }}>
-        <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
+      <div className="relative z-0 mx-auto flex min-h-0 w-full max-w-[112rem] flex-1 flex-col max-sm:px-[calc(var(--frame)_+_0.7rem)]! max-sm:pt-[calc(var(--frame)_+_0.6rem_+_var(--safe-top))]! max-sm:pb-[calc(var(--frame)_+_1rem_+_var(--safe-bottom))]!" style={{ padding: 'calc(var(--frame) + 0.7rem) calc(var(--frame) + 1.3rem)' }}>
+        <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 max-sm:grid-cols-1 max-sm:gap-3">
           <KioskBrand compact className="justify-self-start" />
           <div className="text-center">
             <div className="flex items-center justify-center gap-3">
@@ -56,10 +56,10 @@ export default function LeaderboardPage() {
             <h1 className="font-display text-[clamp(2.2rem,4.3vw,4.5rem)] font-bold leading-none text-[var(--p-indigo)]">Lider cədvəli</h1>
             <ButaRule className="mx-auto mt-2 w-full max-w-[30rem]" />
           </div>
-          <span aria-hidden />
+          <span aria-hidden className="max-sm:hidden" />
         </header>
 
-        <section className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border-[3px] border-[var(--p-gold)] bg-white p-2 shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]" aria-labelledby="leaderboard-table-title">
+        <section className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden max-sm:flex-none rounded-xl border-[3px] border-[var(--p-gold)] bg-white p-2 shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]" aria-labelledby="leaderboard-table-title">
           <h2 id="leaderboard-table-title" className="sr-only">İlk on iştirakçı</h2>
 
           {invalidRoute && (
@@ -99,15 +99,15 @@ export default function LeaderboardPage() {
           )}
 
           {!invalidRoute && load.kind === 'ready' && load.data.entries.length > 0 && (
-            <table className="h-full w-full table-fixed border-separate border-spacing-y-1 text-left text-[clamp(0.78rem,1.15vw,1.1rem)]" data-testid="leaderboard-table">
+            <table className="h-full w-full table-fixed border-separate border-spacing-y-1 text-left text-[clamp(0.78rem,1.15vw,1.1rem)] max-sm:text-[0.8rem] max-sm:[&_td]:px-1.5 max-sm:[&_th]:px-1.5" data-testid="leaderboard-table">
               <caption className="sr-only">Kampaniyanın ilk on iştirakçısı və nəticələri</caption>
               <thead>
                 <tr className="text-[var(--p-ink-2)]">
-                  <th scope="col" className="w-[15%] px-3 py-1 font-semibold">Yer</th>
-                  <th scope="col" className="w-[35%] px-3 py-1 font-semibold">İştirakçı</th>
-                  <th scope="col" className="w-[17%] px-3 py-1 text-right font-semibold">Xal</th>
-                  <th scope="col" className="w-[20%] px-3 py-1 text-right font-semibold">Düzgün cavab</th>
-                  <th scope="col" className="w-[13%] px-3 py-1 text-right font-semibold">Müddət</th>
+                  <th scope="col" className="w-[15%] max-sm:w-[25%] px-3 py-1 font-semibold">Yer</th>
+                  <th scope="col" className="w-[35%] max-sm:w-[26%] px-3 py-1 font-semibold">İştirakçı</th>
+                  <th scope="col" className="w-[17%] max-sm:w-[14%] px-3 py-1 text-right font-semibold">Xal</th>
+                  <th scope="col" className="w-[20%] max-sm:w-[18%] px-3 py-1 text-right font-semibold">Düzgün cavab</th>
+                  <th scope="col" className="w-[13%] max-sm:w-[17%] px-3 py-1 text-right font-semibold">Müddət</th>
                 </tr>
               </thead>
               <tbody>
@@ -125,9 +125,9 @@ export default function LeaderboardPage() {
           )}
         </section>
 
-        <nav aria-label="Lider cədvəli seçimləri" className="mx-auto mt-3 grid w-full max-w-[54rem] shrink-0 grid-cols-2 gap-4">
-          <button type="button" onClick={() => go('/', false)} disabled={navigating} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-6 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-semibold disabled:opacity-60">ANA SƏHİFƏ</button>
-          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-6 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.04em] disabled:opacity-60">NÖVBƏTİ İŞTİRAKÇI</button>
+        <nav aria-label="Lider cədvəli seçimləri" className="mx-auto mt-3 grid w-full max-w-[54rem] shrink-0 grid-cols-2 gap-4 max-sm:grid-cols-1 max-sm:gap-3">
+          <button type="button" onClick={() => go('/', false)} disabled={navigating} className="tap paper-ghost flex min-h-[4.5rem] items-center justify-center rounded-full px-6 max-sm:min-h-14 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-semibold disabled:opacity-60">ANA SƏHİFƏ</button>
+          <button type="button" onClick={() => go('/register', true)} disabled={navigating} className="tap paper-cta flex min-h-[4.5rem] items-center justify-center rounded-full px-6 max-sm:min-h-14 font-display text-[clamp(1.1rem,1.8vw,1.8rem)] font-bold tracking-[0.04em] disabled:opacity-60">NÖVBƏTİ İŞTİRAKÇI</button>
         </nav>
       </div>
     </main>

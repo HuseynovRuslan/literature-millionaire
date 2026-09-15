@@ -10,7 +10,7 @@ const PHONE = /^(?:\+?994|0)(?:10|50|51|55|60|70|77|99)\d{7}$/
 const compact = (v: string) => v.replace(/[\s\-()]/g, '')
 
 const FIELD =
-  'w-full rounded-xl border-2 border-[var(--p-gold-light)] bg-white px-6 py-4 text-[clamp(1.4rem,2.2vw,2.2rem)] text-[var(--p-ink)] shadow-[var(--p-shadow)] outline-none focus:border-[var(--p-burgundy)] focus:ring-4 focus:ring-[rgba(125,22,29,0.18)]'
+  'w-full rounded-xl border-2 border-[var(--p-gold-light)] bg-white px-6 py-4 text-[clamp(1.4rem,2.2vw,2.2rem)] max-sm:px-4 max-sm:py-3 max-sm:text-[1.25rem] text-[var(--p-ink)] shadow-[var(--p-shadow)] outline-none focus:border-[var(--p-burgundy)] focus:ring-4 focus:ring-[rgba(125,22,29,0.18)]'
 
 /**
  * Touch registration before a quiz. Name and phone live only in this component's state and
@@ -48,22 +48,22 @@ export default function RegisterPage() {
 
   if (errorCode === 'ATTEMPT_LIMIT_REACHED') {
     return (
-      <main className="kiosk paper flex flex-col">
+      <main className="kiosk kiosk-scroll paper flex flex-col">
         <CarpetFrame />
         <KioskHeader />
-        <div role="alert" className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center text-center" style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 1.5rem)' }} data-testid="attempt-limit">
+        <div role="alert" className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center text-center max-sm:px-[calc(var(--frame)_+_0.9rem)]! max-sm:pt-5! max-sm:pb-[calc(var(--frame)_+_1.25rem_+_var(--safe-bottom))]!" style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 1.5rem)' }} data-testid="attempt-limit">
           <p className="font-display text-[clamp(1.4rem,2.2vw,2.2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
-          <h1 className="mt-4 max-w-[24ch] font-display text-[clamp(2.4rem,4.6vw,4.8rem)] font-bold leading-tight text-[var(--p-ink)]">
+          <h1 className="mt-4 max-w-[24ch] font-display text-[clamp(2.4rem,4.6vw,4.8rem)] max-sm:text-[2.1rem] font-bold leading-tight text-[var(--p-ink)]">
             Bu kampaniyada artıq iştirak etmisiniz.
           </h1>
           <p className="mt-4 max-w-[44ch] font-display text-[clamp(1.4rem,2.2vw,2.3rem)] font-semibold leading-snug text-[var(--p-indigo)]">
             Hər telefon nömrəsi ilə yalnız bir dəfə iştirak etmək mümkündür.
           </p>
-          <ButaRule className="my-7 w-full max-w-[30rem]" />
+          <ButaRule className="my-7 w-full max-w-[30rem] max-sm:my-5" />
           <p className="max-w-[44ch] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[var(--p-ink-2)]">
             Növbəti bilik yarışında sizi yenidən gözləyirik.
           </p>
-          <button type="button" onClick={goHome} className="tap paper-cta mt-10 flex min-h-[clamp(5rem,11vh,7rem)] w-full max-w-[30rem] items-center justify-center rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.05em]">
+          <button type="button" onClick={goHome} className="tap paper-cta mt-10 flex min-h-[clamp(5rem,11vh,7rem)] w-full max-w-[30rem] items-center justify-center rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.05em] max-sm:mt-7 max-sm:min-h-16 max-sm:text-[1.6rem]">
             Ana səhifə
           </button>
         </div>
@@ -72,14 +72,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="kiosk paper flex flex-col">
+    <main className="kiosk kiosk-scroll paper flex flex-col">
       <CarpetFrame />
       <KioskHeader />
-      <div className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center" style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 1.2rem)' }}>
+      <div className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center max-sm:px-[calc(var(--frame)_+_0.9rem)]! max-sm:pt-4! max-sm:pb-[calc(var(--frame)_+_1rem_+_var(--safe-bottom))]!" style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 1.2rem)' }}>
         <form onSubmit={submit} noValidate className="relative w-full max-w-[56rem]">
           <Buta className="absolute -left-3 -top-4 z-10 h-12 w-9" flip />
           <Buta className="absolute -right-3 -top-4 z-10 h-12 w-9" />
-          <div className="flex flex-col items-center rounded-xl border-[3px] border-[var(--p-gold)] bg-white px-[clamp(1.5rem,4vw,4rem)] py-[clamp(1.2rem,2.6vh,2.4rem)] text-center shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]">
+          <div className="flex flex-col items-center rounded-xl border-[3px] border-[var(--p-gold)] bg-white px-[clamp(1.5rem,4vw,4rem)] py-[clamp(1.2rem,2.6vh,2.4rem)] max-sm:px-4 max-sm:py-5 text-center shadow-[var(--p-shadow)] outline outline-1 outline-offset-[-9px] outline-[var(--p-gold-light)]">
             <p className="font-display text-[clamp(1.3rem,2vw,2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
             <h1 className="mt-1 font-display text-[clamp(2.2rem,4.6vw,4.6rem)] font-bold leading-none text-[var(--p-ink)]">Qeydiyyat</h1>
             <p className="mt-2 text-[clamp(1rem,1.4vw,1.4rem)] text-[var(--p-ink-2)]">Quizə başlamaq üçün ad-soyad və telefon nömrənizi yazın.</p>
@@ -98,11 +98,11 @@ export default function RegisterPage() {
               <p role="alert" className="mt-4 w-full rounded-2xl border-2 border-[#b32a31] bg-white px-5 py-3 text-[clamp(1rem,1.3vw,1.3rem)] text-[var(--p-ink)]">{fieldError ?? error}</p>
             )}
 
-            <div className="mt-6 flex w-full flex-col gap-4 sm:flex-row">
-              <button type="submit" disabled={starting} aria-busy={starting} className="tap paper-cta flex min-h-[6rem] flex-1 items-center justify-center rounded-full font-display text-[clamp(1.6rem,2.6vw,2.6rem)] font-bold tracking-[0.05em]">
+            <div className="mt-6 flex w-full flex-col gap-4 sm:flex-row max-sm:mt-5 max-sm:gap-3">
+              <button type="submit" disabled={starting} aria-busy={starting} className="tap paper-cta flex min-h-[6rem] flex-1 max-sm:min-h-16 items-center justify-center rounded-full font-display text-[clamp(1.6rem,2.6vw,2.6rem)] font-bold tracking-[0.05em]">
                 {starting ? 'Quiz hazırlanır…' : 'QUİZƏ BAŞLA'}
               </button>
-              <button type="button" onClick={goHome} disabled={starting} className="tap paper-ghost flex min-h-[6rem] flex-1 items-center justify-center rounded-full font-display text-[clamp(1.6rem,2.6vw,2.6rem)] font-semibold disabled:opacity-60">
+              <button type="button" onClick={goHome} disabled={starting} className="tap paper-ghost flex min-h-[6rem] flex-1 max-sm:min-h-14 items-center justify-center rounded-full font-display text-[clamp(1.6rem,2.6vw,2.6rem)] font-semibold disabled:opacity-60">
                 Ana səhifə
               </button>
             </div>

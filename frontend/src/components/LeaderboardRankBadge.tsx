@@ -3,7 +3,7 @@ import { formatRank } from '../utils/leaderboard'
 
 export default function LeaderboardRankBadge({ rank, compact = false }: { rank: number; compact?: boolean }) {
   const label = `${formatRank(rank)} yer`
-  const size = compact ? 'h-8 min-w-12 text-sm' : 'h-10 min-w-16 text-base'
+  const size = compact ? 'h-8 min-w-12 text-sm max-sm:whitespace-nowrap max-sm:px-1.5 max-sm:text-xs' : 'h-10 min-w-16 text-base'
 
   if (rank === 1) {
     return (

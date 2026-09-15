@@ -11,16 +11,16 @@ export default function SessionExpired() {
   const starting = state.status === 'starting'
 
   return (
-    <main className="kiosk ornament flex flex-col px-6 text-center">
-      <header className="flex shrink-0 justify-start pt-[clamp(1rem,2.5vh,2rem)]">
+    <main className="kiosk kiosk-scroll ornament flex flex-col px-6 text-center max-sm:px-4">
+      <header className="flex shrink-0 justify-start pt-[clamp(1rem,2.5vh,2rem)] max-sm:pt-[calc(1rem_+_var(--safe-top))]">
         <KioskBrand tone="dark" />
       </header>
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center max-sm:py-6 max-sm:pb-[calc(1.5rem_+_var(--safe-bottom))]">
         <div className="rise flex w-full max-w-[56rem] flex-col items-center">
-          <h1 className="font-display text-[clamp(2.4rem,5vw,5.5rem)] font-bold leading-tight text-ivory">
+          <h1 className="font-display text-[clamp(2.4rem,5vw,5.5rem)] max-sm:text-[2.1rem] font-bold leading-tight text-ivory">
             {state.expiredMessage ?? 'Oyun sessiyasının vaxtı bitib.'}
           </h1>
-          <GoldRule className="my-8 w-full max-w-[30rem]" />
+          <GoldRule className="my-8 w-full max-w-[30rem] max-sm:my-6" />
           <p className="max-w-[36rem] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-mist">
             Bu cəhd davam etdirilə bilmir. Növbəti iştirakçı qeydiyyatdan keçə bilər.
           </p>
@@ -29,7 +29,7 @@ export default function SessionExpired() {
             onClick={() => startTransition(() => { reset(); navigate('/register') })}
             disabled={starting}
             aria-busy={starting}
-            className="tap mt-12 flex min-h-[7.5rem] w-full max-w-[46rem] items-center justify-center whitespace-nowrap rounded-2xl bg-gold px-10 font-display text-[clamp(2rem,3.4vw,3.4rem)] font-bold tracking-[0.06em] text-navy-900 shadow-[0_18px_50px_-12px_rgba(212,168,59,0.55)] disabled:bg-gold/70"
+            className="tap mt-12 flex min-h-[7.5rem] w-full max-w-[46rem] items-center justify-center whitespace-nowrap rounded-2xl bg-gold px-10 font-display text-[clamp(2rem,3.4vw,3.4rem)] font-bold tracking-[0.06em] text-navy-900 shadow-[0_18px_50px_-12px_rgba(212,168,59,0.55)] disabled:bg-gold/70 max-sm:mt-8 max-sm:min-h-16 max-sm:whitespace-normal max-sm:px-4 max-sm:text-[1.5rem] max-sm:tracking-[0.03em]"
           >
             {starting ? 'Oyun hazırlanır' : 'NÖVBƏTİ İŞTİRAKÇI'}
           </button>

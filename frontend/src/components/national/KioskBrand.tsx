@@ -17,12 +17,12 @@ export default function KioskBrand({
   className?: string
 }) {
   return (
-    <div className={`flex min-w-0 items-center gap-[clamp(0.6rem,1vw,1.1rem)] ${className}`} data-testid="kiosk-brand">
+    <div className={`flex min-w-0 items-center gap-[clamp(0.6rem,1vw,1.1rem)] max-sm:gap-2 ${className}`} data-testid="kiosk-brand">
       <BrandMark size={compact ? 'sm' : 'md'} />
       <p
         className={[
           'whitespace-nowrap font-display font-bold leading-none',
-          compact ? 'text-[clamp(1.3rem,1.9vw,2.2rem)]' : 'text-[clamp(1.5rem,2.3vw,2.7rem)]',
+          compact ? 'text-[clamp(1.3rem,1.9vw,2.2rem)] max-sm:text-[1.1rem]' : 'text-[clamp(1.5rem,2.3vw,2.7rem)] max-sm:text-[1.3rem]',
           tone === 'dark' ? 'text-ivory' : 'text-[var(--p-burgundy)]',
         ].join(' ')}
         data-testid="product-name"
@@ -36,7 +36,7 @@ export default function KioskBrand({
 /** Top header row for the paper screens whose content is centered below it. */
 export function KioskHeader() {
   return (
-    <header className="relative z-10 flex shrink-0 items-center" style={{ padding: 'calc(var(--frame) + 0.8rem) calc(var(--frame) + 1.5rem) 0' }}>
+    <header className="relative z-10 flex shrink-0 items-center max-sm:px-[calc(var(--frame)_+_0.9rem)]! max-sm:pt-[calc(var(--frame)_+_0.6rem_+_var(--safe-top))]!" style={{ padding: 'calc(var(--frame) + 0.8rem) calc(var(--frame) + 1.5rem) 0' }}>
       <KioskBrand />
     </header>
   )

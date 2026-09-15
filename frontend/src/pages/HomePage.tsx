@@ -32,14 +32,14 @@ type CampaignLoad =
   | { kind: 'error'; error: CampaignErrorKind }
 
 const CTA =
-  'tap flex min-h-[clamp(4.5rem,10vh,7rem)] w-full items-center justify-center gap-4 rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.06em]'
+  'tap flex min-h-[clamp(4.5rem,10vh,7rem)] w-full items-center justify-center gap-4 rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.06em] max-sm:min-h-16 max-sm:px-6 max-sm:text-[1.6rem]'
 
 /** Gold-framed cover with buta corners. Real image when it loads; otherwise a designed paper placeholder. */
 function BookCover({ book }: { book: CampaignBook }) {
   const [status, setStatus] = useState<'pending' | 'ok' | 'failed'>(book.coverImageUrl ? 'pending' : 'failed')
   const showImage = status === 'ok'
   return (
-    <div className="relative mx-auto w-[clamp(13rem,21vw,25rem)] max-w-full shrink-0" data-testid="cover-frame">
+    <div className="relative mx-auto w-[clamp(13rem,21vw,25rem)] max-w-full shrink-0 max-sm:w-[9rem]" data-testid="cover-frame">
       <div className="relative aspect-[2/3] rounded-md border-[6px] border-[var(--p-gold)] bg-[var(--p-paper-2)] p-1.5 shadow-[var(--p-shadow)]">
         <div className="relative h-full w-full overflow-hidden rounded-sm border border-[var(--p-gold-light)]">
           {status !== 'failed' && (
@@ -58,11 +58,11 @@ function BookCover({ book }: { book: CampaignBook }) {
               data-testid="cover-fallback"
               className="flex h-full flex-col items-center justify-center bg-[var(--p-indigo)] px-[10%] text-center"
             >
-              <span aria-hidden className="mb-5 h-px w-14 bg-[var(--p-gold-light)]" />
-              <span lang="az" className="font-display text-[clamp(1.8rem,2.8vw,3.2rem)] font-bold leading-[1.05] text-[var(--p-paper)] [overflow-wrap:anywhere]">
+              <span aria-hidden className="mb-5 h-px w-14 bg-[var(--p-gold-light)] max-sm:mb-3" />
+              <span lang="az" className="font-display text-[clamp(1.8rem,2.8vw,3.2rem)] max-sm:text-[1.45rem] font-bold leading-[1.05] text-[var(--p-paper)] [overflow-wrap:anywhere]">
                 {book.title}
               </span>
-              <span aria-hidden className="my-5 h-px w-14 bg-[var(--p-gold-light)]" />
+              <span aria-hidden className="my-5 h-px w-14 bg-[var(--p-gold-light)] max-sm:my-3" />
               <span className="text-[clamp(0.9rem,1.15vw,1.25rem)] font-medium leading-snug text-[var(--p-gold-light)]">{book.author}</span>
             </div>
           )}
@@ -79,18 +79,18 @@ function BookCover({ book }: { book: CampaignBook }) {
 /** Shared shell for every home state: paper background, carpet border, product/brand header, footer hint. */
 function PaperShell({ children, alert = false }: { children: ReactNode; alert?: boolean }) {
   return (
-    <main className="kiosk paper flex flex-col">
+    <main className="kiosk kiosk-scroll paper flex flex-col">
       <CarpetFrame />
       <KioskHeader />
       <div
         role={alert ? 'alert' : undefined}
-        className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center"
+        className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center max-sm:px-[calc(var(--frame)_+_0.9rem)]! max-sm:pt-4! max-sm:pb-3!"
         style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 2.4rem)' }}
       >
         {children}
       </div>
       <p
-        className="absolute left-1/2 -translate-x-1/2 text-[clamp(0.8rem,1vw,1rem)] text-[var(--p-ink-2)]"
+        className="absolute left-1/2 -translate-x-1/2 text-[clamp(0.8rem,1vw,1rem)] text-[var(--p-ink-2)] max-sm:static max-sm:translate-x-0 max-sm:pb-[calc(var(--frame)_+_0.75rem_+_var(--safe-bottom))] max-sm:text-center"
         style={{ bottom: 'calc(var(--frame) + 0.7rem)' }}
       >
         Ekrana toxunaraq oynayın
@@ -147,7 +147,7 @@ export default function HomePage() {
           <h1 className="mt-4 font-display text-[clamp(2.4rem,5vw,5.2rem)] font-bold leading-tight text-[var(--p-ink)]">{copy.title}</h1>
           <ButaRule className="my-8 w-full max-w-[30rem]" />
           <p className="max-w-[36rem] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[var(--p-ink-2)]">{copy.text}</p>
-          <button type="button" onClick={retry} className={`${CTA} paper-cta mt-12 max-w-[30rem]`}>
+          <button type="button" onClick={retry} className={`${CTA} paper-cta mt-12 max-w-[30rem] max-sm:mt-8`}>
             Yenidən yoxla
           </button>
         </div>
@@ -160,7 +160,7 @@ export default function HomePage() {
 
   return (
     <PaperShell>
-      <section className="grid w-full max-w-[100rem] grid-cols-1 items-center gap-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:gap-14">
+      <section className="grid w-full max-w-[100rem] grid-cols-1 items-center gap-8 max-sm:gap-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:gap-14">
         <BookCover book={book} />
 
         <div className="flex min-w-0 flex-col text-center lg:text-left">
@@ -169,18 +169,18 @@ export default function HomePage() {
             <p className="font-display text-[clamp(1.3rem,2vw,2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
             <Buta className="h-7 w-5" />
           </div>
-          <h1 lang="az" className="mt-2 font-display text-[clamp(3rem,6.2vw,6.8rem)] font-bold leading-[0.98] text-[var(--p-burgundy)] [overflow-wrap:anywhere]">
+          <h1 lang="az" className="mt-2 font-display text-[clamp(3rem,6.2vw,6.8rem)] max-sm:text-[2.75rem] font-bold leading-[0.98] text-[var(--p-burgundy)] [overflow-wrap:anywhere]">
             {book.title}
           </h1>
           <p className="mt-3 text-[clamp(1.2rem,1.9vw,2rem)] font-medium text-[var(--p-indigo)] short:mt-2">{book.author}</p>
 
-          <p lang="az" className="mt-5 line-clamp-4 max-w-[60ch] text-[clamp(1.05rem,1.4vw,1.45rem)] leading-relaxed text-[var(--p-ink)] [overflow-wrap:anywhere] lg:line-clamp-5 short:mt-3 short:line-clamp-3">
+          <p lang="az" className="mt-5 line-clamp-4 max-w-[60ch] text-[clamp(1.05rem,1.4vw,1.45rem)] leading-relaxed text-[var(--p-ink)] [overflow-wrap:anywhere] lg:line-clamp-5 short:mt-3 short:line-clamp-3 max-sm:line-clamp-none!">
             {book.description}
           </p>
 
           <ButaRule className="my-6 w-full max-w-[40rem] self-center lg:self-start short:my-4" />
 
-          <dl className="flex flex-wrap justify-center gap-x-10 gap-y-3 text-[clamp(1rem,1.35vw,1.4rem)] lg:justify-start">
+          <dl className="flex flex-wrap justify-center gap-x-10 gap-y-3 max-sm:gap-x-6 text-[clamp(1rem,1.35vw,1.4rem)] lg:justify-start">
             <div><dt className="text-[var(--p-ink-2)]">Kampaniya</dt><dd className="font-semibold text-[var(--p-ink)]">{formatRange(data.startDate, data.endDate)}</dd></div>
             <div><dt className="text-[var(--p-ink-2)]">Suallar</dt><dd className="font-semibold text-[var(--p-ink)]">{data.questionCount} sual</dd></div>
             <div><dt className="text-[var(--p-ink-2)]">Keçid balı</dt><dd className="font-semibold text-[var(--p-ink)]">{data.passingScore}/{data.questionCount}</dd></div>
@@ -199,10 +199,10 @@ export default function HomePage() {
                   Başlanmış quiz var: sual {activeGame.questionNumber} / {activeGame.totalQuestions}. Davam etsəniz, vaxt sıfırlanmır.
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(1rem,1.3vw,1.3rem)] font-semibold">
+                  <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(1rem,1.3vw,1.3rem)] font-semibold max-sm:min-h-14">
                     LİDER CƏDVƏLİ
                   </button>
-                  <button type="button" onClick={goRegister} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(0.9rem,1.15vw,1.15rem)] font-medium">
+                  <button type="button" onClick={goRegister} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(0.9rem,1.15vw,1.15rem)] font-medium max-sm:min-h-14 max-sm:text-base">
                     Növbəti iştirakçı üçün başlat
                   </button>
                 </div>
@@ -212,7 +212,7 @@ export default function HomePage() {
                 <button type="button" onClick={goRegister} className={`${CTA} paper-cta`}>
                   QUİZƏ BAŞLA
                 </button>
-                <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-8 font-display text-[clamp(1.2rem,1.8vw,1.8rem)] font-semibold tracking-[0.04em]">
+                <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-8 font-display text-[clamp(1.2rem,1.8vw,1.8rem)] max-sm:min-h-14 font-semibold tracking-[0.04em]">
                   LİDER CƏDVƏLİ
                 </button>
               </>
