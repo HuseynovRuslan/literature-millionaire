@@ -1,9 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { classifyCampaignError, getCurrentCampaign, type CampaignErrorKind } from '../api/campaigns'
-import { KioskHeader } from '../components/national/KioskBrand'
+import { PlayIcon, QuizEmblem, RewardMedal } from '../components/home/GameShowArt'
+import HomeHeader from '../components/home/HomeHeader'
+import { BRAND_NAME } from '../components/national/BrandMark'
 import CarpetFrame from '../components/national/CarpetFrame'
-import { Buta, ButaRule } from '../components/national/Ornaments'
 import { useGame } from '../game/GameContext'
 import type { CampaignBook, CurrentCampaign } from '../types/campaign'
 
@@ -31,71 +32,68 @@ type CampaignLoad =
   | { kind: 'ready'; data: CurrentCampaign }
   | { kind: 'error'; error: CampaignErrorKind }
 
-const CTA =
-  'tap flex min-h-[clamp(4.5rem,10vh,7rem)] w-full items-center justify-center gap-4 rounded-full px-10 font-display text-[clamp(1.8rem,3vw,3rem)] font-bold tracking-[0.06em] max-sm:min-h-16 max-sm:px-6 max-sm:text-[1.6rem]'
+/** The one action the screen is about: large, burgundy, touch-friendly (>= 88px on the kiosk). */
+const PRIMARY =
+  'tap paper-cta flex min-h-[clamp(5.5rem,11vh,7.5rem)] items-center justify-center gap-[clamp(0.8rem,1.2vw,1.2rem)] rounded-full px-[clamp(2rem,3vw,3.5rem)] font-display text-[clamp(2.1rem,3.1vw,3.6rem)] font-bold tracking-[0.06em] max-sm:min-h-[3.75rem] max-sm:flex-none max-sm:px-6 max-sm:text-[1.65rem]'
+/** Same height as the primary so the row stays tidy, but narrower, lighter and in a smaller type. */
+const SECONDARY =
+  'tap paper-ghost flex min-h-[clamp(5.5rem,11vh,7.5rem)] items-center justify-center rounded-full px-[clamp(1.5rem,2.2vw,2.5rem)] font-display text-[clamp(1.3rem,1.75vw,2rem)] font-semibold tracking-[0.05em] max-sm:min-h-[3.25rem] max-sm:flex-none max-sm:text-[1.2rem]'
 
-/** Gold-framed cover with buta corners. Real image when it loads; otherwise a designed paper placeholder. */
-function BookCover({ book }: { book: CampaignBook }) {
-  const [status, setStatus] = useState<'pending' | 'ok' | 'failed'>(book.coverImageUrl ? 'pending' : 'failed')
-  const showImage = status === 'ok'
-  return (
-    <div className="relative mx-auto w-[clamp(13rem,21vw,25rem)] max-w-full shrink-0 max-sm:w-[9rem]" data-testid="cover-frame">
-      <div className="relative aspect-[2/3] rounded-md border-[6px] border-[var(--p-gold)] bg-[var(--p-paper-2)] p-1.5 shadow-[var(--p-shadow)]">
-        <div className="relative h-full w-full overflow-hidden rounded-sm border border-[var(--p-gold-light)]">
-          {status !== 'failed' && (
-            <img
-              src={book.coverImageUrl}
-              alt={`"${book.title}" kitabının üz qabığı`}
-              onLoad={() => setStatus('ok')}
-              onError={() => setStatus('failed')}
-              className={`absolute inset-0 h-full w-full object-cover ${showImage ? '' : 'opacity-0'}`}
-            />
-          )}
-          {!showImage && (
-            <div
-              role="img"
-              aria-label={`"${book.title}", ${book.author} — üz qabığı əvəzedicisi`}
-              data-testid="cover-fallback"
-              className="flex h-full flex-col items-center justify-center bg-[var(--p-indigo)] px-[10%] text-center"
-            >
-              <span aria-hidden className="mb-5 h-px w-14 bg-[var(--p-gold-light)] max-sm:mb-3" />
-              <span lang="az" className="font-display text-[clamp(1.8rem,2.8vw,3.2rem)] max-sm:text-[1.45rem] font-bold leading-[1.05] text-[var(--p-paper)] [overflow-wrap:anywhere]">
-                {book.title}
-              </span>
-              <span aria-hidden className="my-5 h-px w-14 bg-[var(--p-gold-light)] max-sm:my-3" />
-              <span className="text-[clamp(0.9rem,1.15vw,1.25rem)] font-medium leading-snug text-[var(--p-gold-light)]">{book.author}</span>
-            </div>
-          )}
-        </div>
+/** Shows the author only when it adds something: not empty and not just the organisation already in the header. */
+function meaningfulAuthor(author: string): string | null {
+  const value = author.trim()
+  if (!value || value.toLocaleLowerCase('az') === BRAND_NAME.toLocaleLowerCase('az')) return null
+  return value
+}
+
+/** Campaign cover when the API provides one that loads; otherwise the neutral quiz emblem. */
+function CampaignArt({ book }: { book: CampaignBook }) {
+  const [failed, setFailed] = useState(false)
+  const cover = book.coverImageUrl.trim()
+  if (cover && !failed) {
+    return (
+      <div className="self-center justify-self-center [grid-area:art]" data-testid="campaign-art" data-kind="cover">
+        <img
+          src={cover}
+          alt={`"${book.title}" üz qabığı`}
+          onError={() => setFailed(true)}
+          className="aspect-[2/3] h-[clamp(15rem,min(22vw,42vh),27rem)] w-auto rounded-xl border-4 border-[var(--p-gold-light)] object-cover shadow-[0_1.2rem_2.4rem_-0.8rem_rgba(0,0,0,0.55)] max-lg:h-[12rem] max-sm:h-[7.5rem] max-sm:border-2"
+        />
       </div>
-      <Buta className="absolute -left-4 -top-5 h-12 w-9 drop-shadow" flip />
-      <Buta className="absolute -right-4 -top-5 h-12 w-9 drop-shadow" />
-      <Buta className="absolute -bottom-5 -left-4 h-12 w-9 rotate-180 drop-shadow" />
-      <Buta className="absolute -bottom-5 -right-4 h-12 w-9 rotate-180 drop-shadow" flip />
+    )
+  }
+  return (
+    <div className="self-center justify-self-center [grid-area:art]" data-testid="campaign-art" data-kind="emblem">
+      <QuizEmblem className="size-[clamp(15rem,min(22vw,42vh),27rem)] max-lg:size-[11rem] max-sm:size-[5.75rem]" />
     </div>
   )
 }
 
-/** Shared shell for every home state: paper background, carpet border, product/brand header, footer hint. */
-function PaperShell({ children, alert = false }: { children: ReactNode; alert?: boolean }) {
+/** Paper page with the carpet border, the brand bar and a vertically centred content column. */
+function HomeShell({ children }: { children: ReactNode }) {
   return (
     <main className="kiosk kiosk-scroll paper flex flex-col">
       <CarpetFrame />
-      <KioskHeader />
-      <div
-        role={alert ? 'alert' : undefined}
-        className="relative z-0 flex min-h-0 flex-1 flex-col items-center justify-center max-sm:px-[calc(var(--frame)_+_0.9rem)]! max-sm:pt-4! max-sm:pb-3!"
-        style={{ padding: '0.4rem calc(var(--frame) + 2rem) calc(var(--frame) + 2.4rem)' }}
-      >
+      <HomeHeader />
+      {/* safe center: content taller than the space grows downwards instead of sliding under the header */}
+      <div className="relative z-0 mx-auto flex min-h-0 w-full max-w-[118rem] flex-1 flex-col [justify-content:safe_center] gap-[clamp(1rem,2.6vh,2.2rem)] px-[calc(var(--frame)_+_2rem)] pb-[calc(var(--frame)_+_1rem)] pt-[clamp(0.6rem,1.6vh,1.4rem)] max-sm:justify-start max-sm:gap-4 max-sm:px-[calc(var(--frame)_+_0.75rem)] max-sm:pb-[calc(var(--frame)_+_1rem_+_var(--safe-bottom))] max-sm:pt-3">
         {children}
       </div>
-      <p
-        className="absolute left-1/2 -translate-x-1/2 text-[clamp(0.8rem,1vw,1rem)] text-[var(--p-ink-2)] max-sm:static max-sm:translate-x-0 max-sm:pb-[calc(var(--frame)_+_0.75rem_+_var(--safe-bottom))] max-sm:text-center"
-        style={{ bottom: 'calc(var(--frame) + 0.7rem)' }}
-      >
-        Ekrana toxunaraq oynayın
-      </p>
     </main>
+  )
+}
+
+/** Loading and error states use the same stage, centred. */
+function StatusStage({ children, alert = false }: { children: ReactNode; alert?: boolean }) {
+  return (
+    <section
+      role={alert ? 'alert' : 'status'}
+      aria-live={alert ? undefined : 'polite'}
+      data-testid="home-stage"
+      className="home-stage rise flex min-h-[clamp(20rem,52vh,36rem)] flex-col items-center justify-center rounded-[clamp(1.2rem,1.6vw,2rem)] px-[clamp(1.5rem,4vw,5rem)] py-[clamp(2rem,5vh,4rem)] text-center max-sm:min-h-[22rem] max-sm:rounded-2xl max-sm:px-5 max-sm:py-8"
+    >
+      {children}
+    </section>
   )
 }
 
@@ -129,97 +127,146 @@ export default function HomePage() {
 
   if (campaign.kind === 'loading') {
     return (
-      <PaperShell>
-        <div role="status" aria-live="polite" className="flex flex-col items-center gap-6">
-          <span className="spin inline-block h-14 w-14 rounded-full border-4 border-[var(--p-gold-light)] border-t-[var(--p-burgundy)]" aria-hidden />
-          <p className="font-display text-[clamp(1.6rem,2.6vw,2.6rem)] font-semibold text-[var(--p-burgundy)]">Kampaniya yüklənir…</p>
-        </div>
-      </PaperShell>
+      <HomeShell>
+        <StatusStage>
+          <QuizEmblem className="size-[clamp(7rem,13vh,10rem)] max-sm:size-24" />
+          <span className="spin mt-6 inline-block h-12 w-12 rounded-full border-4 border-white/20 border-t-[var(--p-gold-light)]" aria-hidden />
+          <p className="mt-5 font-display text-[clamp(1.8rem,2.8vw,3rem)] font-semibold max-sm:text-[1.6rem]">Kampaniya yüklənir…</p>
+        </StatusStage>
+      </HomeShell>
     )
   }
 
   if (campaign.kind === 'error') {
     const copy = ERROR_COPY[campaign.error]
     return (
-      <PaperShell alert>
-        <div className="flex w-full max-w-[56rem] flex-col items-center text-center">
-          <p className="font-display text-[clamp(1.4rem,2.2vw,2.2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
-          <h1 className="mt-4 font-display text-[clamp(2.4rem,5vw,5.2rem)] font-bold leading-tight text-[var(--p-ink)]">{copy.title}</h1>
-          <ButaRule className="my-8 w-full max-w-[30rem]" />
-          <p className="max-w-[36rem] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[var(--p-ink-2)]">{copy.text}</p>
-          <button type="button" onClick={retry} className={`${CTA} paper-cta mt-12 max-w-[30rem] max-sm:mt-8`}>
+      <HomeShell>
+        <StatusStage alert>
+          <QuizEmblem className="size-[clamp(6rem,11vh,9rem)] max-sm:size-20" />
+          <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2.4rem,4.4vw,4.8rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2rem]">{copy.title}</h1>
+          <p className="mt-4 max-w-[40rem] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[#d6deec] max-sm:text-base">{copy.text}</p>
+        </StatusStage>
+        <div className="rise flex justify-center [animation-delay:90ms]" data-testid="home-actions">
+          <button type="button" onClick={retry} className={`${PRIMARY} w-full max-w-[34rem]`} data-testid="home-primary">
             Yenidən yoxla
           </button>
         </div>
-      </PaperShell>
+      </HomeShell>
     )
   }
 
   const { data } = campaign
   const { book } = data
+  const author = meaningfulAuthor(book.author)
+  // Presentation only (no campaign is special-cased): long titles get a smaller type so the stage,
+  // rules and the start button still fit a kiosk screen without scrolling.
+  const longTitle = book.title.trim().length > 24
+  const titleSize = longTitle
+    ? 'text-[clamp(2.6rem,min(4.2vw,7.2vh),5.2rem)] max-sm:text-[1.9rem]'
+    : 'text-[clamp(3.4rem,min(6.4vw,11vh),8rem)] max-sm:text-[2.35rem]'
+  const rewardSize = data.rewardTitle.trim().length > 36
+    ? 'text-[clamp(1.35rem,1.8vw,2.1rem)] max-sm:text-[1.1rem]'
+    : 'text-[clamp(1.6rem,2.3vw,2.7rem)] max-sm:text-[1.25rem]'
+  const rules: [string, string][] = [
+    ['Suallar', `${data.questionCount} sual`],
+    ['Keçid balı', `${data.passingScore} / ${data.questionCount}`],
+    ['Qayda', '1 iştirakçı — 1 cəhd'],
+  ]
 
   return (
-    <PaperShell>
-      <section className="grid w-full max-w-[100rem] grid-cols-1 items-center gap-8 max-sm:gap-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:gap-14">
-        <BookCover book={book} />
+    <HomeShell>
+      <section
+        aria-labelledby="campaign-title"
+        data-testid="home-stage"
+        className="home-stage rise grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-[clamp(2rem,3.6vw,4.8rem)] rounded-[clamp(1.2rem,1.6vw,2rem)] px-[clamp(2rem,3.6vw,5rem)] py-[clamp(1.4rem,3.4vh,3.2rem)] [grid-template-areas:'art_title'_'art_body'] max-lg:gap-x-6 max-lg:gap-y-5 max-lg:px-8 max-lg:py-7 max-lg:[grid-template-areas:'art_title'_'body_body'] max-sm:gap-x-4 max-sm:gap-y-4 max-sm:rounded-2xl max-sm:px-4 max-sm:py-5"
+      >
+        <CampaignArt book={book} />
 
-        <div className="flex min-w-0 flex-col text-center lg:text-left">
-          <div className="flex items-center justify-center gap-3 lg:justify-start">
-            <Buta className="h-7 w-5" flip />
-            <p className="font-display text-[clamp(1.3rem,2vw,2rem)] font-semibold tracking-[0.18em] text-[var(--p-burgundy)]">BİLİK YARIŞI</p>
-            <Buta className="h-7 w-5" />
-          </div>
-          <h1 lang="az" className="mt-2 font-display text-[clamp(3rem,6.2vw,6.8rem)] max-sm:text-[2.75rem] font-bold leading-[0.98] text-[var(--p-burgundy)] [overflow-wrap:anywhere]">
+        <div className="min-w-0 self-end [grid-area:title] max-lg:self-center">
+          <p lang="az" className="font-display text-[clamp(1.15rem,1.5vw,1.7rem)] font-semibold uppercase tracking-[0.16em] text-[var(--p-gold-light)] max-sm:text-[0.82rem] max-sm:tracking-[0.1em]">
+            {formatRange(data.startDate, data.endDate)}
+          </p>
+          <h1
+            id="campaign-title"
+            lang="az"
+            className={`mt-[clamp(0.25rem,0.8vh,0.7rem)] font-display font-bold leading-[0.95] text-[#fbf6ec] [overflow-wrap:anywhere] [text-wrap:balance] ${titleSize}`}
+          >
             {book.title}
           </h1>
-          <p className="mt-3 text-[clamp(1.2rem,1.9vw,2rem)] font-medium text-[var(--p-indigo)] short:mt-2">{book.author}</p>
+          {author && (
+            <p className="mt-[clamp(0.4rem,1vh,0.8rem)] text-[clamp(1.15rem,1.7vw,1.9rem)] font-medium text-[#c9d3e6] max-sm:mt-1 max-sm:text-[0.95rem]">{author}</p>
+          )}
+        </div>
 
-          <p lang="az" className="mt-5 line-clamp-4 max-w-[60ch] text-[clamp(1.05rem,1.4vw,1.45rem)] leading-relaxed text-[var(--p-ink)] [overflow-wrap:anywhere] lg:line-clamp-5 short:mt-3 short:line-clamp-3 max-sm:line-clamp-none!">
+        <div className="min-w-0 self-start [grid-area:body]">
+          <p
+            lang="az"
+            data-testid="campaign-description"
+            className="mt-[clamp(0.7rem,1.8vh,1.5rem)] max-w-[64ch] text-[clamp(1.05rem,min(1.35vw,2.4vh),1.55rem)] leading-relaxed text-[#d6deec] [overflow-wrap:anywhere] lg:line-clamp-3 max-lg:mt-0 max-sm:text-[0.95rem] max-sm:leading-normal"
+          >
             {book.description}
           </p>
 
-          <ButaRule className="my-6 w-full max-w-[40rem] self-center lg:self-start short:my-4" />
+          {data.rewardTitle && (
+            <div data-testid="reward" className="mt-[clamp(0.9rem,2.4vh,2rem)] flex items-center gap-[clamp(0.8rem,1.2vw,1.3rem)] max-sm:mt-4 max-sm:gap-3">
+              <RewardMedal className="h-[clamp(3.4rem,5vw,5.2rem)] w-auto shrink-0 max-sm:h-12" />
+              <div className="min-w-0">
+                <p className="text-[clamp(0.85rem,1vw,1.1rem)] font-semibold uppercase tracking-[0.14em] text-[var(--p-gold-light)] max-sm:text-[0.72rem]">Mükafat</p>
+                <p lang="az" className={`font-display font-bold leading-tight text-[#fbf6ec] [overflow-wrap:anywhere] ${rewardSize}`}>{data.rewardTitle}</p>
+              </div>
+            </div>
+          )}
 
-          <dl className="flex flex-wrap justify-center gap-x-10 gap-y-3 max-sm:gap-x-6 text-[clamp(1rem,1.35vw,1.4rem)] lg:justify-start">
-            <div><dt className="text-[var(--p-ink-2)]">Kampaniya</dt><dd className="font-semibold text-[var(--p-ink)]">{formatRange(data.startDate, data.endDate)}</dd></div>
-            <div><dt className="text-[var(--p-ink-2)]">Suallar</dt><dd className="font-semibold text-[var(--p-ink)]">{data.questionCount} sual</dd></div>
-            <div><dt className="text-[var(--p-ink-2)]">Keçid balı</dt><dd className="font-semibold text-[var(--p-ink)]">{data.passingScore}/{data.questionCount}</dd></div>
-            {data.rewardTitle && (
-              <div><dt className="text-[var(--p-ink-2)]">Mükafat</dt><dd className="font-semibold text-[var(--p-burgundy)]">{data.rewardTitle}</dd></div>
-            )}
+          <dl
+            data-testid="home-rules"
+            className="mt-[clamp(1rem,2.6vh,2.2rem)] grid w-full max-w-[64rem] grid-cols-[minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1.4fr)] divide-x divide-[rgba(233,192,105,0.35)] overflow-hidden rounded-2xl bg-white/[0.07] ring-1 ring-[rgba(233,192,105,0.4)] max-sm:mt-4 max-sm:rounded-xl"
+          >
+            {rules.map(([label, value]) => (
+              <div key={label} className="flex min-w-0 flex-col justify-center gap-1 px-[clamp(0.9rem,1.6vw,1.8rem)] py-[clamp(0.6rem,1.4vh,1.1rem)] max-sm:px-2 max-sm:py-2.5">
+                <dt className="text-[clamp(0.8rem,0.95vw,1.05rem)] font-semibold uppercase tracking-[0.12em] text-[var(--p-gold-light)] max-sm:text-[0.66rem] max-sm:tracking-[0.06em]">{label}</dt>
+                <dd lang="az" className="font-display text-[clamp(1.5rem,2.2vw,2.5rem)] font-bold leading-tight text-[#fbf6ec] lg:whitespace-nowrap max-sm:text-[1.02rem]">{value}</dd>
+              </div>
+            ))}
           </dl>
-
-          <div className="mt-8 flex w-full max-w-[44rem] flex-col gap-4 self-center lg:self-start short:mt-5 short:gap-3">
-            {activeGame ? (
-              <>
-                <button type="button" onClick={() => navigate('/game')} className={`${CTA} paper-cta`}>
-                  Davam et
-                </button>
-                <p className="text-center text-[clamp(0.95rem,1.2vw,1.25rem)] text-[var(--p-ink-2)] lg:text-left">
-                  Başlanmış quiz var: sual {activeGame.questionNumber} / {activeGame.totalQuestions}. Davam etsəniz, vaxt sıfırlanmır.
-                </p>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(1rem,1.3vw,1.3rem)] font-semibold max-sm:min-h-14">
-                    LİDER CƏDVƏLİ
-                  </button>
-                  <button type="button" onClick={goRegister} className="tap paper-ghost min-h-[4.5rem] rounded-full px-6 text-[clamp(0.9rem,1.15vw,1.15rem)] font-medium max-sm:min-h-14 max-sm:text-base">
-                    Növbəti iştirakçı üçün başlat
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <button type="button" onClick={goRegister} className={`${CTA} paper-cta`}>
-                  QUİZƏ BAŞLA
-                </button>
-                <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className="tap paper-ghost min-h-[4.5rem] rounded-full px-8 font-display text-[clamp(1.2rem,1.8vw,1.8rem)] max-sm:min-h-14 font-semibold tracking-[0.04em]">
-                  LİDER CƏDVƏLİ
-                </button>
-              </>
-            )}
-          </div>
         </div>
       </section>
-    </PaperShell>
+
+      <nav aria-label="Ana səhifə seçimləri" data-testid="home-actions" className="rise flex flex-col items-center gap-[clamp(0.5rem,1.2vh,0.9rem)] [animation-delay:90ms]">
+        <div className="flex w-full max-w-[78rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.5rem)] max-sm:flex-col max-sm:gap-3">
+          {activeGame ? (
+            <button type="button" onClick={() => navigate('/game')} className={`${PRIMARY} flex-[1.7]`} data-testid="home-primary">
+              DAVAM ET
+              <PlayIcon className="size-[0.8em] shrink-0" />
+            </button>
+          ) : (
+            <button type="button" onClick={goRegister} className={`${PRIMARY} flex-[1.7]`} data-testid="home-primary">
+              QUİZƏ BAŞLA
+              <PlayIcon className="size-[0.8em] shrink-0" />
+            </button>
+          )}
+          <button type="button" onClick={() => navigate(`/leaderboard/${data.campaignId}`)} className={`${SECONDARY} flex-1`} data-testid="home-leaderboard">
+            LİDER CƏDVƏLİ
+          </button>
+        </div>
+
+        {activeGame ? (
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-center max-sm:flex-col max-sm:gap-y-2">
+            <p className="text-[clamp(1rem,1.25vw,1.35rem)] text-[var(--p-ink-2)] max-sm:text-[0.95rem]">
+              Başlanmış quiz var: sual {activeGame.questionNumber} / {activeGame.totalQuestions}. Davam etsəniz, vaxt sıfırlanmır.
+            </p>
+            <button
+              type="button"
+              onClick={goRegister}
+              data-testid="home-new-participant"
+              className="tap min-h-12 rounded-full px-4 text-[clamp(1rem,1.25vw,1.35rem)] font-semibold text-[var(--p-burgundy)] underline decoration-[var(--p-gold)] decoration-2 underline-offset-[6px] max-sm:min-h-[3.25rem]"
+            >
+              Növbəti iştirakçı üçün başlat
+            </button>
+          </div>
+        ) : (
+          <p className="text-[clamp(0.85rem,1vw,1.05rem)] text-[var(--p-ink-2)] max-sm:hidden">Ekrana toxunaraq oynayın</p>
+        )}
+      </nav>
+    </HomeShell>
   )
 }

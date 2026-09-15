@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const BRAND_NAME = 'Bakı Abadlıq Xidməti MMC'
+export const BRAND_NAME = 'Bakı Abadlıq Xidməti MMC'
 
 /**
  * Organisation mark for the kiosk. Shows public/brand/bakiabadliq.jpg when it loads;
