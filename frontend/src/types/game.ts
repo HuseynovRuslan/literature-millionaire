@@ -28,6 +28,15 @@ export interface StartGameResponse {
   /** ISO 8601 UTC. The backend judges lateness against this; the client only displays it. */
   questionExpiresAtUtc: string
   question: GameQuestion
+  /** This start's attempt number and how many remain for the campaign. */
+  attemptNumber: number
+  remainingAttempts: number
+}
+
+/** Registration data sent with the start request. Never persisted in the browser. */
+export interface StartGameInput {
+  fullName: string
+  phoneNumber: string
 }
 
 /** Final outcome, computed by the backend. rewardTitle is present only when passed. */

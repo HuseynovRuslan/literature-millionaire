@@ -8,4 +8,7 @@ public record StartGameResponseDto(
     int SecondsPerQuestion,
     // UTC deadline for the delivered question; the server judges lateness against it.
     DateTime QuestionExpiresAtUtc,
-    GameQuestionDto Question);
+    GameQuestionDto Question,
+    // This start's attempt number (1..MaxAttempts) and how many the participant has left afterwards. No phone number here.
+    int AttemptNumber,
+    int RemainingAttempts);

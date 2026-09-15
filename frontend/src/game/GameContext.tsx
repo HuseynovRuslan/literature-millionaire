@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
 import { isAxiosError } from 'axios'
 import { startGame as apiStartGame, submitAnswer as apiSubmitAnswer, submitTimeout as apiSubmitTimeout } from '../api/game'
-import type { AnswerOption, AnswerResult, GameQuestion, QuizResult } from '../types/game'
+import type { AnswerOption, AnswerResult, GameQuestion, QuizResult, StartGameInput } from '../types/game'
 import { SessionInvalidError } from './errors'
 import { clearActiveGame, loadActiveGame, saveActiveGame, type ActiveGameSnapshot } from './storage'
 
@@ -23,13 +23,16 @@ export interface GameState {
 
 interface GameContextValue {
   state: GameState
-  startGame: () => Promise<boolean>
+  /** Starts a quiz for the given participant. Resolves true on success; on failure `error`/`errorCode` are set. */
+  startGame: (input: StartGameInput) => Promise<boolean>
   submitAnswer: (option: AnswerOption) => Promise<AnswerResult>
   /** Reports the deadline of the visible question. Safe to retry with the same question. */
   submitTimeout: () => Promise<AnswerResult>
   advance: (result: AnswerResult) => void
   reset: () => void
   error: string | null
+  /** Stable backend code of the last start failure (e.g. ATTEMPT_LIMIT_REACHED), or null. */
+  errorCode: string | null
 }
 
 const initial: GameState = {
@@ -79,15 +82,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return snap ? fromSnapshot(snap) : initial
   })
   const [error, setError] = useState<string | null>(null)
+  const [errorCode, setErrorCode] = useState<string | null>(null)
   const startingRef = useRef(false)
 
-  const startGame = useCallback(async () => {
+  const startGame = useCallback(async (input: StartGameInput) => {
     if (startingRef.current) return false // ignore repeated taps
     startingRef.current = true
     setError(null)
+    setErrorCode(null)
     setState({ ...initial, status: 'starting' })
     try {
-      const start = await apiStartGame()
+      const start = await apiStartGame(input)
       setState(persist({
         ...initial,
         status: 'playing',
@@ -103,13 +108,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       setState(persist({ ...initial }))
       const status = isAxiosError(err) ? err.response?.status : undefined
-      const code = isAxiosError(err) ? (err.response?.data as { code?: string } | undefined)?.code : undefined
+      const data = isAxiosError(err) ? (err.response?.data as { code?: string; maxAttempts?: number; errors?: Record<string, string[]> } | undefined) : undefined
+      const code = data?.code ?? (status === 400 ? 'VALIDATION' : null)
+      setErrorCode(code)
       setError(
         status === 404 && code === 'NO_ACTIVE_CAMPAIGN'
           ? 'Hazırda aktiv "Ayın kitabı" kampaniyası yoxdur.'
-          : status === 409
-            ? 'Bu kampaniya üçün kifayət qədər sual yoxdur.'
-            : 'Oyunu başlatmaq mümkün olmadı. Server cavab vermir.',
+          : code === 'ATTEMPT_LIMIT_REACHED'
+            ? `Bu kampaniya üçün ${data?.maxAttempts ?? 3} cəhd limitindən istifadə etmisiniz.`
+            : status === 400
+              ? 'Ad, soyad və ya telefon nömrəsi düzgün deyil.'
+              : status === 409
+                ? 'Bu kampaniya üçün kifayət qədər sual yoxdur.'
+                : 'Oyunu başlatmaq mümkün olmadı. Server cavab vermir.',
       )
       return false
     } finally {
@@ -197,12 +208,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const reset = useCallback(() => {
     setError(null)
+    setErrorCode(null)
     setState(persist({ ...initial }))
   }, [])
 
   const value = useMemo(
-    () => ({ state, startGame, submitAnswer, submitTimeout, advance, reset, error }),
-    [state, startGame, submitAnswer, submitTimeout, advance, reset, error],
+    () => ({ state, startGame, submitAnswer, submitTimeout, advance, reset, error, errorCode }),
+    [state, startGame, submitAnswer, submitTimeout, advance, reset, error, errorCode],
   )
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>

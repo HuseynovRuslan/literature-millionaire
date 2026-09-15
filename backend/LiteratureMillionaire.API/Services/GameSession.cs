@@ -32,6 +32,9 @@ public class GameSession
     public Guid SessionId { get; init; } = Guid.NewGuid();
 
     public required int CampaignId { get; init; }
+
+    /// <summary>Database row of this attempt; its result columns are written once when the quiz ends.</summary>
+    public required int AttemptId { get; init; }
     public required int BookId { get; init; }
     public required int PassingScore { get; init; }
     public required string RewardTitle { get; init; }

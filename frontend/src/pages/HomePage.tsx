@@ -103,7 +103,7 @@ function PaperShell({ children, alert = false }: { children: ReactNode; alert?: 
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { state, startGame, error: startError } = useGame()
+  const { state, reset } = useGame()
   const [campaign, setCampaign] = useState<CampaignLoad>({ kind: 'loading' })
   const [attempt, setAttempt] = useState(0)
 
@@ -120,14 +120,13 @@ export default function HomePage() {
     setAttempt((a) => a + 1)
   }
 
-  const starting = state.status === 'starting'
   // A valid, unanswered question restored from sessionStorage: offer to continue instead of starting a second session.
   const activeGame = state.status === 'playing' && state.question ? state : null
 
-  async function handleStart() {
-    if (starting) return
-    const ok = await startGame() // GameContext ignores overlapping calls, so a double tap yields one request
-    if (ok) navigate('/game')
+  // Registration happens on /register; starting a new quiz from here always drops any finished/stale state first.
+  function goRegister() {
+    reset()
+    navigate('/register')
   }
 
   if (campaign.kind === 'loading') {
@@ -201,30 +200,14 @@ export default function HomePage() {
                 <p className="text-center text-[clamp(0.95rem,1.2vw,1.25rem)] text-[var(--p-ink-2)] lg:text-left">
                   Başlanmış quiz var: sual {activeGame.questionNumber} / {activeGame.totalQuestions}. Davam etsəniz, vaxt sıfırlanmır.
                 </p>
-                <button type="button" onClick={handleStart} disabled={starting} aria-busy={starting} className="tap paper-ghost min-h-[4rem] rounded-full px-8 text-[clamp(1rem,1.3vw,1.3rem)] font-medium disabled:opacity-60">
-                  {starting ? 'Quiz hazırlanır…' : 'Əvvəlkini ləğv et və yeni quiz başlat'}
+                <button type="button" onClick={goRegister} className="tap paper-ghost min-h-[4rem] rounded-full px-8 text-[clamp(1rem,1.3vw,1.3rem)] font-medium">
+                  Əvvəlkini ləğv et və yeni quiz başlat
                 </button>
               </>
             ) : (
-              <button type="button" onClick={handleStart} disabled={starting} aria-busy={starting} className={`${CTA} paper-cta`}>
-                {starting ? (
-                  <>
-                    <span className="spin inline-block h-9 w-9 rounded-full border-4 border-white/30 border-t-white" aria-hidden />
-                    Quiz hazırlanır
-                  </>
-                ) : (
-                  'QUİZƏ BAŞLA'
-                )}
+              <button type="button" onClick={goRegister} className={`${CTA} paper-cta`}>
+                QUİZƏ BAŞLA
               </button>
-            )}
-
-            {startError && (
-              <div role="alert" className="flex flex-col items-center gap-3 rounded-2xl border-2 border-[var(--p-burgundy)] bg-white px-6 py-4 text-[clamp(1rem,1.3vw,1.35rem)] text-[var(--p-ink)]">
-                <p>{startError}</p>
-                <button type="button" onClick={handleStart} className="tap paper-ghost min-h-[3.5rem] rounded-full px-8 font-medium">
-                  Yenidən cəhd et
-                </button>
-              </div>
             )}
           </div>
         </div>

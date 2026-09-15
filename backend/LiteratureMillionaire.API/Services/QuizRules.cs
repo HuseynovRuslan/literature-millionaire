@@ -11,6 +11,9 @@ public static class QuizRules
     /// <summary>Server-enforced time a player has for each question. The client countdown only mirrors it.</summary>
     public const int SecondsPerQuestion = 10;
 
+    /// <summary>How many quizzes one phone number may start per campaign. A start consumes an attempt even if abandoned.</summary>
+    public const int MaxAttemptsPerCampaign = 3;
+
     /// <summary>
     /// Preferred number of illustrated questions per quiz. Applied only when the book has at
     /// least this many illustrated and enough text-only questions; otherwise selection falls

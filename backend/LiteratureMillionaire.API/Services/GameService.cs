@@ -32,15 +32,20 @@ public class GameService : IGameService
         _logger = logger;
     }
 
-    public async Task<StartGameResponseDto> StartAsync(CancellationToken ct = default)
+    public async Task<StartGameResponseDto> StartAsync(StartGameRequestDto request, CancellationToken ct = default)
     {
         // Same selection rules and same calendar date as GET /api/campaigns/current.
+        // Campaign and question checks come first so a limit-free failure never consumes an attempt.
         var campaign = await _campaigns.GetCurrentAsync(ct);
         var questions = await SelectQuestionsAsync(campaign, ct);
+
+        var participant = await FindOrCreateParticipantAsync(request, ct);
+        var attempt = await CreateAttemptAsync(participant, campaign, ct);
 
         var session = new GameSession
         {
             CampaignId = campaign.CampaignId,
+            AttemptId = attempt.Id,
             BookId = campaign.Book.Id,
             PassingScore = campaign.PassingScore,
             RewardTitle = campaign.RewardTitle,
@@ -59,7 +64,9 @@ public class GameService : IGameService
             PassingScore: session.PassingScore,
             SecondsPerQuestion: QuizRules.SecondsPerQuestion,
             QuestionExpiresAtUtc: session.QuestionDeadlineUtc,
-            Question: first);
+            Question: first,
+            AttemptNumber: attempt.AttemptNumber,
+            RemainingAttempts: QuizRules.MaxAttemptsPerCampaign - attempt.AttemptNumber);
     }
 
     public async Task<AnswerResultDto> AnswerAsync(Guid sessionId, SubmitAnswerDto dto, CancellationToken ct = default)
@@ -124,14 +131,23 @@ public class GameService : IGameService
     {
         var closedNumber = session.CurrentQuestionNumber;
 
-        if (isCorrect)
+        // Compute first, commit to the session only after any persistence succeeded, so a failed
+        // database write leaves the session replayable instead of reporting a result nobody stored.
+        var correct = session.CorrectAnswers + (isCorrect ? 1 : 0);
+        var points = session.PointsEarned + (isCorrect ? session.Current.Points : 0);
+        var isLast = session.CurrentIndex + 1 >= session.TotalQuestions;
+
+        if (isLast)
         {
-            session.CorrectAnswers++;
-            session.PointsEarned += session.Current.Points; // weight fixed at session start, never client-supplied
+            var passed = correct >= session.PassingScore;
+            await StoreResultAsync(session, correct, points, passed, ct);
         }
+
+        session.CorrectAnswers = correct;
+        session.PointsEarned = points;
         session.CurrentIndex++;
 
-        if (session.CurrentIndex >= session.TotalQuestions)
+        if (isLast)
         {
             session.IsGameOver = true;
             Store(session);
@@ -253,6 +269,100 @@ public class GameService : IGameService
                 };
             })
             .ToArray();
+    }
+
+    // --- participants and attempts ------------------------------------------
+
+    /// <summary>Finds the participant by normalised phone or creates one. A concurrent creation of the same number is resolved by re-reading after the unique index rejects the duplicate. The number itself is never logged.</summary>
+    private async Task<Participant> FindOrCreateParticipantAsync(StartGameRequestDto request, CancellationToken ct)
+    {
+        if (!PhoneNumber.TryNormalize(request.PhoneNumber, out var phone))
+        {
+            throw new GameException(StatusCodes.Status400BadRequest, "Invalid phone number", "PhoneNumber must be an Azerbaijani mobile number.",
+                new Dictionary<string, object?> { ["code"] = "INVALID_PHONE_NUMBER" });
+        }
+
+        var existing = await _db.Participants.FirstOrDefaultAsync(p => p.NormalizedPhoneNumber == phone, ct);
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var participant = new Participant { FullName = request.FullName.Trim(), NormalizedPhoneNumber = phone, CreatedAtUtc = DateTime.UtcNow };
+        _db.Participants.Add(participant);
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("Participant {ParticipantId} created.", participant.Id);
+            return participant;
+        }
+        catch (DbUpdateException)
+        {
+            _db.Entry(participant).State = EntityState.Detached;
+            return await _db.Participants.FirstAsync(p => p.NormalizedPhoneNumber == phone, ct); // created by a racing request
+        }
+    }
+
+    /// <summary>
+    /// Consumes one attempt. The count is re-read and the insert retried when the unique
+    /// (participant, campaign, attemptNumber) index rejects a racing insert, so parallel
+    /// starts can never produce a fourth attempt.
+    /// </summary>
+    private async Task<QuizAttempt> CreateAttemptAsync(Participant participant, CurrentCampaignDto campaign, CancellationToken ct)
+    {
+        for (var retry = 0; retry < 3; retry++)
+        {
+            var used = await _db.QuizAttempts.CountAsync(a => a.ParticipantId == participant.Id && a.CampaignId == campaign.CampaignId, ct);
+            if (used >= QuizRules.MaxAttemptsPerCampaign)
+            {
+                throw GameException.Conflict("Attempt limit reached",
+                    $"This phone number has used all {QuizRules.MaxAttemptsPerCampaign} attempts for the current campaign.",
+                    new Dictionary<string, object?> { ["code"] = "ATTEMPT_LIMIT_REACHED", ["maxAttempts"] = QuizRules.MaxAttemptsPerCampaign, ["attemptsUsed"] = used });
+            }
+
+            var attempt = new QuizAttempt
+            {
+                ParticipantId = participant.Id,
+                CampaignId = campaign.CampaignId,
+                AttemptNumber = used + 1,
+                StartedAtUtc = DateTime.UtcNow,
+                TotalQuestions = QuizRules.QuestionsPerQuiz,
+                PassingScore = campaign.PassingScore,
+                MaxPoints = QuizRules.MaxPoints
+            };
+            _db.QuizAttempts.Add(attempt);
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+                _logger.LogInformation("Attempt {AttemptNumber} started for participant {ParticipantId} in campaign {CampaignId}.", attempt.AttemptNumber, participant.Id, campaign.CampaignId);
+                return attempt;
+            }
+            catch (DbUpdateException)
+            {
+                _db.Entry(attempt).State = EntityState.Detached; // number taken by a racing start: recount
+            }
+        }
+
+        throw GameException.Conflict("Attempt could not be recorded", "Could not record the attempt after several tries. Please try again.",
+            new Dictionary<string, object?> { ["code"] = "ATTEMPT_CONFLICT" });
+    }
+
+    /// <summary>Writes the server-computed result exactly once (only where CompletedAtUtc is still null). Throws if nothing was stored, so no unstored result is ever reported.</summary>
+    private async Task StoreResultAsync(GameSession session, int correct, int points, bool passed, CancellationToken ct)
+    {
+        var rows = await _db.QuizAttempts
+            .Where(a => a.Id == session.AttemptId && a.CompletedAtUtc == null)
+            .ExecuteUpdateAsync(set => set
+                .SetProperty(a => a.CompletedAtUtc, DateTime.UtcNow)
+                .SetProperty(a => a.CorrectAnswers, correct)
+                .SetProperty(a => a.PointsEarned, points)
+                .SetProperty(a => a.Passed, passed), ct);
+
+        if (rows != 1)
+        {
+            _logger.LogError("Result for attempt {AttemptId} could not be stored (rows affected: {Rows}).", session.AttemptId, rows);
+            throw new InvalidOperationException($"Result for attempt {session.AttemptId} could not be stored.");
+        }
     }
 
     private async Task<GameQuestionDto> LoadQuestionAsync(SessionQuestion sq, CancellationToken ct)

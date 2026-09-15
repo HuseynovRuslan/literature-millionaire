@@ -6,8 +6,8 @@ public interface IGameService
 {
     /// <summary>Builds a new campaign quiz (QuizRules.QuestionsPerQuiz questions from the active campaign's book) and returns its first question.</summary>
     /// <exception cref="CampaignException">404 when no campaign is current; 500 when several are.</exception>
-    /// <exception cref="GameException">409 when the book has too few questions.</exception>
-    Task<StartGameResponseDto> StartAsync(CancellationToken ct = default);
+    /// <exception cref="GameException">409 when the book has too few questions or the participant has used all attempts (ATTEMPT_LIMIT_REACHED).</exception>
+    Task<StartGameResponseDto> StartAsync(StartGameRequestDto request, CancellationToken ct = default);
 
     /// <summary>Checks the answer for the session's current question and advances or ends the game.</summary>
     /// <exception cref="GameException">404 unknown session; 409 game over / wrong question.</exception>

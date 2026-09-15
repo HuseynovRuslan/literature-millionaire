@@ -1,9 +1,12 @@
 import GoldRule from '../components/GoldRule'
+import { startTransition } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useGame } from '../game/GameContext'
 
 /** Shown inside /game when the backend no longer knows the stored session. */
 export default function SessionExpired() {
-  const { state, startGame, error } = useGame()
+  const navigate = useNavigate()
+  const { state, reset, error } = useGame()
   const starting = state.status === 'starting'
 
   return (
@@ -18,7 +21,7 @@ export default function SessionExpired() {
         </p>
         <button
           type="button"
-          onClick={() => { if (!starting) void startGame() }}
+          onClick={() => startTransition(() => { reset(); navigate('/register') })}
           disabled={starting}
           aria-busy={starting}
           className="tap mt-12 flex min-h-[7.5rem] w-full max-w-[34rem] items-center justify-center rounded-2xl bg-gold px-10 font-display text-[clamp(2rem,3.4vw,3.4rem)] font-bold tracking-[0.06em] text-navy-900 shadow-[0_18px_50px_-12px_rgba(212,168,59,0.55)] disabled:bg-gold/70"

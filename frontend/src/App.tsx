@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import { GameProvider } from './game/GameContext'
 import HomePage from './pages/HomePage'
+import RegisterPage from './pages/RegisterPage'
 import GamePage from './pages/GamePage'
 import AdminQuestionsPage from './pages/AdminQuestionsPage'
 
@@ -11,6 +12,7 @@ export default function App() {
       <Routes>
         {/* Kiosk screens: full viewport, no chrome. */}
         <Route index element={<HomePage />} />
+        <Route path="register" element={<RegisterPage />} />
         <Route path="game" element={<GamePage />} />
 
         {/* Admin keeps the plain layout with navigation. */}

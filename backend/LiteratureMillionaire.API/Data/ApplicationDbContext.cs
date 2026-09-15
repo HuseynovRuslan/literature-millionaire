@@ -12,6 +12,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Question> Questions => Set<Question>();
     public DbSet<Book> Books => Set<Book>();
     public DbSet<MonthlyCampaign> MonthlyCampaigns => Set<MonthlyCampaign>();
+    public DbSet<Participant> Participants => Set<Participant>();
+    public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -97,6 +99,53 @@ public class ApplicationDbContext : DbContext
 
             // "Current campaign" lookup: enabled rows filtered by date range.
             entity.HasIndex(c => new { c.IsEnabled, c.StartDate, c.EndDate });
+        });
+
+        modelBuilder.Entity<Participant>(entity =>
+        {
+            entity.ToTable("Participants");
+            entity.HasKey(p => p.Id);
+
+            entity.Property(p => p.FullName).IsRequired().HasMaxLength(120);
+            entity.Property(p => p.NormalizedPhoneNumber).IsRequired().HasMaxLength(16).IsUnicode(false);
+            entity.Property(p => p.CreatedAtUtc)
+                .IsRequired()
+                .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+            entity.HasIndex(p => p.NormalizedPhoneNumber).IsUnique();
+        });
+
+        modelBuilder.Entity<QuizAttempt>(entity =>
+        {
+            entity.ToTable("QuizAttempts", t =>
+            {
+                t.HasCheckConstraint("CK_QuizAttempts_AttemptNumber", $"[AttemptNumber] BETWEEN 1 AND {Services.QuizRules.MaxAttemptsPerCampaign}");
+            });
+            entity.HasKey(a => a.Id);
+
+            entity.Property(a => a.AttemptNumber).IsRequired();
+            entity.Property(a => a.TotalQuestions).IsRequired();
+            entity.Property(a => a.PassingScore).IsRequired();
+            entity.Property(a => a.MaxPoints).IsRequired();
+            entity.Property(a => a.StartedAtUtc)
+                .IsRequired()
+                .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            entity.Property(a => a.CompletedAtUtc)
+                .HasConversion(v => v, v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+            entity.HasOne(a => a.Participant)
+                .WithMany(p => p.Attempts)
+                .HasForeignKey(a => a.ParticipantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(a => a.Campaign)
+                .WithMany()
+                .HasForeignKey(a => a.CampaignId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // The attempt limit is enforced by this index: two racing starts cannot both take number 3.
+            entity.HasIndex(a => new { a.ParticipantId, a.CampaignId, a.AttemptNumber }).IsUnique();
+            entity.HasIndex(a => new { a.CampaignId, a.ParticipantId });
         });
     }
 }

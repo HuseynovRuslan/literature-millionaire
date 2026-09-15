@@ -3,6 +3,7 @@ using LiteratureMillionaire.API.Data;
 using LiteratureMillionaire.API.Seed;
 using LiteratureMillionaire.API.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,9 +21,14 @@ builder.Services
     });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.")));
+    options
+        .UseSqlServer(
+            builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured."))
+        // A failed SaveChanges is handled (or rethrown) by the caller. EF's own error log for it
+        // repeats the SQL error text, which for a unique-index violation contains the duplicate key
+        // value - the participant's phone number - so that event must not be written to the log.
+        .ConfigureWarnings(warnings => warnings.Ignore(CoreEventId.SaveChangesFailed)));
 
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 

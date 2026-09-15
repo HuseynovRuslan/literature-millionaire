@@ -1,3 +1,4 @@
+import { startTransition } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BrandMark from '../components/national/BrandMark'
 import CarpetFrame from '../components/national/CarpetFrame'
@@ -20,18 +21,27 @@ function OpenBook({ className = '' }: { className?: string }) {
 /** Final screen shown inside /game once the quiz has ended. Visual only: all values come from state.result. */
 export default function GameResult() {
   const navigate = useNavigate()
-  const { state, startGame, reset, error } = useGame()
+  const { state, reset, error } = useGame()
   const starting = state.status === 'starting'
   const r = state.result
 
-  async function playAgain() {
-    if (starting) return
-    await startGame() // on success state.status becomes 'playing' and GamePage re-renders the question
+  // Every quiz needs its own registration: clear this participant's state and go to /register,
+  // so the next visitor never plays on the previous participant's attempt.
+  // React Router applies the navigation inside a transition, i.e. after a plain reset() render;
+  // in between GamePage would see status "idle" and redirect to "/". Doing both inside one
+  // transition commits the idle state and the new location together.
+  function playAgain() {
+    startTransition(() => {
+      reset()
+      navigate('/register')
+    })
   }
 
   function goHome() {
-    reset()
-    navigate('/')
+    startTransition(() => {
+      reset()
+      navigate('/')
+    })
   }
 
   const passed = r?.passed ?? false

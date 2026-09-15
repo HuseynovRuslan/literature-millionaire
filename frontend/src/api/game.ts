@@ -1,8 +1,8 @@
 import { api } from './client'
-import type { AnswerOption, AnswerResult, StartGameResponse } from '../types/game'
+import type { AnswerOption, AnswerResult, StartGameInput, StartGameResponse } from '../types/game'
 
-export async function startGame(): Promise<StartGameResponse> {
-  const { data } = await api.post<StartGameResponse>('/api/game/start')
+export async function startGame(input: StartGameInput): Promise<StartGameResponse> {
+  const { data } = await api.post<StartGameResponse>('/api/game/start', input)
   return data
 }
 

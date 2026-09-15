@@ -23,16 +23,18 @@ public class GameController : ControllerBase
 
     /// <summary>Start a new "Ayın kitabı" quiz (10 questions from the active campaign's book) and receive the first question.</summary>
     /// <remarks>404 with code NO_ACTIVE_CAMPAIGN when no campaign is current; 409 with code INSUFFICIENT_CAMPAIGN_QUESTIONS when the book has too few questions.</remarks>
+    /// <remarks>Body: fullName + phoneNumber. 409 with code ATTEMPT_LIMIT_REACHED (maxAttempts, attemptsUsed) once the number has used all attempts for the campaign.</remarks>
     [HttpPost("start")]
     [ProducesResponseType(typeof(StartGameResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<StartGameResponseDto>> Start(CancellationToken ct)
+    public async Task<ActionResult<StartGameResponseDto>> Start([FromBody] StartGameRequestDto request, CancellationToken ct)
     {
         try
         {
-            return Ok(await _game.StartAsync(ct));
+            return Ok(await _game.StartAsync(request, ct));
         }
         catch (GameException ex)
         {
