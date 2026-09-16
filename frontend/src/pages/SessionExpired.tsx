@@ -34,35 +34,35 @@ export default function SessionExpired() {
       <section
         data-testid="expired-stage"
         aria-labelledby="expired-title"
-        className="home-stage rise flex min-h-[clamp(20rem,50vh,34rem)] flex-col items-center justify-center rounded-[clamp(1.2rem,1.6vw,2rem)] px-[clamp(1.5rem,4vw,5rem)] py-[clamp(1.5rem,4vh,3.5rem)] text-center max-sm:min-h-[22rem] max-sm:rounded-2xl max-sm:px-5 max-sm:py-7"
+        className="home-stage rise flex min-h-[26.5625rem] flex-col items-center justify-center rounded-[clamp(1.2rem,1.6vw,1.44rem)] px-[clamp(1.5rem,4vw,3.6rem)] py-[2.125rem] text-center max-sm:min-h-[22rem] max-sm:rounded-2xl max-sm:px-5 max-sm:py-7"
       >
-        <HourglassMark className="size-[clamp(5rem,min(8vw,12vh),8.5rem)] max-sm:size-20" />
+        <HourglassMark className="size-[clamp(5rem,8vw,7.2rem)] max-sm:size-20" />
         {quizModeTitle && (
-          <p className="mt-3 font-display text-[clamp(0.85rem,1vw,1.1rem)] font-semibold uppercase tracking-[0.14em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]" data-testid="expired-quiz-mode">
+          <p className="mt-3 font-display text-[clamp(0.85rem,1vw,0.9rem)] font-semibold uppercase tracking-[0.14em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]" data-testid="expired-quiz-mode">
             {quizModeTitle}
           </p>
         )}
-        <h1 id="expired-title" className="mt-[clamp(0.4rem,1vh,0.7rem)] font-display text-[clamp(2.6rem,min(4.6vw,8vh),5.4rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2.1rem]">
+        <h1 id="expired-title" className="mt-[0.5312rem] font-display text-[clamp(2.6rem,4.6vw,4.14rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2.1rem]">
           Sessiyanın vaxtı bitdi
         </h1>
-        {reason && <p className="mt-2 text-[clamp(1.05rem,1.35vw,1.5rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[0.98rem]">{reason}</p>}
-        <p className="mt-[clamp(0.6rem,1.6vh,1.1rem)] max-w-[40rem] text-[clamp(1.15rem,1.6vw,1.8rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
+        {reason && <p className="mt-2 text-[clamp(1.05rem,1.35vw,1.215rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[0.98rem]">{reason}</p>}
+        <p className="mt-[0.85rem] max-w-[40rem] text-[clamp(1.15rem,1.6vw,1.44rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
           Bu cəhd davam etdirilə bilmir. Növbəti iştirakçı qeydiyyatdan keçə bilər.
         </p>
         {error && (
-          <p role="alert" className="mt-4 rounded-xl bg-[rgba(125,22,29,0.6)] px-5 py-3 text-[clamp(1rem,1.2vw,1.3rem)] text-[#fbf6ec] ring-1 ring-[#ff9aa2]">
+          <p role="alert" className="mt-4 rounded-xl bg-[rgba(125,22,29,0.6)] px-5 py-3 text-[clamp(1rem,1.2vw,1.08rem)] text-[#fbf6ec] ring-1 ring-[#ff9aa2]">
             {error}
           </p>
         )}
       </section>
 
-      <nav aria-label="Sessiya seçimləri" className="rise flex w-full max-w-[78rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.5rem)] self-center [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
+      <nav aria-label="Sessiya seçimləri" className="rise flex w-full max-w-[78rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.26rem)] self-center [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
         <button
           type="button"
           onClick={() => go(campaignId ? `/register/${campaignId}` : '/')}
           disabled={starting || navigating}
           aria-busy={starting}
-          className={`${PRIMARY_CTA} flex-[1.5] text-[clamp(1.6rem,2.5vw,3rem)]! disabled:opacity-60 max-sm:text-[1.35rem]!`}
+          className={`${PRIMARY_CTA} flex-[1.5] text-[clamp(1.6rem,2.5vw,2.25rem)]! disabled:opacity-60 max-sm:text-[1.35rem]!`}
           data-testid="expired-next"
         >
           {starting ? 'Oyun hazırlanır' : 'NÖVBƏTİ İŞTİRAKÇI'}

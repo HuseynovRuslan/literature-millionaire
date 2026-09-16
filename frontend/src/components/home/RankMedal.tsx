@@ -14,13 +14,13 @@ const MEDALS = {
 export default function RankMedal({ rank, compact = false }: { rank: number; compact?: boolean }) {
   const id = useId().replace(/:/g, '')
   const label = `${formatRank(rank)} yer`
-  const size = compact ? 'size-[clamp(1.8rem,min(3vw,4vh),3rem)] max-sm:size-8' : 'size-[clamp(2.5rem,min(3.4vw,5.4vh),3.6rem)] max-sm:size-8'
+  const size = compact ? 'size-[clamp(1.8rem,3vw,2.7rem)] max-sm:size-8' : 'size-[clamp(2.5rem,3.4vw,3.06rem)] max-sm:size-8'
   const medal = MEDALS[rank as 1 | 2 | 3]
 
   if (!medal) {
     return (
       <span role="img" aria-label={label} data-medal="none" className={`grid shrink-0 place-items-center rounded-full ring-1 ring-white/30 ${size}`}>
-        <span aria-hidden className="font-display text-[clamp(1.05rem,1.4vw,1.5rem)] font-bold leading-none tabular-nums text-[#e4e9f3] max-sm:text-[0.95rem]">{rank}</span>
+        <span aria-hidden className="font-display text-[clamp(1.05rem,1.4vw,1.26rem)] font-bold leading-none tabular-nums text-[#e4e9f3] max-sm:text-[0.95rem]">{rank}</span>
       </span>
     )
   }
@@ -38,7 +38,7 @@ export default function RankMedal({ rank, compact = false }: { rank: number; com
         <rect x="8" y="8" width="24" height="24" rx="1.5" transform="rotate(45 20 20)" fill={`url(#${id}-m)`} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
         <circle cx="20" cy="20" r="10.5" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="0.8" />
       </svg>
-      <span aria-hidden className="relative font-display text-[clamp(1.05rem,1.4vw,1.5rem)] font-bold leading-none tabular-nums text-[#2a1c14] max-sm:text-[0.95rem]">{rank}</span>
+      <span aria-hidden className="relative font-display text-[clamp(1.05rem,1.4vw,1.26rem)] font-bold leading-none tabular-nums text-[#2a1c14] max-sm:text-[0.95rem]">{rank}</span>
     </span>
   )
 }

@@ -25,14 +25,14 @@ function toneOf(item: QuizAnswerReview): keyof typeof TONE {
 export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
   if (items.length === 0) {
     return (
-      <p className="py-[clamp(1rem,3vh,2rem)] text-center font-display text-[clamp(1.2rem,1.7vw,1.9rem)] font-semibold text-[#d6deec]">
+      <p className="py-[1.5938rem] text-center font-display text-[clamp(1.2rem,1.7vw,1.53rem)] font-semibold text-[#d6deec]">
         Cavabların siyahısı əlçatan deyil
       </p>
     )
   }
 
   return (
-    <ol data-testid="answer-review" className="flex flex-col gap-[clamp(0.4rem,0.9vh,0.7rem)]">
+    <ol data-testid="answer-review" className="flex flex-col gap-[0.4781rem]">
       {items.map((item) => {
         const tone = TONE[toneOf(item)]
         return (
@@ -40,25 +40,25 @@ export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
             key={item.questionNumber}
             data-testid="review-item"
             data-correct={item.isCorrect ? 'yes' : 'no'}
-            className={`rounded-xl bg-white/[0.07] px-[clamp(0.7rem,1vw,1.1rem)] py-[clamp(0.45rem,1vh,0.8rem)] ring-1 ${tone.ring} max-sm:px-2.5`}
+            className={`rounded-xl bg-white/[0.07] px-[clamp(0.7rem,1vw,0.9rem)] py-[0.5312rem] ring-1 ${tone.ring} max-sm:px-2.5`}
           >
-            <div className="flex items-start gap-[clamp(0.55rem,0.9vw,1rem)]">
-              <span className={`mt-[0.15em] grid size-[clamp(1.6rem,2vw,2.1rem)] shrink-0 place-items-center rounded-full font-display text-[clamp(0.85rem,1vw,1.1rem)] font-bold tabular-nums ${tone.badge}`}>
+            <div className="flex items-start gap-[clamp(0.55rem,0.9vw,0.81rem)]">
+              <span className={`mt-[0.15em] grid size-[clamp(1.6rem,2vw,1.8rem)] shrink-0 place-items-center rounded-full font-display text-[clamp(0.85rem,1vw,0.9rem)] font-bold tabular-nums ${tone.badge}`}>
                 {item.questionNumber}
               </span>
               <div className="min-w-0 flex-1">
-                <p lang="az" className="text-[clamp(0.95rem,1.15vw,1.25rem)] font-semibold leading-snug text-[#fbf6ec] [overflow-wrap:anywhere] max-sm:text-[0.92rem]">
+                <p lang="az" className="text-[clamp(0.95rem,1.15vw,1.035rem)] font-semibold leading-snug text-[#fbf6ec] [overflow-wrap:anywhere] max-sm:text-[0.92rem]">
                   {item.text}
                 </p>
 
-                <p className="mt-[0.35em] text-[clamp(0.85rem,1.02vw,1.1rem)] leading-snug text-[#c9d3e6] max-sm:text-[0.85rem]">
+                <p className="mt-[0.35em] text-[clamp(0.85rem,1.02vw,0.918rem)] leading-snug text-[#c9d3e6] max-sm:text-[0.85rem]">
                   <span className="font-semibold text-[var(--p-teal)]">Düzgün cavab:</span>{' '}
                   <span lang="az" className="text-[#fbf6ec] [overflow-wrap:anywhere]">{item.correctOption}) {item.correctAnswer}</span>
                 </p>
 
                 {/* A correct answer needs no second line: the row above already is the player's answer. */}
                 {!item.isCorrect && (
-                  <p className="text-[clamp(0.85rem,1.02vw,1.1rem)] leading-snug text-[#c9d3e6] max-sm:text-[0.85rem]">
+                  <p className="text-[clamp(0.85rem,1.02vw,0.918rem)] leading-snug text-[#c9d3e6] max-sm:text-[0.85rem]">
                     <span className="font-semibold text-[#ff9aa2]">Sizin cavabınız:</span>{' '}
                     {item.selectedOption === null
                       ? <span className="text-[#d6deec]">cavab verilmədi</span>
@@ -73,7 +73,7 @@ export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
                 )}
 
                 {item.explanation && (
-                  <p lang="az" className="mt-[0.3em] text-[clamp(0.8rem,0.95vw,1.02rem)] leading-snug text-[#a9b6cc] [overflow-wrap:anywhere] max-sm:text-[0.8rem]">
+                  <p lang="az" className="mt-[0.3em] text-[clamp(0.8rem,0.95vw,0.855rem)] leading-snug text-[#a9b6cc] [overflow-wrap:anywhere] max-sm:text-[0.8rem]">
                     {item.explanation}
                   </p>
                 )}

@@ -20,7 +20,7 @@ type FieldErrors = { fullName: string | null; phone: string | null }
 const NO_ERRORS: FieldErrors = { fullName: null, phone: null }
 
 const STAGE =
-  'home-stage rise rounded-[clamp(1.2rem,1.6vw,2rem)] px-[clamp(2rem,3.6vw,5rem)] py-[clamp(1.4rem,3.4vh,3.2rem)] max-lg:px-8 max-lg:py-7 max-sm:rounded-2xl max-sm:px-4 max-sm:py-5'
+  'home-stage rise rounded-[clamp(1.2rem,1.6vw,1.44rem)] px-[clamp(2rem,3.6vw,3.24rem)] py-[1.8063rem] max-lg:px-8 max-lg:py-7 max-sm:rounded-2xl max-sm:px-4 max-sm:py-5'
 
 function parseCampaignId(value: string | undefined): number | null {
   if (!value || !/^[1-9]\d*$/.test(value)) return null
@@ -38,8 +38,8 @@ function Field({
 }: { id: string; label: string; error: string | null; inputRef: RefObject<HTMLInputElement | null> } & InputHTMLAttributes<HTMLInputElement>) {
   const errorId = `${id}-error`
   return (
-    <div className="flex min-w-0 flex-col gap-[clamp(0.4rem,0.9vh,0.7rem)]">
-      <label htmlFor={id} className="font-display text-[clamp(1.35rem,1.8vw,2rem)] font-semibold leading-none text-[#fbf6ec] max-sm:text-[1.15rem]">
+    <div className="flex min-w-0 flex-col gap-[0.4781rem]">
+      <label htmlFor={id} className="font-display text-[clamp(1.35rem,1.8vw,1.62rem)] font-semibold leading-none text-[#fbf6ec] max-sm:text-[1.15rem]">
         {label}
       </label>
       <input
@@ -47,11 +47,11 @@ function Field({
         ref={inputRef}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
-        className="gs-input min-h-[clamp(4.5rem,8vh,5.5rem)] w-full rounded-2xl border-2 px-[clamp(1.2rem,1.6vw,1.8rem)] font-sans text-[clamp(1.35rem,1.9vw,2.1rem)] max-sm:min-h-[3.5rem] max-sm:rounded-xl max-sm:px-4 max-sm:text-[1.2rem]"
+        className="gs-input min-h-[4.5rem] w-full rounded-2xl border-2 px-[clamp(1.2rem,1.6vw,1.44rem)] font-sans text-[clamp(1.35rem,1.9vw,1.71rem)] max-sm:min-h-[3.5rem] max-sm:rounded-xl max-sm:px-4 max-sm:text-[1.2rem]"
         {...input}
       />
       {error && (
-        <p id={errorId} className="flex items-start gap-2 text-[clamp(1rem,1.2vw,1.3rem)] font-medium leading-snug text-[#ffd0d3] max-sm:text-[0.95rem]">
+        <p id={errorId} className="flex items-start gap-2 text-[clamp(1rem,1.2vw,1.08rem)] font-medium leading-snug text-[#ffd0d3] max-sm:text-[0.95rem]">
           <span aria-hidden className="mt-[0.1em] grid size-[1.3em] shrink-0 place-items-center rounded-full bg-[#ffd0d3] text-[0.8em] font-bold text-[#5c0e18]">!</span>
           {error}
         </p>
@@ -130,12 +130,12 @@ export default function RegisterPage() {
   if (campaignId === null || lookup.kind === 'not-found') {
     return (
       <GameShowShell>
-        <section role="alert" data-testid="register-invalid" className={`${STAGE} flex min-h-[clamp(20rem,52vh,36rem)] flex-col items-center justify-center text-center max-sm:min-h-[22rem]`}>
-          <RuleBadge className="size-[clamp(5.5rem,10vh,8rem)] max-sm:size-20" />
-          <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2.2rem,3.8vw,4.4rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.9rem]">
+        <section role="alert" data-testid="register-invalid" className={`${STAGE} flex min-h-[27.625rem] flex-col items-center justify-center text-center max-sm:min-h-[22rem]`}>
+          <RuleBadge className="size-[5.5rem] max-sm:size-20" />
+          <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2.2rem,3.8vw,3.42rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.9rem]">
             Bu kateqoriya artıq mövcud deyil
           </h1>
-          <p className="mt-4 max-w-[44rem] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
+          <p className="mt-4 max-w-[44rem] text-[clamp(1.1rem,1.6vw,1.44rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
             Zəhmət olmasa, kateqoriya seçimi ekranından yenidən seçin.
           </p>
         </section>
@@ -151,9 +151,9 @@ export default function RegisterPage() {
   if (lookup.kind === 'loading') {
     return (
       <GameShowShell>
-        <section role="status" aria-live="polite" data-testid="register-loading" className={`${STAGE} flex min-h-[clamp(20rem,52vh,36rem)] flex-col items-center justify-center text-center max-sm:min-h-[22rem]`}>
+        <section role="status" aria-live="polite" data-testid="register-loading" className={`${STAGE} flex min-h-[27.625rem] flex-col items-center justify-center text-center max-sm:min-h-[22rem]`}>
           <span className="spin inline-block h-12 w-12 rounded-full border-4 border-white/20 border-t-[var(--p-gold-light)]" aria-hidden />
-          <p className="mt-5 font-display text-[clamp(1.6rem,2.6vw,2.6rem)] font-semibold text-[#fbf6ec] max-sm:text-[1.4rem]">Kateqoriya yoxlanılır…</p>
+          <p className="mt-5 font-display text-[clamp(1.6rem,2.6vw,2.34rem)] font-semibold text-[#fbf6ec] max-sm:text-[1.4rem]">Kateqoriya yoxlanılır…</p>
         </section>
       </GameShowShell>
     )
@@ -164,18 +164,18 @@ export default function RegisterPage() {
   if (errorCode === 'ATTEMPT_LIMIT_REACHED') {
     return (
       <GameShowShell>
-        <section role="alert" data-testid="attempt-limit" className={`${STAGE} flex min-h-[clamp(20rem,52vh,36rem)] flex-col items-center justify-center text-center max-sm:min-h-[22rem]`}>
-          <RuleBadge className="size-[clamp(5.5rem,10vh,8rem)] max-sm:size-20" />
-          <h1 className="mt-5 max-w-[22ch] font-display text-[clamp(2.6rem,4.6vw,5.2rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2rem]">
+        <section role="alert" data-testid="attempt-limit" className={`${STAGE} flex min-h-[27.625rem] flex-col items-center justify-center text-center max-sm:min-h-[22rem]`}>
+          <RuleBadge className="size-[5.5rem] max-sm:size-20" />
+          <h1 className="mt-5 max-w-[22ch] font-display text-[clamp(2.6rem,4.6vw,4.14rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2rem]">
             İştirak hüququ istifadə olunub
           </h1>
-          <p className="mt-3 font-display text-[clamp(1.2rem,1.7vw,1.9rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[1.05rem]">
+          <p className="mt-3 font-display text-[clamp(1.2rem,1.7vw,1.53rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[1.05rem]">
             {campaign.quizMode.title}
           </p>
-          <p className="mt-4 max-w-[46rem] text-[clamp(1.15rem,1.7vw,1.8rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
+          <p className="mt-4 max-w-[46rem] text-[clamp(1.15rem,1.7vw,1.53rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
             {error ?? 'Bu kampaniyada artıq iştirak etmisiniz.'}
           </p>
-          <p className="mt-3 font-display text-[clamp(1.3rem,1.9vw,2.1rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[1.15rem]">
+          <p className="mt-3 font-display text-[clamp(1.3rem,1.9vw,1.71rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[1.15rem]">
             Növbəti bilik yarışında sizi yenidən gözləyirik.
           </p>
         </section>
@@ -190,47 +190,47 @@ export default function RegisterPage() {
 
   return (
     <GameShowShell>
-      <form onSubmit={submit} noValidate aria-labelledby="register-title" className="flex flex-col gap-[clamp(1rem,2.6vh,2.2rem)] max-sm:gap-4" data-testid="register-form">
+      <form onSubmit={submit} noValidate aria-labelledby="register-title" className="flex flex-col gap-[1.3813rem] max-sm:gap-4" data-testid="register-form">
         <section
           data-testid="register-stage"
-          className={`${STAGE} grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-center gap-x-[clamp(2rem,4.5vw,6rem)] max-lg:grid-cols-1 max-lg:gap-y-6 max-sm:gap-y-5`}
+          className={`${STAGE} grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-center gap-x-[clamp(2rem,4.5vw,4.05rem)] max-lg:grid-cols-1 max-lg:gap-y-6 max-sm:gap-y-5`}
         >
           <div className="min-w-0">
             <div className="flex items-center gap-3" data-testid="register-category">
-              <span aria-hidden="true" className="grid size-[clamp(2.6rem,3.4vw,3.4rem)] shrink-0 place-items-center rounded-full bg-[rgba(243,215,126,0.14)] text-[var(--p-gold-light)] ring-1 ring-[rgba(233,192,105,0.55)]">
+              <span aria-hidden="true" className="grid size-[clamp(2.6rem,3.4vw,3.06rem)] shrink-0 place-items-center rounded-full bg-[rgba(243,215,126,0.14)] text-[var(--p-gold-light)] ring-1 ring-[rgba(233,192,105,0.55)]">
                 <QuizModeIcon iconKey={campaign.quizMode.iconKey} className="size-[56%]" />
               </span>
-              <p lang="az" className="min-w-0 truncate font-display text-[clamp(1.15rem,1.5vw,1.7rem)] font-semibold uppercase tracking-[0.1em] text-[var(--p-gold-light)] max-sm:text-[0.95rem]">
+              <p lang="az" className="min-w-0 truncate font-display text-[clamp(1.15rem,1.5vw,1.35rem)] font-semibold uppercase tracking-[0.1em] text-[var(--p-gold-light)] max-sm:text-[0.95rem]">
                 {campaign.quizMode.title}
               </p>
             </div>
-            <h1 id="register-title" lang="az" className="mt-[clamp(0.4rem,1vh,0.8rem)] font-display text-[clamp(2.6rem,min(4.4vw,8vh),5.4rem)] font-bold leading-[0.98] text-[#fbf6ec] [text-wrap:balance] max-sm:text-[2rem]">
+            <h1 id="register-title" lang="az" className="mt-[0.5312rem] font-display text-[clamp(2.6rem,4.4vw,3.96rem)] font-bold leading-[0.98] text-[#fbf6ec] [text-wrap:balance] max-sm:text-[2rem]">
               İştirakçı qeydiyyatı
             </h1>
             {campaign.book && (
-              <p lang="az" className="mt-[clamp(0.3rem,0.8vh,0.6rem)] max-w-[36ch] text-[clamp(1rem,1.3vw,1.4rem)] text-[#c9d3e6] max-sm:text-[0.9rem]">
+              <p lang="az" className="mt-[0.425rem] max-w-[36ch] text-[clamp(1rem,1.3vw,1.17rem)] text-[#c9d3e6] max-sm:text-[0.9rem]">
                 Kitab: {campaign.book.title}
                 {campaign.book.author.trim() ? ` — ${campaign.book.author.trim()}` : ''}
               </p>
             )}
-            <p className="mt-[clamp(0.3rem,0.8vh,0.6rem)] text-[clamp(0.95rem,1.2vw,1.3rem)] text-[#aab8d4] max-sm:text-[0.85rem]">
+            <p className="mt-[0.425rem] text-[clamp(0.95rem,1.2vw,1.08rem)] text-[#aab8d4] max-sm:text-[0.85rem]">
               {formatDateRange(campaign.startDate, campaign.endDate)}
             </p>
-            <p className="mt-[clamp(0.6rem,1.6vh,1.2rem)] max-w-[34ch] text-[clamp(1.15rem,1.6vw,1.8rem)] leading-snug text-[#d6deec] max-sm:text-base">
+            <p className="mt-[0.85rem] max-w-[34ch] text-[clamp(1.15rem,1.6vw,1.44rem)] leading-snug text-[#d6deec] max-sm:text-base">
               Məlumatlarınızı daxil edin və bilik yarışına başlayın.
             </p>
             <div
               data-testid="attempt-rule"
-              className="mt-[clamp(1rem,3vh,2.4rem)] flex max-w-[36rem] items-center gap-[clamp(0.8rem,1.2vw,1.2rem)] rounded-2xl bg-white/[0.07] px-[clamp(1rem,1.4vw,1.5rem)] py-[clamp(0.7rem,1.6vh,1.1rem)] ring-1 ring-[rgba(233,192,105,0.45)] max-sm:mt-4 max-sm:rounded-xl max-sm:px-3 max-sm:py-2.5"
+              className="mt-[1.5938rem] flex max-w-[36rem] items-center gap-[clamp(0.8rem,1.2vw,1.08rem)] rounded-2xl bg-white/[0.07] px-[clamp(1rem,1.4vw,1.26rem)] py-[0.85rem] ring-1 ring-[rgba(233,192,105,0.45)] max-sm:mt-4 max-sm:rounded-xl max-sm:px-3 max-sm:py-2.5"
             >
-              <RuleBadge className="size-[clamp(3.2rem,4.4vw,4.4rem)] shrink-0 max-sm:size-11" />
-              <p lang="az" className="text-[clamp(1.1rem,1.45vw,1.6rem)] font-semibold leading-snug text-[#fbf6ec] max-sm:text-[0.98rem]">
+              <RuleBadge className="size-[clamp(3.2rem,4.4vw,3.96rem)] shrink-0 max-sm:size-11" />
+              <p lang="az" className="text-[clamp(1.1rem,1.45vw,1.305rem)] font-semibold leading-snug text-[#fbf6ec] max-sm:text-[0.98rem]">
                 Hər iştirakçı kampaniyada yalnız bir dəfə iştirak edə bilər.
               </p>
             </div>
           </div>
 
-          <div className="flex min-w-0 flex-col gap-[clamp(1rem,2.4vh,1.8rem)] max-sm:gap-4">
+          <div className="flex min-w-0 flex-col gap-[1.275rem] max-sm:gap-4">
             <Field
               id="register-full-name"
               label="Ad və soyad"
@@ -265,7 +265,7 @@ export default function RegisterPage() {
               <p
                 role="alert"
                 data-testid="register-server-error"
-                className="flex items-start gap-3 rounded-2xl bg-[rgba(125,22,29,0.6)] px-5 py-4 text-[clamp(1.05rem,1.3vw,1.4rem)] font-medium leading-snug text-[#fbf6ec] ring-1 ring-[#ff9aa2] max-sm:rounded-xl max-sm:px-4 max-sm:py-3 max-sm:text-[0.98rem]"
+                className="flex items-start gap-3 rounded-2xl bg-[rgba(125,22,29,0.6)] px-5 py-4 text-[clamp(1.05rem,1.3vw,1.17rem)] font-medium leading-snug text-[#fbf6ec] ring-1 ring-[#ff9aa2] max-sm:rounded-xl max-sm:px-4 max-sm:py-3 max-sm:text-[0.98rem]"
               >
                 <span aria-hidden className="grid size-[1.5em] shrink-0 place-items-center rounded-full bg-[#fbf6ec] font-bold text-[#7d161d]">!</span>
                 <span>{error}</span>
@@ -274,7 +274,7 @@ export default function RegisterPage() {
           </div>
         </section>
 
-        <div data-testid="register-actions" className="rise flex w-full max-w-[78rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.5rem)] self-center [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
+        <div data-testid="register-actions" className="rise flex w-full max-w-[78rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.26rem)] self-center [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
           <button type="submit" disabled={starting} aria-busy={starting} className={`${PRIMARY_CTA} flex-[1.7] disabled:opacity-70`} data-testid="register-submit">
             {starting ? 'Quiz hazırlanır…' : 'YARIŞA BAŞLA'}
             {!starting && <PlayIcon className="size-[0.8em] shrink-0" />}
