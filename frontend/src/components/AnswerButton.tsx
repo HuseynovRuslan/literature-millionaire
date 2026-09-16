@@ -15,7 +15,7 @@ interface Props {
 // belongs to the letter slot, which the server shuffles per session, so it says nothing about correctness.
 // During the quiz only idle / selected / dimmed are used; `correct` / `wrong` have no special styling here
 // (see .gs-answer in index.css), so no state can reveal an answer.
-const ACCENT: Record<AnswerOption, string> = { A: '#b8323c', B: '#2f6bd1', C: '#159a8f', D: '#c98a1c' }
+const ACCENT: Record<AnswerOption, string> = { A: '#9c3b47', B: '#3d5a96', C: '#2e7a70', D: '#a07434' }
 
 export default function AnswerButton({ option, text, visual, disabled, onSelect }: Props) {
   return (

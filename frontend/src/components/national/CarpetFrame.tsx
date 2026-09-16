@@ -8,7 +8,7 @@ import { Gol, Octagram } from './Ornaments'
 export default function CarpetFrame() {
   const strip = 'absolute pointer-events-none'
   return (
-    <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true">
+    <div className="carpet-frame pointer-events-none absolute inset-0 z-10" aria-hidden="true">
       <svg className="absolute h-0 w-0">
         <defs>
           <pattern id="carpet-h" width="46" height="26" patternUnits="userSpaceOnUse">

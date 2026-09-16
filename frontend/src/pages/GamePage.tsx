@@ -155,9 +155,9 @@ export default function GamePage() {
   }
 
   const alertClass =
-    'inline-flex items-center gap-3 rounded-2xl bg-[rgba(125,22,29,0.7)] px-5 py-2.5 text-left font-medium text-[#fbf6ec] ring-1 ring-[#ff9aa2] max-sm:gap-2 max-sm:rounded-xl max-sm:px-3 max-sm:py-1.5'
+    'inline-flex items-center gap-3 rounded-2xl bg-[rgba(107,34,48,0.7)] px-5 py-2.5 text-left font-medium text-[#fbf6ec] ring-1 ring-[#e8959c] max-sm:gap-2 max-sm:rounded-xl max-sm:px-3 max-sm:py-1.5'
   const alertIcon = (
-    <span aria-hidden className="grid size-[1.5em] shrink-0 place-items-center rounded-full bg-[#fbf6ec] font-bold text-[#7d161d]">!</span>
+    <span aria-hidden className="grid size-[1.5em] shrink-0 place-items-center rounded-full bg-[#fbf6ec] font-bold text-[#6b2230]">!</span>
   )
 
   return (
@@ -194,7 +194,7 @@ export default function GamePage() {
           <h1
             id="question-text"
             lang="az"
-            className={`font-display font-semibold leading-[1.15] text-[#2a1c14] [overflow-wrap:anywhere] [text-wrap:balance] ${
+            className={`font-display font-semibold leading-[1.15] text-[#f5f0e6] [overflow-wrap:anywhere] [text-wrap:balance] ${
               hasImage
                 ? 'text-[clamp(1.9rem,min(2.9vw,5.4vh),3.6rem)] max-lg:text-center max-sm:text-[1.3rem]'
                 : `mx-auto max-w-[34ch] text-center ${longText ? 'text-[clamp(2rem,min(3.1vw,5.8vh),3.9rem)] max-sm:text-[1.3rem]' : 'text-[clamp(2.3rem,min(3.8vw,7vh),4.8rem)] max-sm:text-[1.5rem]'}`
@@ -206,7 +206,7 @@ export default function GamePage() {
             // The picture takes the space the card has (object-contain, never cropped or stretched); on the kiosk it sits left.
             <figure className="flex h-full min-h-0 w-full items-center justify-center lg:order-first max-lg:flex-1" data-testid="question-image">
               {imageFailed ? (
-                <p role="img" aria-label={q.imageAltText ?? 'Təsvir'} className="rounded-xl border-2 border-[#e3d5bb] bg-[#f4ecdd] px-8 py-6 text-[clamp(1rem,1.3vw,1.3rem)] text-[#6a594a]">
+                <p role="img" aria-label={q.imageAltText ?? 'Təsvir'} className="rounded-xl border border-[rgba(227,201,143,0.3)] bg-white/5 px-8 py-6 text-[clamp(1rem,1.3vw,1.3rem)] text-[#a7aec0]">
                   Təsvir yüklənmədi
                 </p>
               ) : (
@@ -214,7 +214,7 @@ export default function GamePage() {
                   src={q.imageUrl ?? undefined}
                   alt={q.imageAltText ?? ''}
                   onError={() => setImageFailed(true)}
-                  className="max-h-full max-w-full rounded-xl border-4 border-[#e9c069] bg-white object-contain shadow-[0_0.8rem_1.8rem_-0.8rem_rgba(42,28,20,0.45)] max-sm:rounded-lg max-sm:border-2"
+                  className="max-h-full max-w-full rounded-xl border border-[rgba(227,201,143,0.55)] bg-white object-contain shadow-[0_0_0_6px_rgba(12,18,36,0.9),0_0_0_7px_rgba(227,201,143,0.18),0_1.2rem_2.6rem_-1rem_rgba(0,0,0,0.8)] max-sm:rounded-lg"
                 />
               )}
             </figure>
@@ -233,12 +233,12 @@ export default function GamePage() {
           className="mt-[clamp(0.6rem,1.4vh,1.1rem)] flex min-h-[clamp(2.8rem,5vh,3.8rem)] items-center justify-center text-center text-[clamp(1rem,1.3vw,1.35rem)] max-sm:mt-2 max-sm:min-h-[2.6rem] max-sm:text-[0.78rem] max-sm:leading-snug"
         >
           {phase.kind === 'closed' && (
-            <p className="rise inline-flex items-center gap-3 rounded-full bg-white/10 px-6 py-2 font-display text-[1.35em] font-bold text-[#fbf6ec] ring-1 ring-[rgba(243,215,126,0.55)] max-sm:gap-2 max-sm:px-4 max-sm:py-1 max-sm:text-[1.3em]">
-              <span aria-hidden className="size-2.5 shrink-0 rounded-full bg-[#f3d77e]" />
+            <p className="rise inline-flex items-center gap-3 rounded-full bg-white/10 px-6 py-2 font-display text-[1.35em] font-bold text-[#fbf6ec] ring-1 ring-[rgba(232,210,156,0.55)] max-sm:gap-2 max-sm:px-4 max-sm:py-1 max-sm:text-[1.3em]">
+              <span aria-hidden className="size-2.5 shrink-0 rounded-full bg-[#e8d29c]" />
               {phase.timedOut ? 'Vaxt bitdi. Növbəti sual…' : 'Cavab qeydə alındı. Növbəti sual…'}
             </p>
           )}
-          {phase.kind === 'sending' && <p className="text-[#c9d3e6]">Göndərilir…</p>}
+          {phase.kind === 'sending' && <p className="text-[#c2c7d3]">Göndərilir…</p>}
           {phase.kind === 'retrying' && (
             <p role="alert" className={alertClass}>{alertIcon}{sendError}</p>
           )}
@@ -246,9 +246,9 @@ export default function GamePage() {
             <p role="alert" className={alertClass}>{alertIcon}{sendError}</p>
           )}
           {phase.kind === 'open' && !sendError && (
-            <p className="text-[#aab8d4]">
+            <p className="text-[#9ea6b8]">
               Hər sual üçün {total} saniyə. Keçid üçün ən azı{' '}
-              <span className="font-semibold tabular-nums text-[#f3d77e]">{state.passingScore}</span> / {state.totalQuestions} düzgün cavab
+              <span className="font-semibold tabular-nums text-[#e8d29c]">{state.passingScore}</span> / {state.totalQuestions} düzgün cavab
               lazımdır. Nəticə sonda açıqlanır.
             </p>
           )}

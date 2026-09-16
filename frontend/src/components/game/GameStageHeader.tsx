@@ -65,7 +65,7 @@ export default function GameStageHeader({
           title={soundOn ? 'Səsi söndür' : 'Səsi aç'}
           data-testid="sound-toggle"
           data-sound={soundOn ? 'on' : 'off'}
-          className="tap ml-[clamp(0.4rem,0.8vw,0.9rem)] grid size-[clamp(2.1rem,2.8vw,2.8rem)] shrink-0 place-items-center rounded-full text-[#fbf6ec] ring-1 ring-[rgba(233,192,105,0.45)] max-sm:size-9"
+          className="tap ml-[clamp(0.4rem,0.8vw,0.9rem)] grid size-[clamp(2.1rem,2.8vw,2.8rem)] shrink-0 place-items-center rounded-full text-[#fbf6ec] ring-1 ring-[rgba(217,187,124,0.45)] max-sm:size-9"
         >
           <svg viewBox="0 0 24 24" className="size-[58%]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4a.5.5 0 0 1-.5-.5v-4a.5.5 0 0 1 .5-.5Z" />
@@ -92,7 +92,7 @@ export default function GameStageHeader({
               key={i}
               aria-hidden="true"
               className={`h-[clamp(0.45rem,0.9vh,0.7rem)] flex-1 rounded-full max-sm:h-1.5 ${
-                i < questionNumber - 1 ? 'bg-[#cf9c3c]' : i === questionNumber - 1 ? 'bg-[#f3d77e] shadow-[0_0_0.6rem_rgba(243,215,126,0.7)]' : 'bg-white/15'
+                i < questionNumber - 1 ? 'bg-[#b8955a]' : i === questionNumber - 1 ? 'bg-[#e8d29c] shadow-[0_0_0.6rem_rgba(232,210,156,0.7)]' : 'bg-white/15'
               }`}
             />
           ))}

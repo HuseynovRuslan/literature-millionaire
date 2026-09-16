@@ -13,12 +13,12 @@ export default function BrandMark({ className = '', size = 'md' }: { className?:
   const small = size === 'sm'
   return (
     <div
-      className={`flex shrink-0 items-center gap-3 rounded-xl border-2 border-[var(--p-gold-light,#e9c069)] bg-white shadow-[var(--p-shadow)] ${small ? 'px-2 py-1.5 max-sm:px-1.5 max-sm:py-1' : 'px-3 py-2 max-sm:px-2 max-sm:py-1.5'} ${className}`}
+      className={`flex shrink-0 items-center gap-3 rounded-xl border border-[var(--p-gold-light,#d9bb7c)] bg-white shadow-[var(--p-shadow)] ${small ? 'px-2 py-1.5 max-sm:px-1.5 max-sm:py-1' : 'px-3 py-2 max-sm:px-2 max-sm:py-1.5'} ${className}`}
       data-testid="brand"
     >
       {failed ? (
         <span
-          className={`font-display font-semibold leading-tight text-[var(--p-burgundy,#7d161d)] ${small ? 'text-[clamp(0.9rem,1.1vw,1.15rem)]' : 'text-[clamp(1rem,1.3vw,1.3rem)]'}`}
+          className={`font-display font-semibold leading-tight text-[var(--p-burgundy,#6b2230)] ${small ? 'text-[clamp(0.9rem,1.1vw,1.15rem)]' : 'text-[clamp(1rem,1.3vw,1.3rem)]'}`}
           data-testid="brand-fallback"
         >
           {BRAND_NAME}

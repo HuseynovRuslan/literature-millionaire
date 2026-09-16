@@ -30,7 +30,7 @@ export default function CategoryCard({
       <div className="flex items-center gap-[clamp(0.55rem,0.85vw,0.765rem)]">
         <span
           aria-hidden="true"
-          className="grid size-[clamp(2.3rem,3.2vw,2.88rem)] shrink-0 place-items-center rounded-full bg-[rgba(243,215,126,0.14)] text-[var(--p-gold-light)] ring-1 ring-[rgba(233,192,105,0.55)]"
+          className="grid size-[clamp(2.3rem,3.2vw,2.88rem)] shrink-0 place-items-center rounded-full bg-[rgba(232,210,156,0.14)] text-[var(--p-gold-light)] ring-1 ring-[rgba(217,187,124,0.55)]"
         >
           <QuizModeIcon iconKey={quizMode.iconKey} className="size-[56%]" />
         </span>
@@ -45,19 +45,19 @@ export default function CategoryCard({
       </div>
 
       {/* Two lines is enough once the grid reaches three columns; a narrower card needs a third. */}
-      <p lang="az" className="line-clamp-3 text-[clamp(0.82rem,0.95vw,0.855rem)] leading-snug text-[#d6deec] xl:line-clamp-2">
+      <p lang="az" className="line-clamp-3 text-[clamp(0.82rem,0.95vw,0.855rem)] leading-snug text-[#d8dbe3] xl:line-clamp-2">
         {quizMode.description}
       </p>
 
       {book && (
-        <p lang="az" className="line-clamp-2 text-[clamp(0.76rem,0.86vw,0.774rem)] text-[#c9d3e6]">
+        <p lang="az" className="line-clamp-2 text-[clamp(0.76rem,0.86vw,0.774rem)] text-[#c2c7d3]">
           <span className="text-[var(--p-gold-light)]">Kitab: </span>
           {book.title}
           {book.author.trim() ? ` — ${book.author.trim()}` : ''}
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[clamp(0.74rem,0.84vw,0.756rem)] text-[#c9d3e6]" data-testid="category-rules">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[clamp(0.74rem,0.84vw,0.756rem)] text-[#c2c7d3]" data-testid="category-rules">
         <span>{campaign.questionCount} sual</span>
         <span aria-hidden="true">·</span>
         <span>

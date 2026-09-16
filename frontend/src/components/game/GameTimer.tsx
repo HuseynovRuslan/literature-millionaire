@@ -34,12 +34,12 @@ export default function GameTimer({
         <svg viewBox="0 0 100 100" className="absolute inset-0 size-full -rotate-90" aria-hidden="true">
           <defs>
             <linearGradient id={`${id}-gold`} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#f7df93" />
-              <stop offset="1" stopColor="#c9922f" />
+              <stop offset="0" stopColor="#f1dfae" />
+              <stop offset="1" stopColor="#b8955a" />
             </linearGradient>
             <radialGradient id={`${id}-face`} cx="0.5" cy="0.35" r="0.7">
-              <stop offset="0" stopColor="#23407a" />
-              <stop offset="1" stopColor="#0e1f44" />
+              <stop offset="0" stopColor="#1a2440" />
+              <stop offset="1" stopColor="#0a1022" />
             </radialGradient>
           </defs>
           <circle cx="50" cy="50" r="49" fill={`url(#${id}-face)`} />
@@ -49,18 +49,18 @@ export default function GameTimer({
             cy="50"
             r="44"
             fill="none"
-            stroke={urgent ? '#d94452' : `url(#${id}-gold)`}
+            stroke={urgent ? '#c95b63' : `url(#${id}-gold)`}
             strokeWidth="7"
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             strokeDashoffset={CIRCUMFERENCE * (1 - fraction)}
           />
-          <circle cx="50" cy="50" r="37.5" fill="none" stroke="rgba(243,215,126,0.35)" strokeWidth="0.8" />
+          <circle cx="50" cy="50" r="37.5" fill="none" stroke="rgba(232,210,156,0.35)" strokeWidth="0.8" />
         </svg>
         <span
           data-testid="countdown"
           aria-hidden="true"
-          className={`relative font-display text-[clamp(2.2rem,min(3.3vw,5.4vh),3.8rem)] font-bold leading-none tabular-nums max-sm:text-[1.7rem] ${urgent ? 'text-[#ff9aa2]' : 'text-[#fbf6ec]'}`}
+          className={`relative font-display text-[clamp(2.2rem,min(3.3vw,5.4vh),3.8rem)] font-bold leading-none tabular-nums max-sm:text-[1.7rem] ${urgent ? 'text-[#e8959c]' : 'text-[#fbf6ec]'}`}
         >
           {seconds}
         </span>

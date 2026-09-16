@@ -46,11 +46,11 @@ export default function SessionExpired() {
           Sessiyanın vaxtı bitdi
         </h1>
         {reason && <p className="mt-2 text-[clamp(1.05rem,1.35vw,1.215rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[0.98rem]">{reason}</p>}
-        <p className="mt-[0.85rem] max-w-[40rem] text-[clamp(1.15rem,1.6vw,1.44rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
+        <p className="mt-[0.85rem] max-w-[40rem] text-[clamp(1.15rem,1.6vw,1.44rem)] leading-relaxed text-[#d8dbe3] max-sm:text-base">
           Bu cəhd davam etdirilə bilmir. Növbəti iştirakçı qeydiyyatdan keçə bilər.
         </p>
         {error && (
-          <p role="alert" className="mt-4 rounded-xl bg-[rgba(125,22,29,0.6)] px-5 py-3 text-[clamp(1rem,1.2vw,1.08rem)] text-[#fbf6ec] ring-1 ring-[#ff9aa2]">
+          <p role="alert" className="mt-4 rounded-xl bg-[rgba(107,34,48,0.6)] px-5 py-3 text-[clamp(1rem,1.2vw,1.08rem)] text-[#fbf6ec] ring-1 ring-[#e8959c]">
             {error}
           </p>
         )}

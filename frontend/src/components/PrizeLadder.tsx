@@ -27,7 +27,7 @@ export default function PrizeLadder({ prizes, current, secured }: Props) {
               'flex items-center justify-between rounded-lg px-3 font-medium leading-none transition-colors',
               'min-h-[2.6rem] text-[clamp(0.85rem,1.1vw,1.15rem)]',
               isCurrent
-                ? 'bg-gold text-navy-900 shadow-[0_0_0_2px_rgba(243,215,126,0.6)]'
+                ? 'bg-gold text-navy-900 shadow-[0_0_0_2px_rgba(232,210,156,0.6)]'
                 : isSecured
                   ? 'text-gold-light'
                   : 'text-mist',

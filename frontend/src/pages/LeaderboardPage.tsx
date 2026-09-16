@@ -29,7 +29,7 @@ function StageMessage({ children, role }: { children: ReactNode; role?: 'status'
 }
 
 const MESSAGE_TITLE = 'font-display text-[clamp(1.8rem,3vw,2.7rem)] font-bold text-[#fbf6ec] max-sm:text-[1.6rem]'
-const MESSAGE_TEXT = 'mt-2 max-w-[40rem] text-[clamp(1.05rem,1.35vw,1.215rem)] text-[#d6deec] max-sm:text-[0.98rem]'
+const MESSAGE_TEXT = 'mt-2 max-w-[40rem] text-[clamp(1.05rem,1.35vw,1.215rem)] text-[#d8dbe3] max-sm:text-[0.98rem]'
 
 export default function LeaderboardPage() {
   const { campaignId: routeCampaignId } = useParams()
@@ -65,8 +65,8 @@ export default function LeaderboardPage() {
           <p className="text-[clamp(0.85rem,1vw,0.9rem)] font-semibold uppercase tracking-[0.16em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]">
             {!invalidRoute && load.kind === 'ready' ? load.data.quizMode.title : 'KAMPANİYA NƏTİCƏLƏRİ'}
           </p>
-          <h1 id="leaderboard-title" className="font-display text-[clamp(2.2rem,3.6vw,3.24rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.9rem]">Lider cədvəli</h1>
-          <p className="text-[clamp(0.85rem,1vw,0.9rem)] font-semibold text-[#c9d3e6] max-sm:text-[0.78rem]">Top 10</p>
+          <h1 id="leaderboard-title" className="gs-title font-display text-[clamp(2.2rem,3.6vw,3.24rem)] font-bold leading-tight max-sm:text-[1.9rem]">Lider cədvəli</h1>
+          <p className="text-[clamp(0.85rem,1vw,0.9rem)] font-semibold text-[#c2c7d3] max-sm:text-[0.78rem]">Top 10</p>
         </header>
 
         <div className="mt-[0.6375rem]">
@@ -123,7 +123,7 @@ export default function LeaderboardPage() {
               </thead>
               <tbody>
                 {load.data.entries.map((entry) => (
-                  <tr key={entry.rank} className={entry.rank <= 3 ? 'bg-[rgba(243,215,126,0.1)]' : 'bg-white/[0.06]'}>
+                  <tr key={entry.rank} className={entry.rank <= 3 ? 'bg-[rgba(232,210,156,0.1)]' : 'bg-white/[0.06]'}>
                     <th scope="row" className="h-[2.2313rem] rounded-l-xl px-4 py-0.5 max-sm:h-11">
                       <RankMedal rank={entry.rank} compact />
                     </th>
@@ -132,7 +132,7 @@ export default function LeaderboardPage() {
                     </td>
                     <td className="px-4 py-0.5 text-right font-display font-bold tabular-nums text-[var(--p-gold-light)]">{entry.pointsEarned}/{entry.maxPoints}</td>
                     <td className="px-4 py-0.5 text-right tabular-nums">{entry.correctAnswers}/{entry.totalQuestions}</td>
-                    <td className="rounded-r-xl px-4 py-0.5 text-right tabular-nums text-[#c9d3e6]">{formatDuration(entry.durationSeconds)}</td>
+                    <td className="rounded-r-xl px-4 py-0.5 text-right tabular-nums text-[#c2c7d3]">{formatDuration(entry.durationSeconds)}</td>
                   </tr>
                 ))}
               </tbody>

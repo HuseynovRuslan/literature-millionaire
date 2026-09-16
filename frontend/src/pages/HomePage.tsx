@@ -42,10 +42,10 @@ function Hero() {
       <p lang="az" className="font-display text-[clamp(0.9rem,1.15vw,1.035rem)] font-semibold uppercase tracking-[0.22em] text-[var(--p-gold-light)] max-sm:text-[0.72rem] max-sm:tracking-[0.14em]">
         Oxu • Tanı • Cavablandır
       </p>
-      <h1 lang="az" className="font-display text-[clamp(2rem,4vw,3.6rem)] font-bold uppercase leading-[0.95] tracking-[0.03em] text-[#fbf6ec] max-sm:text-[1.7rem]">
+      <h1 lang="az" className="font-display text-[clamp(2rem,4vw,3.6rem)] gs-title font-bold uppercase leading-[1.05] tracking-[0.06em] max-sm:text-[1.7rem]">
         Bilik Bağı
       </h1>
-      <p lang="az" className="mt-[0.2125rem] text-[clamp(0.95rem,1.15vw,1.035rem)] font-medium text-[#d6deec] max-sm:text-[0.92rem]">
+      <p lang="az" className="mt-[0.2125rem] text-[clamp(0.95rem,1.15vw,1.035rem)] font-medium text-[#d8dbe3] max-sm:text-[0.92rem]">
         Kateqoriyanı seçin
       </p>
     </header>
@@ -110,7 +110,7 @@ export default function HomePage() {
           <h1 id="resume-title" lang="az" className="mt-1 max-w-[26ch] font-display text-[clamp(2.2rem,3.8vw,3.42rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.9rem]">
             {activeGame.quizMode.title}
           </h1>
-          <p className="mt-4 max-w-[42rem] text-[clamp(1.05rem,1.5vw,1.35rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
+          <p className="mt-4 max-w-[42rem] text-[clamp(1.05rem,1.5vw,1.35rem)] leading-relaxed text-[#d8dbe3] max-sm:text-base">
             Başlanmış quiz var: sual {activeGame.questionNumber} / {activeGame.totalQuestions}. Davam etsəniz, vaxt sıfırlanmır.
           </p>
         </section>
@@ -146,7 +146,7 @@ export default function HomePage() {
         <StatusStage alert>
           <QuizEmblem className="size-[6rem] max-sm:size-20" />
           <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2.4rem,4.4vw,3.96rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2rem]">{copy.title}</h1>
-          <p className="mt-4 max-w-[40rem] text-[clamp(1.1rem,1.6vw,1.44rem)] leading-relaxed text-[#d6deec] max-sm:text-base">{copy.text}</p>
+          <p className="mt-4 max-w-[40rem] text-[clamp(1.1rem,1.6vw,1.44rem)] leading-relaxed text-[#d8dbe3] max-sm:text-base">{copy.text}</p>
         </StatusStage>
         <div className="rise flex justify-center [animation-delay:90ms]" data-testid="home-actions">
           <button type="button" onClick={retry} className={`${PRIMARY} w-full max-w-[34rem]`} data-testid="home-primary">
@@ -163,7 +163,7 @@ export default function HomePage() {
         <StatusStage>
           <QuizEmblem className="size-[6rem] max-sm:size-20" />
           <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2rem,3.6vw,3.24rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.7rem]">Hazırda heç bir kateqoriya yoxdur</h1>
-          <p className="mt-4 max-w-[40rem] text-[clamp(1.05rem,1.4vw,1.26rem)] leading-relaxed text-[#d6deec] max-sm:text-base">Yeni bilik yarışları tezliklə əlavə olunacaq.</p>
+          <p className="mt-4 max-w-[40rem] text-[clamp(1.05rem,1.4vw,1.26rem)] leading-relaxed text-[#d8dbe3] max-sm:text-base">Yeni bilik yarışları tezliklə əlavə olunacaq.</p>
         </StatusStage>
         <div className="rise flex justify-center [animation-delay:90ms]" data-testid="home-actions">
           <button type="button" onClick={retry} className={`${SECONDARY} w-full max-w-[34rem]`} data-testid="home-primary">

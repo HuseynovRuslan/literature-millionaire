@@ -2,7 +2,7 @@ import { useId } from 'react'
 import { formatRank } from '../../utils/leaderboard'
 
 const MEDALS = {
-  1: { key: 'gold', light: '#f7df93', dark: '#b8862a' },
+  1: { key: 'gold', light: '#f1dfae', dark: '#b8862a' },
   2: { key: 'silver', light: '#f2f4f8', dark: '#9aa5b5' },
   3: { key: 'bronze', light: '#f1c39a', dark: '#a8683a' },
 } as const

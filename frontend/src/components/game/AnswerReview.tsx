@@ -9,9 +9,9 @@ import type { QuizAnswerReview } from '../../types/game'
 
 /** Correct, wrong, late and unanswered read as four different things, not just two colours. */
 const TONE = {
-  correct: { ring: 'ring-[rgba(30,167,156,0.55)]', badge: 'bg-[rgba(30,167,156,0.9)] text-[#04201e]', label: 'Düzgün' },
-  wrong: { ring: 'ring-[rgba(255,154,162,0.45)]', badge: 'bg-[rgba(125,22,29,0.85)] text-[#ffe8ea]', label: 'Səhv' },
-  late: { ring: 'ring-[rgba(255,154,162,0.45)]', badge: 'bg-[rgba(125,22,29,0.85)] text-[#ffe8ea]', label: 'Vaxtında deyil' },
+  correct: { ring: 'ring-[rgba(116,195,169,0.55)]', badge: 'bg-[rgba(116,195,169,0.9)] text-[#04201e]', label: 'Düzgün' },
+  wrong: { ring: 'ring-[rgba(255,154,162,0.45)]', badge: 'bg-[rgba(107,34,48,0.85)] text-[#ffe8ea]', label: 'Səhv' },
+  late: { ring: 'ring-[rgba(255,154,162,0.45)]', badge: 'bg-[rgba(107,34,48,0.85)] text-[#ffe8ea]', label: 'Vaxtında deyil' },
   missed: { ring: 'ring-white/15', badge: 'bg-white/20 text-[#e6ecf7]', label: 'Vaxt bitdi' },
 } as const
 
@@ -25,7 +25,7 @@ function toneOf(item: QuizAnswerReview): keyof typeof TONE {
 export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
   if (items.length === 0) {
     return (
-      <p className="py-[1.5938rem] text-center font-display text-[clamp(1.2rem,1.7vw,1.53rem)] font-semibold text-[#d6deec]">
+      <p className="py-[1.5938rem] text-center font-display text-[clamp(1.2rem,1.7vw,1.53rem)] font-semibold text-[#d8dbe3]">
         Cavabların siyahısı əlçatan deyil
       </p>
     )
@@ -51,29 +51,29 @@ export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
                   {item.text}
                 </p>
 
-                <p className="mt-[0.35em] text-[clamp(0.85rem,1.02vw,0.918rem)] leading-snug text-[#c9d3e6] max-sm:text-[0.85rem]">
+                <p className="mt-[0.35em] text-[clamp(0.85rem,1.02vw,0.918rem)] leading-snug text-[#c2c7d3] max-sm:text-[0.85rem]">
                   <span className="font-semibold text-[var(--p-teal)]">Düzgün cavab:</span>{' '}
                   <span lang="az" className="text-[#fbf6ec] [overflow-wrap:anywhere]">{item.correctOption}) {item.correctAnswer}</span>
                 </p>
 
                 {/* A correct answer needs no second line: the row above already is the player's answer. */}
                 {!item.isCorrect && (
-                  <p className="text-[clamp(0.85rem,1.02vw,0.918rem)] leading-snug text-[#c9d3e6] max-sm:text-[0.85rem]">
-                    <span className="font-semibold text-[#ff9aa2]">Sizin cavabınız:</span>{' '}
+                  <p className="text-[clamp(0.85rem,1.02vw,0.918rem)] leading-snug text-[#c2c7d3] max-sm:text-[0.85rem]">
+                    <span className="font-semibold text-[#e8959c]">Sizin cavabınız:</span>{' '}
                     {item.selectedOption === null
-                      ? <span className="text-[#d6deec]">cavab verilmədi</span>
+                      ? <span className="text-[#d8dbe3]">cavab verilmədi</span>
                       : (
                         <>
                           <span lang="az" className="text-[#fbf6ec] [overflow-wrap:anywhere]">{item.selectedOption}) {item.selectedAnswer}</span>
                           {/* A bare "(gec)" told the player nothing; say why it did not count. */}
-                          {item.timedOut && <span className="text-[#d6deec]"> — vaxt bitdiyi üçün sayılmadı</span>}
+                          {item.timedOut && <span className="text-[#d8dbe3]"> — vaxt bitdiyi üçün sayılmadı</span>}
                         </>
                       )}
                   </p>
                 )}
 
                 {item.explanation && (
-                  <p lang="az" className="mt-[0.3em] text-[clamp(0.8rem,0.95vw,0.855rem)] leading-snug text-[#a9b6cc] [overflow-wrap:anywhere] max-sm:text-[0.8rem]">
+                  <p lang="az" className="mt-[0.3em] text-[clamp(0.8rem,0.95vw,0.855rem)] leading-snug text-[#98a0b2] [overflow-wrap:anywhere] max-sm:text-[0.8rem]">
                     {item.explanation}
                   </p>
                 )}

@@ -135,7 +135,7 @@ export default function RegisterPage() {
           <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2.2rem,3.8vw,3.42rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.9rem]">
             Bu kateqoriya artıq mövcud deyil
           </h1>
-          <p className="mt-4 max-w-[44rem] text-[clamp(1.1rem,1.6vw,1.44rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
+          <p className="mt-4 max-w-[44rem] text-[clamp(1.1rem,1.6vw,1.44rem)] leading-relaxed text-[#d8dbe3] max-sm:text-base">
             Zəhmət olmasa, kateqoriya seçimi ekranından yenidən seçin.
           </p>
         </section>
@@ -172,7 +172,7 @@ export default function RegisterPage() {
           <p className="mt-3 font-display text-[clamp(1.2rem,1.7vw,1.53rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[1.05rem]">
             {campaign.quizMode.title}
           </p>
-          <p className="mt-4 max-w-[46rem] text-[clamp(1.15rem,1.7vw,1.53rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
+          <p className="mt-4 max-w-[46rem] text-[clamp(1.15rem,1.7vw,1.53rem)] leading-relaxed text-[#d8dbe3] max-sm:text-base">
             {error ?? 'Bu kampaniyada artıq iştirak etmisiniz.'}
           </p>
           <p className="mt-3 font-display text-[clamp(1.3rem,1.9vw,1.71rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[1.15rem]">
@@ -197,7 +197,7 @@ export default function RegisterPage() {
         >
           <div className="min-w-0">
             <div className="flex items-center gap-3" data-testid="register-category">
-              <span aria-hidden="true" className="grid size-[clamp(2.6rem,3.4vw,3.06rem)] shrink-0 place-items-center rounded-full bg-[rgba(243,215,126,0.14)] text-[var(--p-gold-light)] ring-1 ring-[rgba(233,192,105,0.55)]">
+              <span aria-hidden="true" className="grid size-[clamp(2.6rem,3.4vw,3.06rem)] shrink-0 place-items-center rounded-full bg-[rgba(232,210,156,0.14)] text-[var(--p-gold-light)] ring-1 ring-[rgba(217,187,124,0.55)]">
                 <QuizModeIcon iconKey={campaign.quizMode.iconKey} className="size-[56%]" />
               </span>
               <p lang="az" className="min-w-0 truncate font-display text-[clamp(1.15rem,1.5vw,1.35rem)] font-semibold uppercase tracking-[0.1em] text-[var(--p-gold-light)] max-sm:text-[0.95rem]">
@@ -208,20 +208,20 @@ export default function RegisterPage() {
               İştirakçı qeydiyyatı
             </h1>
             {campaign.book && (
-              <p lang="az" className="mt-[0.425rem] max-w-[36ch] text-[clamp(1rem,1.3vw,1.17rem)] text-[#c9d3e6] max-sm:text-[0.9rem]">
+              <p lang="az" className="mt-[0.425rem] max-w-[36ch] text-[clamp(1rem,1.3vw,1.17rem)] text-[#c2c7d3] max-sm:text-[0.9rem]">
                 Kitab: {campaign.book.title}
                 {campaign.book.author.trim() ? ` — ${campaign.book.author.trim()}` : ''}
               </p>
             )}
-            <p className="mt-[0.425rem] text-[clamp(0.95rem,1.2vw,1.08rem)] text-[#aab8d4] max-sm:text-[0.85rem]">
+            <p className="mt-[0.425rem] text-[clamp(0.95rem,1.2vw,1.08rem)] text-[#9ea6b8] max-sm:text-[0.85rem]">
               {formatDateRange(campaign.startDate, campaign.endDate)}
             </p>
-            <p className="mt-[0.85rem] max-w-[34ch] text-[clamp(1.15rem,1.6vw,1.44rem)] leading-snug text-[#d6deec] max-sm:text-base">
+            <p className="mt-[0.85rem] max-w-[34ch] text-[clamp(1.15rem,1.6vw,1.44rem)] leading-snug text-[#d8dbe3] max-sm:text-base">
               Məlumatlarınızı daxil edin və bilik yarışına başlayın.
             </p>
             <div
               data-testid="attempt-rule"
-              className="mt-[1.5938rem] flex max-w-[36rem] items-center gap-[clamp(0.8rem,1.2vw,1.08rem)] rounded-2xl bg-white/[0.07] px-[clamp(1rem,1.4vw,1.26rem)] py-[0.85rem] ring-1 ring-[rgba(233,192,105,0.45)] max-sm:mt-4 max-sm:rounded-xl max-sm:px-3 max-sm:py-2.5"
+              className="mt-[1.5938rem] flex max-w-[36rem] items-center gap-[clamp(0.8rem,1.2vw,1.08rem)] rounded-2xl bg-white/[0.07] px-[clamp(1rem,1.4vw,1.26rem)] py-[0.85rem] ring-1 ring-[rgba(217,187,124,0.45)] max-sm:mt-4 max-sm:rounded-xl max-sm:px-3 max-sm:py-2.5"
             >
               <RuleBadge className="size-[clamp(3.2rem,4.4vw,3.96rem)] shrink-0 max-sm:size-11" />
               <p lang="az" className="text-[clamp(1.1rem,1.45vw,1.305rem)] font-semibold leading-snug text-[#fbf6ec] max-sm:text-[0.98rem]">
@@ -265,9 +265,9 @@ export default function RegisterPage() {
               <p
                 role="alert"
                 data-testid="register-server-error"
-                className="flex items-start gap-3 rounded-2xl bg-[rgba(125,22,29,0.6)] px-5 py-4 text-[clamp(1.05rem,1.3vw,1.17rem)] font-medium leading-snug text-[#fbf6ec] ring-1 ring-[#ff9aa2] max-sm:rounded-xl max-sm:px-4 max-sm:py-3 max-sm:text-[0.98rem]"
+                className="flex items-start gap-3 rounded-2xl bg-[rgba(107,34,48,0.6)] px-5 py-4 text-[clamp(1.05rem,1.3vw,1.17rem)] font-medium leading-snug text-[#fbf6ec] ring-1 ring-[#e8959c] max-sm:rounded-xl max-sm:px-4 max-sm:py-3 max-sm:text-[0.98rem]"
               >
-                <span aria-hidden className="grid size-[1.5em] shrink-0 place-items-center rounded-full bg-[#fbf6ec] font-bold text-[#7d161d]">!</span>
+                <span aria-hidden className="grid size-[1.5em] shrink-0 place-items-center rounded-full bg-[#fbf6ec] font-bold text-[#6b2230]">!</span>
                 <span>{error}</span>
               </p>
             )}
