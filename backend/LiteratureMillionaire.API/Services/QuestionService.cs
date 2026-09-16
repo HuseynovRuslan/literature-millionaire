@@ -56,6 +56,8 @@ public class QuestionService : IQuestionService
 
         var entity = new Question { CreatedAt = DateTime.UtcNow };
         Apply(entity, dto);
+        // A new question is played in the quiz mode of its book's campaigns.
+        entity.QuizModeId = await QuizModeForBookAsync(entity.BookId!.Value, ct);
 
         _db.Questions.Add(entity);
         await _db.SaveChangesAsync(ct);
@@ -73,7 +75,13 @@ public class QuestionService : IQuestionService
 
         await EnsureBookExistsAsync(dto.BookId, ct);
 
+        var bookChanged = entity.BookId != dto.BookId;
         Apply(entity, dto);
+        // An assigned mode is kept; it is (re)derived only when the question has none or moves to another book.
+        if (bookChanged || entity.QuizModeId is null)
+        {
+            entity.QuizModeId = await QuizModeForBookAsync(entity.BookId!.Value, ct);
+        }
         await _db.SaveChangesAsync(ct);
 
         return (await GetByIdAsync(entity.Id, ct))!;
@@ -109,6 +117,16 @@ public class QuestionService : IQuestionService
         entity.ImageAltText = string.IsNullOrWhiteSpace(dto.ImageAltText) ? null : dto.ImageAltText.Trim();
     }
 
+    /// <summary>Quiz mode of the book's most recent campaign; null when the book has no campaign yet (the question is then not played).</summary>
+    private Task<int?> QuizModeForBookAsync(int bookId, CancellationToken ct) =>
+        _db.MonthlyCampaigns
+            .AsNoTracking()
+            .Where(c => c.BookId == bookId)
+            .OrderByDescending(c => c.StartDate)
+            .ThenByDescending(c => c.Id)
+            .Select(c => (int?)c.QuizModeId)
+            .FirstOrDefaultAsync(ct);
+
     /// <summary>The book may be inactive (questions can be prepared ahead), but it must exist.</summary>
     private async Task EnsureBookExistsAsync(int? bookId, CancellationToken ct)
     {
@@ -133,5 +151,7 @@ public class QuestionService : IQuestionService
         q.BookId,
         q.Book != null ? q.Book.Title : null,
         q.ImageUrl,
-        q.ImageAltText);
+        q.ImageAltText,
+        q.QuizModeId,
+        q.QuizMode != null ? q.QuizMode.Slug : null);
 }

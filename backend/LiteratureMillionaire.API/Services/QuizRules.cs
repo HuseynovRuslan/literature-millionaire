@@ -1,3 +1,5 @@
+using LiteratureMillionaire.API.Entities;
+
 namespace LiteratureMillionaire.API.Services;
 
 /// <summary>Fixed rules of the "Ayın kitabı" campaign quiz, shared by campaign and game code.</summary>
@@ -7,5 +9,44 @@ public static class QuizRules
     public const int QuestionsPerQuiz = 10;
 
     /// <summary>Server-enforced time a player has for each question. The client countdown only mirrors it.</summary>
-    public const int SecondsPerQuestion = 15;
+    public const int SecondsPerQuestion = 10;
+
+    /// <summary>
+    /// How many quizzes one phone number may start per campaign: one. A start consumes the attempt
+    /// even if the quiz is abandoned, so both an unfinished and a finished quiz block a second start.
+    /// </summary>
+    public const int MaxAttemptsPerCampaign = 1;
+
+    /// <summary>
+    /// Default number of illustrated questions per quiz for a campaign. The value in force is the campaign's
+    /// MonthlyCampaign.ImageQuestionsPerQuiz (0..QuestionsPerQuiz); QuestionMixPlanner uses fewer when the pool has
+    /// fewer illustrations, so smaller campaigns are never blocked.
+    /// </summary>
+    public const int DefaultImageQuestionsPerQuiz = 2;
+
+    /// <summary>Fixed difficulty mix per quiz so every player faces the same maximum score.</summary>
+    public const int EasyPerQuiz = 3;
+    public const int MediumPerQuiz = 4;
+    public const int HardPerQuiz = 3;
+
+    /// <summary>Points for a correct answer by difficulty. Wrong, late and timed-out answers score 0.</summary>
+    public static int PointsFor(Difficulty difficulty) => difficulty switch
+    {
+        Difficulty.Easy => 1,
+        Difficulty.Medium => 2,
+        Difficulty.Hard => 3,
+        _ => throw new ArgumentOutOfRangeException(nameof(difficulty), difficulty, "Unknown difficulty.")
+    };
+
+    public static int QuotaFor(Difficulty difficulty) => difficulty switch
+    {
+        Difficulty.Easy => EasyPerQuiz,
+        Difficulty.Medium => MediumPerQuiz,
+        Difficulty.Hard => HardPerQuiz,
+        _ => 0
+    };
+
+    /// <summary>3x1 + 4x2 + 3x3 = 20 with the current mix.</summary>
+    public static int MaxPoints =>
+        EasyPerQuiz * PointsFor(Difficulty.Easy) + MediumPerQuiz * PointsFor(Difficulty.Medium) + HardPerQuiz * PointsFor(Difficulty.Hard);
 }

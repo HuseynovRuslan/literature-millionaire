@@ -8,7 +8,8 @@ public record CurrentCampaignDto(
     int PassingScore,
     string RewardTitle,
     int QuestionCount,
-    CampaignBookDto Book);
+    // Null only when the campaign has no book (possible for quiz modes other than "Ayın Kitabı").
+    CampaignBookDto? Book);
 
 public record CampaignBookDto(
     int Id,

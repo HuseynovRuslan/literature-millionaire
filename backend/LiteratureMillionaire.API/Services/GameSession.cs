@@ -1,3 +1,6 @@
+using LiteratureMillionaire.API.Dtos;
+using LiteratureMillionaire.API.Entities;
+
 namespace LiteratureMillionaire.API.Services;
 
 /// <summary>
@@ -14,6 +17,24 @@ public sealed class SessionQuestion
 
     /// <summary>Correct answer as the player sees it in this session: A, B, C or D.</summary>
     public required char CorrectDisplayOption { get; init; }
+
+    public required Difficulty Difficulty { get; init; }
+
+    /// <summary>Points awarded for a correct, on-time answer; fixed when the session is created.</summary>
+    public required int Points { get; init; }
+
+    /// <summary>
+    /// What the player picked, as a display letter (A-D), or null when the clock closed the question
+    /// with nothing selected. Written once, when the question closes, and read only to build the
+    /// end-of-quiz review.
+    /// </summary>
+    public char? SelectedDisplayOption { get; set; }
+
+    /// <summary>True when the deadline closed this question, including an answer that arrived late.</summary>
+    public bool TimedOut { get; set; }
+
+    /// <summary>Whether the answer counted. Decided by the server when the question closed, never later.</summary>
+    public bool IsCorrect { get; set; }
 }
 
 /// <summary>
@@ -25,11 +46,21 @@ public class GameSession
     public Guid SessionId { get; init; } = Guid.NewGuid();
 
     public required int CampaignId { get; init; }
-    public required int BookId { get; init; }
+
+    /// <summary>Internal participant identity used only for the post-completion position lookup.</summary>
+    public required int ParticipantId { get; init; }
+
+    /// <summary>Database row of this attempt; its result columns are written once when the quiz ends.</summary>
+    public required int AttemptId { get; init; }
+    /// <summary>Book the questions were drawn from, when the campaign has one.</summary>
+    public required int? BookId { get; init; }
+
+    /// <summary>Quiz mode of the campaign (public id, slug and title only).</summary>
+    public required QuizModeRefDto QuizMode { get; init; }
     public required int PassingScore { get; init; }
     public required string RewardTitle { get; init; }
 
-    /// <summary>Ordered questions for this session (QuizRules.QuestionsPerQuiz of them, all from BookId).</summary>
+    /// <summary>Ordered questions for this session (QuizRules.QuestionsPerQuiz of them, from the campaign's quiz mode).</summary>
     public required IReadOnlyList<SessionQuestion> Questions { get; init; }
 
     /// <summary>0-based index of the question the player must answer next.</summary>
@@ -39,6 +70,9 @@ public class GameSession
     public DateTime QuestionDeadlineUtc { get; set; }
 
     public int CorrectAnswers { get; set; }
+
+    /// <summary>Sum of Points of correctly answered questions. Never taken from the client.</summary>
+    public int PointsEarned { get; set; }
 
     public bool IsGameOver { get; set; }
 
@@ -57,6 +91,8 @@ public class GameSession
     public int CurrentQuestionId => Current.QuestionId;
 
     public int TotalQuestions => Questions.Count;
+
+    public int MaxPoints => Questions.Sum(q => q.Points);
 
     public bool Passed => CorrectAnswers >= PassingScore;
 }

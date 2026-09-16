@@ -1,0 +1,25 @@
+# Build context for backend/Dockerfile. Keep this list in sync with what the image
+# actually needs: only LiteratureMillionaire.API/*.csproj + source.
+
+# Never needed by the runtime image at all.
+LiteratureMillionaire.Tests/
+README.md
+
+# Build output / IDE / tooling noise from local development.
+**/bin/
+**/obj/
+**/TestResults/
+**/.vs/
+**/*.user
+**/*.suo
+
+# Local-only config and secrets - never baked into an image layer.
+**/appsettings.*.local.json
+**/.env
+**/.env.local
+**/*.log
+
+.git
+.gitignore
+.dockerignore
+Dockerfile

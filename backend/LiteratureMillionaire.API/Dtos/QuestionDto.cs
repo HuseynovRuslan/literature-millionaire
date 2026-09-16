@@ -20,4 +20,7 @@ public record QuestionDto(
     string? BookTitle,
     /* optional illustration; both null or both set */
     string? ImageUrl,
-    string? ImageAltText);
+    string? ImageAltText,
+    /* quiz mode the question is played in; null for legacy questions */
+    int? QuizModeId,
+    string? QuizModeSlug);

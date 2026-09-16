@@ -3,6 +3,7 @@ using LiteratureMillionaire.API.Data;
 using LiteratureMillionaire.API.Seed;
 using LiteratureMillionaire.API.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,9 +21,14 @@ builder.Services
     });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.")));
+    options
+        .UseNpgsql(
+            builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured."))
+        // A failed SaveChanges is handled (or rethrown) by the caller. EF's own error log for it
+        // repeats the SQL error text, which for a unique-index violation contains the duplicate key
+        // value - the participant's phone number - so that event must not be written to the log.
+        .ConfigureWarnings(warnings => warnings.Ignore(CoreEventId.SaveChangesFailed)));
 
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 
@@ -31,6 +37,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IGameService, GameService>();
 
 builder.Services.AddScoped<ICampaignService, CampaignService>();
+builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddScoped<IBookService, BookService>();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -64,23 +71,26 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// --- Production one-shot migration mode --------------------------------------
+//
+// `dotnet LiteratureMillionaire.API.dll --migrate-only` runs the migration/seed step and
+// exits without starting Kestrel, so a Compose `migrate` service can complete (or fail)
+// before the `api` service is allowed to start - the production HTTP server never comes up
+// against a database that hasn't been migrated yet.
+if (args.Contains("--migrate-only"))
+{
+    var migrated = await MigrateAndSeedAsync(app.Services);
+    return migrated ? 0 : 1;
+}
+
 // --- Database: apply migrations + seed (development convenience) ------------
+//
+// Production uses the explicit `--migrate-only` step above instead; this block only ever
+// runs in Development, where a failure is logged (not fatal) so the dev server still starts.
 
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-    try
-    {
-        await db.Database.MigrateAsync();
-        await DbSeeder.SeedAsync(db);
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Database migration/seeding failed. Check the 'DefaultConnection' connection string.");
-    }
+    await MigrateAndSeedAsync(app.Services);
 }
 
 // --- Pipeline ---------------------------------------------------------------
@@ -96,4 +106,57 @@ app.UseCors(FrontendCorsPolicy);
 app.UseAuthorization();
 app.MapControllers();
 
+// Liveness/readiness probe for the container orchestrator: DB reachability only, nothing else.
+// No exception, connection string, host or credential ever reaches the response - only a
+// stable {"status": "..."} body, so this is safe to expose without authentication.
+app.MapGet("/health", async (ApplicationDbContext db, CancellationToken ct) =>
+{
+    try
+    {
+        return await db.Database.CanConnectAsync(ct)
+            ? Results.Ok(new { status = "healthy" })
+            : Results.Json(new { status = "unhealthy" }, statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (Exception)
+    {
+        return Results.Json(new { status = "unhealthy" }, statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
+
 app.Run();
+return 0;
+
+// Shared by the Development auto-migrate convenience and the production `--migrate-only`
+// mode, so the two never drift. Both callers only observe the returned success flag - one
+// logs nothing further (dev server still starts either way), the other maps it to the
+// process exit code.
+static async Task<bool> MigrateAndSeedAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        await db.Database.MigrateAsync();
+        await DbSeeder.SeedAsync(db);
+        return true;
+    }
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+        // Sanitized, same as GameService's DatabaseFailure: PostgreSQL's own exception
+        // message/Detail/Where can quote row values, and this runs against the very
+        // database participant/phone data lives in, so the exception object itself is
+        // never passed to the logger - only its type and the safe, schema-level fields
+        // PostgresErrors extracts (SQLSTATE, and a constraint/index name we chose
+        // ourselves in the migration, never derived from row data).
+        var sqlState = PostgresErrors.GetSqlState(ex);
+        var constraintName = PostgresErrors.GetConstraintName(ex);
+        logger.LogError(
+            "Database failure during {Operation} (sql state {SqlState}, constraint {ConstraintName}, {ExceptionType} / {InnerExceptionType}).",
+            "migrate-and-seed", sqlState, constraintName, ex.GetType().Name, ex.GetBaseException().GetType().Name);
+        return false;
+    }
+}
+
+public partial class Program;

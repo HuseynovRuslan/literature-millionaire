@@ -26,9 +26,24 @@ public class Question
     public Book? Book { get; set; }
 
     /// <summary>
+    /// Quiz mode the question is played in ("bilik-dunyasi", "ayin-kitabi", ...). Null for legacy questions, which
+    /// are never selected for a game. Not the same as <see cref="Category"/>, the source sub-category.
+    /// </summary>
+    public int? QuizModeId { get; set; }
+    public QuizMode? QuizMode { get; set; }
+
+    /// <summary>
     /// Optional illustration, a local frontend asset such as "/question-images/name.webp".
     /// Either both media fields are set or both are null (enforced in the API and by a CHECK constraint).
     /// </summary>
     public string? ImageUrl { get; set; }
     public string? ImageAltText { get; set; }
+
+    /// <summary>
+    /// Where an illustration came from and under which licence, kept with the question because some
+    /// pictures are published under licences (CC BY, CC BY-SA) that require the credit to stay with the
+    /// work. Null for text-only questions and for illustrations that need no attribution.
+    /// </summary>
+    public string? ImageSource { get; set; }
+    public string? ImageLicense { get; set; }
 }

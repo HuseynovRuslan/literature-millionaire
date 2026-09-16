@@ -13,12 +13,24 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reviewed "Bilik yarışı" question bank (generated from docs/import/quiz_questions.xlsx at implementation time).
+         Compiled into the assembly; not published as a loose file and never read from Excel at runtime. -->
+    <Content Remove="Seed/Data/bilik-yarisi-questions.json" />
+    <EmbeddedResource Include="Seed/Data/bilik-yarisi-questions.json" LogicalName="LiteratureMillionaire.API.Seed.Data.bilik-yarisi-questions.json" />
+
+    <!-- Reviewed "Ədəbiyyat Dünyası" bank (generated from docs/edebiyyat-import/edebiyyat-dunyasi.xlsx at
+         implementation time). Compiled into the assembly; the workbook is never read at runtime. -->
+    <Content Remove="Seed/Data/edebiyyat-dunyasi-questions.json" />
+    <EmbeddedResource Include="Seed/Data/edebiyyat-dunyasi-questions.json" LogicalName="LiteratureMillionaire.API.Seed.Data.edebiyyat-dunyasi-questions.json" />
   </ItemGroup>
 
 </Project>

@@ -12,6 +12,9 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(ApplicationDbContext db, CancellationToken ct = default)
     {
+        // Quiz modes first: campaigns and per-mode questions reference them.
+        await QuizModeSeed.SeedAsync(db, ct);
+
         var questions = StarterQuestions().ToList();
         Validate(questions);
 
@@ -32,6 +35,13 @@ public static class DbSeeder
 
         // Approved per-book content (guarded by BookId + exact text inside).
         await OlulerQuestionSeed.SeedAsync(db, ct);
+
+        // Demo "Bilik yarışı" bank + campaign. Runs after "Ölülər" so, on first import, it can switch the
+        // "Ölülər" campaign off; the "Ölülər" book, questions and campaign row are kept (transactional, idempotent).
+        await BilikYarisiSeed.SeedAsync(db, ct);
+
+        // Approved "Ədəbiyyat Dünyası" bank (own book + quiz mode, no campaign of its own).
+        await EdebiyyatDunyasiSeed.SeedAsync(db, ct);
     }
 
     /// <summary>
@@ -68,6 +78,7 @@ public static class DbSeeder
 
         db.MonthlyCampaigns.Add(new MonthlyCampaign
         {
+            QuizModeId = await QuizModeSeed.GetIdAsync(db, QuizModeSlugs.AyinKitabi, ct),
             BookId = book.Id,
             StartDate = campaignStart,
             EndDate = new DateOnly(2026, 9, 30),
