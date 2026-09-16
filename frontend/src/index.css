@@ -48,6 +48,18 @@ body {
   height: 100dvh;
 }
 
+/* Information screens (home, registration, result, leaderboard, session expired) fill the window but
+   may outgrow it. Without this they are clipped at the viewport with no way to reach the rest: a
+   900x600 browser window cut the phone field and the submit button off the registration form
+   entirely. The game stage deliberately opts out - its timer and answers must never move, and it has
+   been measured to fit unscrolled down to 800x560. */
+.kiosk.kiosk-scroll {
+  height: auto;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
 /* Eight-pointed star tiling (two squares rotated 45deg), drawn in thin gold. */
 .ornament {
   background-color: var(--color-navy-900);
@@ -155,14 +167,6 @@ body {
 @media (max-width: 639.98px) {
   .paper {
     --frame: 10px;
-  }
-  /* Information screens (home, registration, result, leaderboard, session expired) may scroll
-     vertically on a phone when their content is taller than the screen. The game screen does not use this. */
-  .kiosk.kiosk-scroll {
-    height: auto;
-    min-height: 100dvh;
-    overflow-x: hidden;
-    overflow-y: visible;
   }
 }
 

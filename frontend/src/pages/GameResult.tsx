@@ -102,8 +102,10 @@ function SidePanel({ load, retry, review }: { load: LeaderboardLoad; retry: () =
         id={`panel-${tab}`}
         aria-labelledby={`panel-tab-${tab}`}
         tabIndex={0}
-        // A kiosk has no mouse, so the list needs a visible rail to show that it continues below the fold.
-        className="mt-[clamp(0.5rem,1.4vh,1.1rem)] flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain [scrollbar-color:rgba(233,192,105,0.55)_rgba(255,255,255,0.08)] [scrollbar-width:thin]"
+        // The list scrolls inside its own panel rather than stretching the result screen, and the rail
+        // is left visible because the screen is read on a touch device as often as with a mouse.
+        // On a phone the cap is dropped: there the whole page scrolling is the natural gesture.
+        className="mt-[clamp(0.5rem,1.4vh,1.1rem)] flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain [scrollbar-color:rgba(233,192,105,0.55)_rgba(255,255,255,0.08)] [scrollbar-width:thin] sm:max-h-[min(52vh,32rem)] max-sm:overflow-visible"
       >
         {tab === 'answers' ? <AnswerReview items={review} /> : <TopFive load={load} retry={retry} />}
       </div>
@@ -141,7 +143,7 @@ export default function GameResult() {
 
   return (
     <GameShowShell>
-      <div data-result={passed ? 'passed' : 'failed'} className="grid min-h-0 grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-[clamp(1rem,1.8vw,2rem)] max-lg:grid-cols-1 max-sm:gap-4">
+      <div data-result={passed ? 'passed' : 'failed'} className="grid min-h-0 grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] items-stretch gap-[clamp(1rem,1.8vw,2rem)] max-lg:grid-cols-1 max-sm:gap-4">
         <section
           data-testid="result-stage"
           aria-labelledby="result-title"
