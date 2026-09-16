@@ -476,7 +476,7 @@ body {
   color: #ffffff;
   background: linear-gradient(135deg, #8f78ff, #5a3fe0);
   box-shadow: 0 10px 0 #3a26a8, 0 2rem 4rem -1rem rgba(4, 2, 18, 0.9);
-  animation: q-splash 900ms var(--ease-out-soft) forwards;
+  animation: q-splash 650ms var(--ease-out-soft) forwards;
 }
 @keyframes q-splash {
   0% { opacity: 0; transform: scale(0.3) rotate(-8deg); }
@@ -490,21 +490,21 @@ body {
   from { opacity: 0; transform: perspective(1200px) translateY(40px) rotateX(18deg) scale(0.94); }
   to { opacity: 1; transform: perspective(1200px) translateY(0) rotateX(0) scale(1); }
 }
-.q-card-enter { animation: q-card-in 620ms var(--ease-out-soft) 280ms backwards; }
+.q-card-enter { animation: q-card-in 440ms var(--ease-out-soft) 100ms backwards; }
 
 @keyframes q-content-in {
   from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
-.q-content-enter { animation: q-content-in 520ms var(--ease-out-soft) 520ms backwards; }
+.q-content-enter { animation: q-content-in 380ms var(--ease-out-soft) 220ms backwards; }
 
 @keyframes answer-in {
   from { opacity: 0; transform: translateY(36px) scale(0.86); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .answer {
-  animation: answer-in 520ms var(--ease-out-back) backwards;
-  animation-delay: calc(560ms + var(--i, 0) * 90ms);
+  animation: answer-in 380ms var(--ease-out-back) backwards;
+  animation-delay: calc(200ms + var(--i, 0) * 50ms);
 }
 
 @keyframes q-card-out {
@@ -516,8 +516,8 @@ body {
 @keyframes fade-out {
   to { opacity: 0; }
 }
-.q-stage[data-leaving="true"] .q-card { animation: q-card-out 460ms var(--ease-out-soft) forwards; }
-.q-stage[data-leaving="true"] .answer { animation: answer-out 380ms ease-in forwards; animation-delay: calc(var(--i, 0) * 50ms); }
+.q-stage[data-leaving="true"] .q-card { animation: q-card-out 360ms var(--ease-out-soft) forwards; }
+.q-stage[data-leaving="true"] .answer { animation: answer-out 300ms ease-in forwards; animation-delay: calc(var(--i, 0) * 25ms); }
 .q-stage[data-leaving="true"] [data-testid="game-status"] { animation: fade-out 300ms ease forwards; }
 
 /* Current progress pill fills in; the countdown number ticks each second. */

@@ -21,7 +21,7 @@ export default function GameTimer({
   className?: string
 }) {
   const warning = urgent && !expired // the pulse only runs while time is left
-  const ring = urgent ? 'var(--color-bad)' : fraction > 0.5 ? 'var(--color-ok)' : 'var(--color-sun)'
+  const ring = urgent ? 'var(--color-bad)' : fraction > 0.7 ? 'var(--color-ok)' : 'var(--color-sun)'
   return (
     <div className={`relative justify-self-end ${className}`}>
       <div

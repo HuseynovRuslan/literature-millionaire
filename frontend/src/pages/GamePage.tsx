@@ -10,17 +10,18 @@ import * as sound from '../game/sound'
 import { SessionInvalidError } from '../game/errors'
 import { ANSWER_OPTIONS, optionText, type AnswerOption, type AnswerResult } from '../types/game'
 
-// The dramatic pause after an answer is locked in. The question is already closed and the clock has
-// stopped; this is the beat of silence before the next question, with the heartbeat still running.
-// Nothing about correctness is shown here - the round stays sealed until the result screen.
-const TRANSITION_MS = 2600
+// The short pause after an answer is locked in, before the next question. Nothing about correctness is shown
+// here - the round stays sealed until the result screen. Kept brief on purpose: the server starts the next
+// question's clock when it records the answer (GameService), so every millisecond here comes out of the
+// player's 10 seconds.
+const TRANSITION_MS = 1100
 const TIMEOUT_RETRY_MS = 2000
 // Answer taps are ignored this long after a question appears, so a stray second tap from the
 // previous screen (e.g. a double tap on "NÖVBƏTİ İŞTİRAKÇI") cannot answer the first question.
 // Frontend-only: the server deadline and the countdown are unaffected.
 const QUESTION_INPUT_GUARD_MS = 400
 // Presentation only: the closed question starts its exit animation this long before the next one arrives.
-const LEAVE_ANIMATION_MS = 520
+const LEAVE_ANIMATION_MS = 380
 
 type Phase =
   | { kind: 'open' }
@@ -46,7 +47,7 @@ export default function GamePage() {
   const total = state.secondsPerQuestion
   // Cap at the API value: network latency can put the deadline a few ms beyond N seconds, which would round up to N+1.
   const remainingSec = Math.min(total, Math.ceil(remainingMs / 1000))
-  // Warning window scales with the question time: 5 s of 10 or 15, 10 s of 30.
+  // Warning window scales with the question time: the last 5 s of 10 or 15, 10 s of 30.
   const urgentSeconds = Math.max(5, Math.round(total / 3))
   const [imageFailed, setImageFailed] = useState(false)
   const [soundOn, setSoundOn] = useState(() => sound.isEnabled())
