@@ -7,16 +7,19 @@ import type { QuizAnswerReview } from '../../types/game'
  * the rule - so this list is the first and only moment a player learns what was right.
  */
 
-/** Correct, wrong and unanswered read as three different things, not just two colours. */
+/** Correct, wrong, late and unanswered read as four different things, not just two colours. */
 const TONE = {
   correct: { ring: 'ring-[rgba(30,167,156,0.55)]', badge: 'bg-[rgba(30,167,156,0.9)] text-[#04201e]', label: 'Düzgün' },
   wrong: { ring: 'ring-[rgba(255,154,162,0.45)]', badge: 'bg-[rgba(125,22,29,0.85)] text-[#ffe8ea]', label: 'Səhv' },
+  late: { ring: 'ring-[rgba(255,154,162,0.45)]', badge: 'bg-[rgba(125,22,29,0.85)] text-[#ffe8ea]', label: 'Vaxtında deyil' },
   missed: { ring: 'ring-white/15', badge: 'bg-white/20 text-[#e6ecf7]', label: 'Vaxt bitdi' },
 } as const
 
 function toneOf(item: QuizAnswerReview): keyof typeof TONE {
   if (item.isCorrect) return 'correct'
-  return item.selectedOption === null ? 'missed' : 'wrong'
+  if (item.selectedOption === null) return 'missed'
+  // Something was picked, but the server clock had already closed the question.
+  return item.timedOut ? 'late' : 'wrong'
 }
 
 export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
@@ -59,7 +62,13 @@ export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
                     <span className="font-semibold text-[#ff9aa2]">Sizin cavabınız:</span>{' '}
                     {item.selectedOption === null
                       ? <span className="text-[#d6deec]">cavab verilmədi</span>
-                      : <span lang="az" className="text-[#fbf6ec] [overflow-wrap:anywhere]">{item.selectedOption}) {item.selectedAnswer}{item.timedOut && ' (gec)'}</span>}
+                      : (
+                        <>
+                          <span lang="az" className="text-[#fbf6ec] [overflow-wrap:anywhere]">{item.selectedOption}) {item.selectedAnswer}</span>
+                          {/* A bare "(gec)" told the player nothing; say why it did not count. */}
+                          {item.timedOut && <span className="text-[#d6deec]"> — vaxt bitdiyi üçün sayılmadı</span>}
+                        </>
+                      )}
                   </p>
                 )}
 
