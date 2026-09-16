@@ -3,7 +3,7 @@ import { isAxiosError } from 'axios'
 import { startGame as apiStartGame, submitAnswer as apiSubmitAnswer, submitTimeout as apiSubmitTimeout } from '../api/game'
 import type { QuizModeRef } from '../types/campaign'
 import type { AnswerOption, AnswerResult, GameQuestion, QuizResult, StartGameInput } from '../types/game'
-import { SessionInvalidError } from './errors'
+import { QuestionTimeRemainingError, SessionInvalidError } from './errors'
 import { clearActiveGame, loadActiveGame, saveActiveGame, type ActiveGameSnapshot } from './storage'
 
 /**
@@ -182,8 +182,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         const status = isAxiosError(err) ? err.response?.status : undefined
         const code = isAxiosError(err) ? (err.response?.data as { code?: string } | undefined)?.code : undefined
-        // QUESTION_TIME_REMAINING is a timing disagreement of a few ms, not a dead session: let the caller retry.
-        if (status === 404 || (status === 409 && code !== 'QUESTION_TIME_REMAINING')) {
+        // QUESTION_TIME_REMAINING is a clock disagreement, not a dead session and not a network
+        // failure: surface it as its own error so the caller can retry quietly, without alarming the player.
+        if (status === 409 && code === 'QUESTION_TIME_REMAINING') {
+          throw new QuestionTimeRemainingError()
+        }
+        if (status === 404 || status === 409) {
           clearActiveGame()
           const reason: ExpiredReason =
             status === 404 ? 'SESSION_NOT_FOUND' : code === 'UNEXPECTED_QUESTION' ? 'UNEXPECTED_QUESTION' : code === 'GAME_OVER' ? 'GAME_OVER' : 'OTHER'

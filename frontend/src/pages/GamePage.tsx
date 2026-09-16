@@ -5,11 +5,20 @@ import GameStageHeader from '../components/game/GameStageHeader'
 import GameResult from './GameResult'
 import SessionExpired from './SessionExpired'
 import { useGame } from '../game/GameContext'
-import { SessionInvalidError } from '../game/errors'
+import { QuestionTimeRemainingError, SessionInvalidError } from '../game/errors'
 import { ANSWER_OPTIONS, optionText, type AnswerOption, type AnswerResult } from '../types/game'
 
 const TRANSITION_MS = 1100
 const TIMEOUT_RETRY_MS = 2000
+// The kiosk clock can run slightly ahead of the server's, so the countdown can reach zero while the
+// server still sees a few milliseconds left and rejects the timeout call. That is a clock
+// disagreement, not a failure: ask again after this short pause, with nothing shown to the player.
+// The answer buttons are locked from the moment the local countdown hits zero, so no extra
+// answering time is granted either way.
+const TIMEOUT_CLOCK_RETRY_MS = 250
+// Give up the quiet retries after this many, so a pathological clock difference still surfaces
+// (~10 s) instead of looping in silence forever.
+const TIMEOUT_CLOCK_RETRY_LIMIT = 40
 // Answer taps are ignored this long after a question appears, so a stray second tap from the
 // previous screen (e.g. a double tap on "NÖVBƏTİ İŞTİRAKÇI") cannot answer the first question.
 // Frontend-only: the server deadline and the countdown are unaffected.
@@ -85,7 +94,7 @@ export default function GamePage() {
     }
   }
 
-  async function reportTimeout(attempt: number) {
+  async function reportTimeout(attempt: number, clockRetries = 0) {
     if (!q || inFlight.current) return
     inFlight.current = true
     setPhase(attempt === 0 ? { kind: 'sending', selected: null } : { kind: 'retrying', attempt })
@@ -97,11 +106,19 @@ export default function GamePage() {
     } catch (err) {
       inFlight.current = false
       if (err instanceof SessionInvalidError) return
-      // Network failure (or a QUESTION_TIME_REMAINING disagreement of a few ms): retry the same
-      // question after a pause. The buttons stay locked; no extra answering time is granted.
+      // The server's clock still shows time on this question. Nothing has gone wrong, so the player
+      // sees only the ordinary "sending" state while we ask again a moment later.
+      if (err instanceof QuestionTimeRemainingError && clockRetries < TIMEOUT_CLOCK_RETRY_LIMIT) {
+        setSendError(null)
+        setPhase({ kind: 'sending', selected: null })
+        timer.current = window.setTimeout(() => void reportTimeout(attempt, clockRetries + 1), TIMEOUT_CLOCK_RETRY_MS)
+        return
+      }
+      // A real failure (network down, server error): tell the player and retry the same question
+      // after a pause. The buttons stay locked; no extra answering time is granted.
       setSendError('Şəbəkə xətası. Yenidən cəhd edilir…')
       setPhase({ kind: 'retrying', attempt: attempt + 1 })
-      timer.current = window.setTimeout(() => void reportTimeout(attempt + 1), TIMEOUT_RETRY_MS)
+      timer.current = window.setTimeout(() => void reportTimeout(attempt + 1, clockRetries), TIMEOUT_RETRY_MS)
     }
   }
 
