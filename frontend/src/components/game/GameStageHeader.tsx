@@ -87,7 +87,7 @@ export default function GameStageHeader({
                 i < questionNumber - 1
                   ? 'bg-brand'
                   : i === questionNumber - 1
-                    ? 'bg-sun shadow-[0_0_0.8rem_rgba(255,201,61,0.7)]'
+                    ? 'pill-fill bg-sun shadow-[0_0_0.8rem_rgba(255,201,61,0.7)]'
                     : 'bg-white/12'
               }`}
             />

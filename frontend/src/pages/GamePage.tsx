@@ -18,6 +18,8 @@ const TIMEOUT_RETRY_MS = 2000
 // previous screen (e.g. a double tap on "NÖVBƏTİ İŞTİRAKÇI") cannot answer the first question.
 // Frontend-only: the server deadline and the countdown are unaffected.
 const QUESTION_INPUT_GUARD_MS = 400
+// Presentation only: the closed question starts its exit animation this long before the next one arrives.
+const LEAVE_ANIMATION_MS = 520
 
 type Phase =
   | { kind: 'open' }
@@ -31,6 +33,8 @@ export default function GamePage() {
   const [now, setNow] = useState(() => Date.now())
   const [sendError, setSendError] = useState<string | null>(null)
   const timer = useRef<number | null>(null)
+  const leaveTimer = useRef<number | null>(null)
+  const [leaving, setLeaving] = useState(false)
   const inFlight = useRef(false)
   const timeoutSentFor = useRef<number | null>(null)
   const questionShownAt = useRef(Date.now())
@@ -69,11 +73,15 @@ export default function GamePage() {
   }, [state.status, state.result?.passed])
 
   // Clear any pending transition or retry when the page unmounts.
-  useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current) }, [])
+  useEffect(() => () => {
+    if (timer.current) window.clearTimeout(timer.current)
+    if (leaveTimer.current) window.clearTimeout(leaveTimer.current)
+  }, [])
 
   // New question: reset local phase and the once-per-question timeout guard.
   useEffect(() => {
     setPhase({ kind: 'open' })
+    setLeaving(false)
     setSendError(null)
     setImageFailed(false)
     timeoutSentFor.current = null
@@ -82,6 +90,8 @@ export default function GamePage() {
 
   function scheduleAdvance(result: AnswerResult) {
     timer.current = window.setTimeout(() => advance(result), TRANSITION_MS)
+    // The last question hands over to the result screen, which has its own entrance; no exit needed there.
+    if (!result.isGameOver) leaveTimer.current = window.setTimeout(() => setLeaving(true), TRANSITION_MS - LEAVE_ANIMATION_MS)
   }
 
   async function choose(option: AnswerOption) {
@@ -165,7 +175,8 @@ export default function GamePage() {
     <main className="kiosk arena flex flex-col" data-testid="game-page">
       <section
         key={q.id}
-        className="relative z-10 mx-auto flex min-h-0 w-full max-w-[120rem] flex-1 flex-col px-[clamp(1.2rem,2.6vw,3.4rem)] pb-[clamp(0.8rem,1.8vh,1.6rem)] pt-[clamp(0.8rem,1.8vh,1.6rem)] max-sm:px-3 max-sm:pb-[calc(0.6rem_+_var(--safe-bottom))] max-sm:pt-[calc(0.6rem_+_var(--safe-top))]"
+        className="q-stage relative z-10 mx-auto flex min-h-0 w-full max-w-[120rem] flex-1 flex-col px-[clamp(1.2rem,2.6vw,3.4rem)] pb-[clamp(0.8rem,1.8vh,1.6rem)] pt-[clamp(0.8rem,1.8vh,1.6rem)] max-sm:px-3 max-sm:pb-[calc(0.6rem_+_var(--safe-bottom))] max-sm:pt-[calc(0.6rem_+_var(--safe-top))]"
+        data-leaving={leaving}
       >
         <GameStageHeader
           questionNumber={state.questionNumber}
@@ -184,9 +195,19 @@ export default function GamePage() {
           }}
         />
 
+        {/* Decorative "Sual N" burst on every new question; the real counter is in the header. */}
+        <div className="q-splash" aria-hidden="true">
+          <div className="q-splash-inner">
+            <span className="font-sans text-[clamp(0.8rem,1.1vw,1.1rem)] font-extrabold uppercase tracking-[0.3em] text-white/80 max-sm:text-[0.7rem]">Sual</span>
+            <span className="font-display text-[clamp(4rem,9vw,8rem)] font-extrabold leading-none tabular-nums max-sm:text-[3.5rem]">
+              {state.questionNumber}<span className="text-[0.4em] text-white/60"> / {state.totalQuestions}</span>
+            </span>
+          </div>
+        </div>
+
         <div
           data-testid="question-card"
-          className={`q-card rise relative mb-[clamp(1.1rem,2.4vh,2rem)] mt-[clamp(0.8rem,2vh,1.6rem)] min-h-0 flex-1 rounded-[clamp(1.4rem,2vw,2.2rem)] px-[clamp(1.4rem,3vw,4rem)] py-[clamp(1rem,2.4vh,2.2rem)] max-sm:mb-3 max-sm:mt-2.5 max-sm:rounded-3xl max-sm:px-3.5 max-sm:pb-3 max-sm:pt-6 ${
+          className={`q-card q-card-enter relative mb-[clamp(1.1rem,2.4vh,2rem)] mt-[clamp(0.8rem,2vh,1.6rem)] min-h-0 flex-1 rounded-[clamp(1.4rem,2vw,2.2rem)] px-[clamp(1.4rem,3vw,4rem)] py-[clamp(1rem,2.4vh,2.2rem)] max-sm:mb-3 max-sm:mt-2.5 max-sm:rounded-3xl max-sm:px-3.5 max-sm:pb-3 max-sm:pt-6 ${
             hasImage
               ? 'grid grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] items-center gap-[clamp(1.4rem,3vw,4rem)] max-lg:flex max-lg:flex-col max-lg:justify-center max-lg:gap-3'
               : 'flex flex-col justify-center'
@@ -198,7 +219,7 @@ export default function GamePage() {
           <h1
             id="question-text"
             lang="az"
-            className={`font-display font-bold leading-[1.2] text-ink-900 [overflow-wrap:anywhere] [text-wrap:balance] ${
+            className={`q-content-enter font-display font-bold leading-[1.2] text-ink-900 [overflow-wrap:anywhere] [text-wrap:balance] ${
               hasImage
                 ? 'text-[clamp(1.5rem,min(2.4vw,4.6vh),3rem)] max-lg:text-center max-sm:text-[1.1rem]'
                 : `mx-auto max-w-[32ch] text-center ${longText ? 'text-[clamp(1.6rem,min(2.6vw,5vh),3.2rem)] max-sm:text-[1.1rem]' : 'text-[clamp(1.9rem,min(3.2vw,6vh),4rem)] max-sm:text-[1.3rem]'}`
@@ -208,7 +229,7 @@ export default function GamePage() {
           </h1>
           {hasImage && (
             // The picture takes the space the card has (object-contain, never cropped or stretched); on the kiosk it sits left.
-            <figure className="flex h-full min-h-0 w-full items-center justify-center lg:order-first max-lg:flex-1" data-testid="question-image">
+            <figure className="q-content-enter flex h-full min-h-0 w-full items-center justify-center lg:order-first max-lg:flex-1" data-testid="question-image">
               {imageFailed ? (
                 <p role="img" aria-label={q.imageAltText ?? 'Təsvir'} className="rounded-2xl bg-ink-900/5 px-8 py-6 text-[clamp(1rem,1.3vw,1.3rem)] font-semibold text-ink-600 ring-1 ring-ink-900/10">
                   Təsvir yüklənmədi
@@ -226,8 +247,8 @@ export default function GamePage() {
         </div>
 
         <div data-testid="answers" className="grid grid-cols-2 gap-[clamp(0.8rem,1.4vw,1.4rem)] max-sm:gap-2.5">
-          {ANSWER_OPTIONS.map((o) => (
-            <AnswerButton key={o} option={o} text={optionText(q, o)} visual={visualFor(o)} disabled={locked} onSelect={choose} />
+          {ANSWER_OPTIONS.map((o, i) => (
+            <AnswerButton key={o} index={i} option={o} text={optionText(q, o)} visual={visualFor(o)} disabled={locked} onSelect={choose} />
           ))}
         </div>
 

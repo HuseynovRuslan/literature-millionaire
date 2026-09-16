@@ -346,19 +346,201 @@ body {
   100% { opacity: 0; transform: translate3d(var(--dx, 0px), 560px, 0) rotate(540deg); }
 }
 
-/* ---------- Motion ---------- */
+/* ---------- Motion ----------
+   Entrance classes only hold their start frame before they run (fill-mode: backwards), so once finished
+   they no longer override hover lifts, dimmed answers or any other state styling. */
 @keyframes rise {
-  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-.rise { animation: rise 460ms var(--ease-out-soft) both; }
+.rise { animation: rise 480ms var(--ease-out-soft) backwards; }
 
 @keyframes pop {
   0% { opacity: 0; transform: scale(0.6); }
   70% { opacity: 1; transform: scale(1.08); }
   100% { opacity: 1; transform: scale(1); }
 }
-.pop { animation: pop 560ms var(--ease-out-back) both; }
+.pop { animation: pop 560ms var(--ease-out-back) backwards; }
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.slide-in-right { animation: slide-in-right 460ms var(--ease-out-soft) backwards; }
+
+@keyframes grow-up {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+.grow-up { transform-origin: bottom; animation: grow-up 700ms var(--ease-out-back) backwards; }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.bob { animation: bob 4.5s ease-in-out infinite; }
+
+@keyframes bounce-in {
+  0% { opacity: 0; transform: translateY(-40px) scale(0.6); }
+  60% { opacity: 1; transform: translateY(6px) scale(1.1); }
+  80% { transform: translateY(-3px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.bounce-in { animation: bounce-in 800ms var(--ease-out-soft) backwards; }
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 201, 61, 0); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 201, 61, 0.14), 0 0 2rem rgba(255, 201, 61, 0.25); }
+}
+.glow-pulse { animation: glow-pulse 2.6s ease-in-out infinite; }
+
+/* Slow shimmer across gradient titles. */
+@keyframes shimmer {
+  from { background-position: 0% 50%; }
+  to { background-position: 200% 50%; }
+}
+.text-gradient.shimmer {
+  background-image: linear-gradient(95deg, #ffffff 0%, #d9d0ff 25%, #ffd978 50%, #d9d0ff 75%, #ffffff 100%);
+  background-size: 200% 100%;
+  animation: shimmer 6s linear infinite;
+}
+
+/* A light sweep crossing the primary button every few seconds. */
+.btn-primary { overflow: hidden; isolation: isolate; }
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  z-index: -1;
+  width: 40%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  transform: skewX(-20deg);
+  animation: btn-sweep 4.2s ease-in-out 1s infinite;
+}
+.btn-primary:disabled::after { animation: none; display: none; }
+@keyframes btn-sweep {
+  0%, 65% { left: -60%; }
+  100% { left: 140%; }
+}
+
+/* Category cards lift on hover (pointer devices) and their icon gives a little wiggle. */
+@media (hover: hover) {
+  .card-lift { transition: transform 240ms var(--ease-out-soft), box-shadow 240ms var(--ease-out-soft); }
+  .card-lift:hover { transform: translateY(-6px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2.4rem 3.6rem -1.6rem rgba(4, 2, 18, 0.9); }
+  .card-lift:hover .wiggle { animation: wiggle 600ms ease-in-out; }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg) scale(1.08); }
+  60% { transform: rotate(8deg) scale(1.08); }
+}
+
+/* Drifting light pools behind every screen. */
+.arena::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(123, 97, 255, 0.18), transparent 35%),
+    radial-gradient(circle at 70% 60%, rgba(196, 47, 102, 0.12), transparent 35%);
+  animation: drift 22s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  from { transform: translate3d(-4%, -2%, 0) rotate(0deg); }
+  to { transform: translate3d(4%, 3%, 0) rotate(12deg); }
+}
+
+/* ---------- Game: question transitions ----------
+   In: a "Sual N" splash bursts in the middle, the card swings up, the answers deal in one by one.
+   Out: once the answer is recorded the card lifts away and the tiles drop before the next question. */
+.q-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.q-splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  border-radius: 2rem;
+  padding: 0.5em 1.1em;
+  color: #ffffff;
+  background: linear-gradient(135deg, #8f78ff, #5a3fe0);
+  box-shadow: 0 10px 0 #3a26a8, 0 2rem 4rem -1rem rgba(4, 2, 18, 0.9);
+  animation: q-splash 900ms var(--ease-out-soft) forwards;
+}
+@keyframes q-splash {
+  0% { opacity: 0; transform: scale(0.3) rotate(-8deg); }
+  28% { opacity: 1; transform: scale(1.08) rotate(2deg); }
+  40% { transform: scale(1) rotate(0deg); }
+  72% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.35); visibility: hidden; }
+}
+
+@keyframes q-card-in {
+  from { opacity: 0; transform: perspective(1200px) translateY(40px) rotateX(18deg) scale(0.94); }
+  to { opacity: 1; transform: perspective(1200px) translateY(0) rotateX(0) scale(1); }
+}
+.q-card-enter { animation: q-card-in 620ms var(--ease-out-soft) 280ms backwards; }
+
+@keyframes q-content-in {
+  from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.q-content-enter { animation: q-content-in 520ms var(--ease-out-soft) 520ms backwards; }
+
+@keyframes answer-in {
+  from { opacity: 0; transform: translateY(36px) scale(0.86); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.answer {
+  animation: answer-in 520ms var(--ease-out-back) backwards;
+  animation-delay: calc(560ms + var(--i, 0) * 90ms);
+}
+
+@keyframes q-card-out {
+  to { opacity: 0; transform: perspective(1200px) translateY(-40px) rotateX(-14deg) scale(0.94); }
+}
+@keyframes answer-out {
+  to { opacity: 0; transform: translateY(40px) scale(0.9); }
+}
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+.q-stage[data-leaving="true"] .q-card { animation: q-card-out 460ms var(--ease-out-soft) forwards; }
+.q-stage[data-leaving="true"] .answer { animation: answer-out 380ms ease-in forwards; animation-delay: calc(var(--i, 0) * 50ms); }
+.q-stage[data-leaving="true"] [data-testid="game-status"] { animation: fade-out 300ms ease forwards; }
+
+/* Current progress pill fills in; the countdown number ticks each second. */
+@keyframes pill-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.pill-fill { transform-origin: left; animation: pill-fill 700ms var(--ease-out-soft) 200ms backwards; }
+
+@keyframes tick {
+  0% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.tick { display: inline-block; animation: tick 300ms var(--ease-out-soft); }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px) rotate(-2deg); }
+  40% { transform: translateX(3px) rotate(2deg); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+.timer-urgent .tick { animation: tick 300ms var(--ease-out-soft), shake 400ms ease-in-out; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 900ms linear infinite; }
@@ -369,9 +551,12 @@ body {
 .tap:focus-visible { outline: 3px solid var(--color-brand-soft); outline-offset: 4px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .rise, .pop, .spin, .arena-shape, .timer-urgent, .answer[data-visual="selected"] { animation: none; }
-  .confetti { display: none; }
-  .btn, .answer, .field, .icon-btn, .tap { transition: none; }
+  .rise, .pop, .spin, .arena-shape, .timer-urgent, .answer, .answer[data-visual="selected"], .slide-in-right, .grow-up, .bob,
+  .bounce-in, .glow-pulse, .text-gradient.shimmer, .q-card-enter, .q-content-enter, .pill-fill, .tick, .arena::before,
+  .btn-primary::after, .q-stage[data-leaving="true"] .q-card, .q-stage[data-leaving="true"] .answer,
+  .q-stage[data-leaving="true"] [data-testid="game-status"] { animation: none; }
+  .confetti, .q-splash, .btn-primary::after { display: none; }
+  .btn, .answer, .field, .icon-btn, .tap, .card-lift { transition: none; }
 }
 
 /* ---------- Phones ---------- */
@@ -389,3 +574,7 @@ body {
   .q-card { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6), 0 6px 0 rgba(123, 97, 255, 0.45), 0 1rem 2rem -1rem rgba(4, 2, 18, 0.85); }
   .answer[data-visual="selected"] { box-shadow: 0 0 0 3px #ffffff, 0 5px 0 color-mix(in srgb, var(--opt) 60%, #000000 40%); }
 }
+
+/* A field that fails validation gives a short shake so the eye goes straight to it. */
+.field[aria-invalid="true"] { animation: shake 420ms ease-in-out; }
+@media (prefers-reduced-motion: reduce) { .field[aria-invalid="true"] { animation: none; } }

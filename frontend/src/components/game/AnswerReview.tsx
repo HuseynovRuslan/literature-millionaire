@@ -34,7 +34,7 @@ export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
 
   return (
     <ol data-testid="answer-review" className="flex flex-col gap-2.5">
-      {items.map((item) => {
+      {items.map((item, index) => {
         const toneKey = toneOf(item)
         const tone = TONE[toneKey]
         return (
@@ -42,7 +42,8 @@ export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
             key={item.questionNumber}
             data-testid="review-item"
             data-correct={item.isCorrect ? 'yes' : 'no'}
-            className={`rounded-2xl bg-white/[0.05] px-[clamp(0.8rem,1.1vw,1rem)] py-3 ring-1 ${tone.ring} max-sm:px-3`}
+            style={{ animationDelay: `${index * 60}ms` }}
+            className={`slide-in-right rounded-2xl bg-white/[0.05] px-[clamp(0.8rem,1.1vw,1rem)] py-3 ring-1 ${tone.ring} max-sm:px-3`}
           >
             <div className="flex items-start gap-3">
               <span className={`mt-0.5 grid size-[clamp(1.9rem,2.3vw,2.2rem)] shrink-0 place-items-center rounded-xl font-display text-[clamp(0.8rem,0.95vw,0.9rem)] font-extrabold ${tone.badge}`} aria-hidden="true">

@@ -52,7 +52,8 @@ export default function GameTimer({
           aria-hidden="true"
           className={`relative font-display text-[clamp(1.9rem,min(3vw,5vh),3.3rem)] font-extrabold leading-none tabular-nums max-sm:text-[1.45rem] ${urgent ? 'text-bad' : 'text-fg'}`}
         >
-          {seconds}
+          {/* Keyed by the value so each new second replays the tick. */}
+          <span key={seconds} className="tick">{seconds}</span>
         </span>
       </div>
       <span className="sr-only" aria-live="polite" data-testid="timer-announcement">

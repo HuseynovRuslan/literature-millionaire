@@ -36,7 +36,7 @@ export default function SessionExpired() {
         aria-labelledby="expired-title"
         className="card rise mx-auto flex min-h-[24rem] w-full max-w-[56rem] flex-col items-center justify-center rounded-[2rem] px-[clamp(1.5rem,4vw,3.5rem)] py-12 text-center max-sm:min-h-[20rem] max-sm:rounded-3xl max-sm:px-5 max-sm:py-9"
       >
-        <HourglassMark className="pop size-[clamp(6rem,9vw,8rem)] max-sm:size-24" />
+        <div className="pop"><HourglassMark className="bob size-[clamp(6rem,9vw,8rem)] max-sm:size-24" /></div>
         {quizModeTitle && (
           <p className="chip mt-5 px-4 py-1.5 text-[clamp(0.75rem,0.9vw,0.88rem)] uppercase tracking-[0.14em] text-brand-soft" data-testid="expired-quiz-mode">
             {quizModeTitle}

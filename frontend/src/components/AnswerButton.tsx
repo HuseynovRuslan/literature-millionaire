@@ -8,6 +8,8 @@ export type AnswerVisual = 'idle' | 'selected' | 'correct' | 'wrong' | 'dimmed'
 
 interface Props {
   option: AnswerOption
+  /** Position in the grid; staggers the entrance animation only. */
+  index?: number
   text: string
   visual: AnswerVisual
   disabled: boolean
@@ -17,7 +19,7 @@ interface Props {
 // Colour and shape belong to the letter slot, which the server shuffles per session, so they say nothing
 // about correctness. During the quiz only idle / selected / dimmed are used; `correct` / `wrong` have no
 // special styling (see .answer in index.css), so no state can reveal an answer.
-export default function AnswerButton({ option, text, visual, disabled, onSelect }: Props) {
+export default function AnswerButton({ option, index = 0, text, visual, disabled, onSelect }: Props) {
   const selected = visual === 'selected'
   return (
     <button
@@ -28,7 +30,7 @@ export default function AnswerButton({ option, text, visual, disabled, onSelect 
       aria-label={`${option}: ${text}`}
       data-option={option}
       data-visual={visual}
-      style={{ '--opt': OPTION_COLOR[option] } as CSSProperties}
+      style={{ '--opt': OPTION_COLOR[option], '--i': index } as CSSProperties}
       className="answer flex min-h-[clamp(5rem,11vh,8rem)] w-full min-w-0 items-center gap-[clamp(0.8rem,1.3vw,1.4rem)] rounded-[1.4rem] px-[clamp(0.9rem,1.4vw,1.5rem)] py-[clamp(0.6rem,1.2vh,1rem)] text-left disabled:cursor-default max-sm:min-h-[4.5rem] max-sm:flex-col max-sm:justify-center max-sm:gap-1.5 max-sm:rounded-2xl max-sm:px-2 max-sm:py-2 max-sm:text-center"
     >
       <span aria-hidden="true" className="answer-shape relative grid size-[clamp(3rem,min(4.2vw,7vh),4.4rem)] shrink-0 place-items-center rounded-2xl max-sm:size-8 max-sm:rounded-lg">

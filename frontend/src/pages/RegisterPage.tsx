@@ -77,7 +77,7 @@ function Stepper() {
           <li key={label} className="flex items-center gap-2 max-sm:gap-1.5" aria-current={current ? 'step' : undefined}>
             <span
               className={`grid size-9 place-items-center rounded-full font-display text-sm font-extrabold max-sm:size-7 max-sm:text-xs ${
-                done ? 'bg-ok text-ink-950' : current ? 'bg-sun text-ink-950 shadow-[0_0_0_5px_rgba(255,201,61,0.2)]' : 'bg-white/10 text-fg-3'
+                done ? 'pop bg-ok text-ink-950' : current ? 'glow-pulse bg-sun text-ink-950' : 'bg-white/10 text-fg-3'
               }`}
             >
               {done ? <CheckIcon className="size-4" /> : i + 1}

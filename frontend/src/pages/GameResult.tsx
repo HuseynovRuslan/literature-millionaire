@@ -8,6 +8,7 @@ import AnswerReview from '../components/game/AnswerReview'
 import { useGame } from '../game/GameContext'
 import { useLeaderboard, type LeaderboardLoad } from '../hooks/useLeaderboard'
 import type { QuizAnswerReview } from '../types/game'
+import { useCountUp } from '../hooks/useCountUp'
 import { formatRank } from '../utils/leaderboard'
 
 const CARD = 'card rise rounded-[2rem] max-sm:rounded-3xl'
@@ -34,20 +35,22 @@ function Confetti() {
   )
 }
 
-/** Score as a ring: correct answers against the total. */
+/** Score as a ring that draws itself while the number counts up. Screen readers get the final value at once. */
 function ScoreRing({ correct, total, passed }: { correct: number; total: number; passed: boolean }) {
   const r = 52
   const c = 2 * Math.PI * r
-  const ratio = total > 0 ? correct / total : 0
+  const shown = useCountUp(correct, 1200, 450)
+  const ratio = total > 0 ? shown / total : 0
   return (
     <div className="pop relative grid size-[clamp(10rem,16vw,13.5rem)] place-items-center [animation-delay:120ms] max-sm:size-40" data-testid="score">
       <svg viewBox="0 0 120 120" className="absolute inset-0 size-full -rotate-90" aria-hidden="true">
         <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="11" />
-        <circle cx="60" cy="60" r={r} fill="none" stroke={passed ? 'var(--color-sun)' : 'var(--color-brand-soft)'} strokeWidth="11" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - ratio)} />
+        <circle cx="60" cy="60" r={r} fill="none" stroke={passed ? 'var(--color-sun)' : 'var(--color-brand-soft)'} strokeWidth="11" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - ratio)} style={{ transition: 'stroke-dashoffset 120ms linear' }} />
       </svg>
       <span className="relative text-center">
-        <span className="block font-display text-[clamp(2.8rem,4.8vw,4.2rem)] font-extrabold leading-none tabular-nums">
-          {correct}<span className="text-[0.45em] text-fg-3"> / {total}</span>
+        <span className="sr-only">{correct} / {total}</span>
+        <span aria-hidden="true" className="block font-display text-[clamp(2.8rem,4.8vw,4.2rem)] font-extrabold leading-none tabular-nums">
+          {shown}<span className="text-[0.45em] text-fg-3"> / {total}</span>
         </span>
         <span className="mt-1 block text-[clamp(0.7rem,0.85vw,0.82rem)] font-bold uppercase tracking-[0.14em] text-fg-3">Düzgün cavab</span>
       </span>
@@ -188,7 +191,7 @@ export default function GameResult() {
           {passed && <Confetti />}
           <div className="flex items-center gap-4">
             {passed
-              ? <VictoryStar className="pop size-[clamp(4rem,6.4vw,5.8rem)] max-sm:size-16" />
+              ? <VictoryStar className="bounce-in size-[clamp(4rem,6.4vw,5.8rem)] max-sm:size-16" />
               : <OpenBookMark className="pop h-[clamp(3rem,5vw,4.2rem)] w-auto max-sm:h-12" />}
             <div className="text-left">
               {quizModeTitle && (
@@ -196,7 +199,7 @@ export default function GameResult() {
                   {quizModeTitle}
                 </p>
               )}
-              <h1 id="result-title" className={`mt-1 font-display text-[clamp(2rem,3.8vw,3.4rem)] font-extrabold leading-none max-sm:text-[1.8rem] ${passed ? 'text-gradient' : ''}`}>{title}</h1>
+              <h1 id="result-title" className={`pop mt-1 font-display [animation-delay:150ms] text-[clamp(2rem,3.8vw,3.4rem)] font-extrabold leading-none max-sm:text-[1.8rem] ${passed ? 'text-gradient shimmer' : ''}`}>{title}</h1>
             </div>
           </div>
           <p className="mt-3 max-w-[40ch] text-[clamp(1rem,1.3vw,1.2rem)] font-medium leading-snug text-fg-2 max-sm:text-[0.95rem]">{line}</p>
@@ -207,7 +210,7 @@ export default function GameResult() {
                 <ScoreRing correct={r.correctAnswers} total={r.totalQuestions} passed={passed} />
               </div>
 
-              <dl className="mt-4 grid w-full max-w-[30rem] grid-cols-2 gap-2.5 max-sm:gap-2">
+              <dl className="rise mt-4 grid [animation-delay:700ms] w-full max-w-[30rem] grid-cols-2 gap-2.5 max-sm:gap-2">
                 <div className="rounded-2xl bg-white/[0.05] px-2 py-3 ring-1 ring-white/10">
                   <dt className="text-[clamp(0.68rem,0.8vw,0.78rem)] font-bold uppercase tracking-[0.1em] text-fg-3">Toplanan xal</dt>
                   <dd className="mt-1 font-display text-[clamp(1.2rem,1.8vw,1.6rem)] font-extrabold tabular-nums text-sun max-sm:text-[1.1rem]" data-testid="points">{r.pointsEarned} / {r.maxPoints}</dd>
@@ -225,7 +228,7 @@ export default function GameResult() {
               </p>
 
               {passed && r.rewardTitle && (
-                <div data-testid="reward" className="pop mt-4 flex w-full max-w-[36rem] items-center gap-4 rounded-2xl bg-[linear-gradient(135deg,rgba(255,201,61,0.18),rgba(123,97,255,0.14))] px-4 py-3 text-left ring-1 ring-sun/40 [animation-delay:320ms]">
+                <div data-testid="reward" className="pop glow-pulse mt-4 flex w-full max-w-[36rem] items-center gap-4 rounded-2xl bg-[linear-gradient(135deg,rgba(255,201,61,0.18),rgba(123,97,255,0.14))] px-4 py-3 text-left ring-1 ring-sun/40 [animation-delay:320ms]">
                   <RewardMedal className="size-12 shrink-0 max-sm:size-10" />
                   <div className="min-w-0">
                     <p className="text-[clamp(0.72rem,0.85vw,0.8rem)] font-bold uppercase tracking-[0.14em] text-sun">Mükafat</p>

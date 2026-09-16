@@ -34,11 +34,11 @@ export default function CategoryCard({
       data-testid="category-card"
       data-campaign-id={campaign.campaignId}
       style={{ '--accent': accent, animationDelay: `${80 + index * 70}ms` } as CSSProperties}
-      className="card rise flex h-full min-w-0 flex-col overflow-hidden rounded-[1.75rem] max-sm:rounded-3xl"
+      className="card card-lift rise flex h-full min-w-0 flex-col overflow-hidden rounded-[1.75rem] max-sm:rounded-3xl"
     >
       {/* Coloured header band with the category icon. */}
       <div className="relative flex items-center gap-4 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_92%,#ffffff),color-mix(in_srgb,var(--accent)_72%,#110c2c))] px-[clamp(1.1rem,1.6vw,1.6rem)] py-[clamp(1rem,1.6vh,1.3rem)]">
-        <span aria-hidden="true" className="grid size-[clamp(3.2rem,4.2vw,4rem)] shrink-0 place-items-center rounded-2xl bg-white/20 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] max-sm:size-12">
+        <span aria-hidden="true" className="wiggle grid size-[clamp(3.2rem,4.2vw,4rem)] shrink-0 place-items-center rounded-2xl bg-white/20 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] max-sm:size-12">
           <QuizModeIcon iconKey={quizMode.iconKey} className="size-[58%]" />
         </span>
         <div className="min-w-0">
