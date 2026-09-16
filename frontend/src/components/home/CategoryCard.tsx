@@ -54,7 +54,7 @@ export default function CategoryCard({
         <CarpetBand className="absolute inset-x-0 bottom-0 text-white/30" />
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 px-[clamp(1.1rem,1.6vw,1.6rem)] pb-[clamp(1.1rem,1.6vw,1.5rem)] pt-4">
+      <div className="flex flex-1 flex-col gap-2.5 px-[clamp(1.1rem,1.6vw,1.6rem)] pb-[clamp(0.9rem,1.3vw,1.2rem)] pt-3">
         <p lang="az" className="line-clamp-3 text-[clamp(0.95rem,1.02vw,1.02rem)] font-medium leading-relaxed text-fg-2">
           {quizMode.description}
         </p>
@@ -74,13 +74,13 @@ export default function CategoryCard({
         </ul>
 
         {campaign.rewardTitle.trim() && (
-          <p lang="az" className="flex items-center gap-2.5 rounded-2xl bg-sun/10 px-3 py-2 text-[clamp(0.9rem,0.95vw,0.95rem)] font-bold text-sun ring-1 ring-sun/25" data-testid="category-reward">
+          <p lang="az" className="flex items-center gap-2.5 rounded-2xl bg-sun/10 px-3 py-1.5 text-[clamp(0.9rem,0.95vw,0.95rem)] font-bold text-sun ring-1 ring-sun/25" data-testid="category-reward">
             <RewardMedal className="size-7 shrink-0" />
             <span className="line-clamp-2">Mükafat: {campaign.rewardTitle}</span>
           </p>
         )}
 
-        <div className="mt-auto flex items-stretch gap-3 pt-2 max-sm:flex-col">
+        <div className="mt-auto flex items-stretch gap-3 pt-1 max-sm:flex-col">
           <button type="button" onClick={onSelect} className={`${CARD_PRIMARY_CTA} flex-[1.6]`} data-testid="category-select">
             <PlayIcon className="size-[0.95em] shrink-0" />
             Oyna

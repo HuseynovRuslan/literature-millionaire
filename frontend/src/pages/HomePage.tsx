@@ -43,7 +43,7 @@ function StatusStage({ children, alert = false, labelledBy }: { children: ReactN
   )
 }
 
-/** Hero: the "Bilik Bağı" show title, the instruction and a three-step how-to-play strip. No category data here. */
+/** Hero: the "Bilik Bağı" show title and the instruction. No category data here. */
 function Hero({ count }: { count: number }) {
   return (
     <header className="rise grid grid-cols-[minmax(0,1fr)_auto] items-center gap-[clamp(1.5rem,4vw,4rem)] max-lg:grid-cols-1">
@@ -51,29 +51,41 @@ function Hero({ count }: { count: number }) {
         <p lang="az" className="chip px-4 py-2 text-[clamp(0.75rem,0.9vw,0.9rem)] uppercase tracking-[0.16em] text-brand-soft max-sm:text-[0.7rem]">
           Oxu <Octagram className="size-3 text-sun" /> Tanı <Octagram className="size-3 text-sun" /> Cavablandır
         </p>
-        <h1 lang="az" className="text-gradient shimmer mt-4 font-display text-[clamp(2.6rem,6vw,5.6rem)] font-extrabold uppercase leading-[0.95] tracking-tight max-sm:text-[2.4rem]">
+        <h1 lang="az" className="text-gradient shimmer mt-3 font-display text-[clamp(2.4rem,4.8vw,4.6rem)] font-extrabold uppercase leading-[0.95] tracking-tight max-sm:text-[2.4rem]">
           Bilik Bağı
         </h1>
-        <p lang="az" className="mt-3 text-[clamp(1.05rem,1.4vw,1.35rem)] font-semibold text-fg-2 max-sm:text-base">
+        <p lang="az" className="mt-2 text-[clamp(1.05rem,1.4vw,1.35rem)] font-semibold text-fg-2 max-sm:text-base">
           Kateqoriyanı seçin{count > 0 ? ` — ${count} yarış sizi gözləyir` : ''}
         </p>
 
-        <ol className="mt-6 grid max-w-[52rem] grid-cols-3 gap-3 max-sm:mt-4 max-sm:gap-2">
-          {STEPS.map((step, i) => (
-            <li key={step.title} style={{ animationDelay: `${150 + i * 90}ms` }} className="rise flex items-center gap-3 rounded-2xl bg-white/[0.05] px-3.5 py-3 ring-1 ring-white/10 max-sm:flex-col max-sm:gap-1.5 max-sm:px-2 max-sm:py-2.5 max-sm:text-center">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand font-display text-base font-extrabold text-white shadow-[0_3px_0_#4a33c9] max-sm:size-8 max-sm:text-sm">
-                {i + 1}
-              </span>
-              <span className="min-w-0">
-                <span lang="az" className="block text-[clamp(0.9rem,1vw,1rem)] font-extrabold leading-tight text-fg max-sm:text-[0.78rem]">{step.title}</span>
-                <span lang="az" className="block text-[clamp(0.8rem,0.88vw,0.88rem)] font-medium text-fg-3 max-sm:hidden">{step.text}</span>
-              </span>
-            </li>
-          ))}
-        </ol>
       </div>
-      <div className="pop max-lg:hidden [animation-delay:200ms]"><QuizEmblem className="bob size-[clamp(9rem,15vw,15rem)]" /></div>
+      {/* Decorative, and it was setting the hero's height: at 15vw it stood 205px tall on a laptop and
+          pushed the category buttons off the first screen. Sized to the text beside it instead. */}
+      <div className="pop max-lg:hidden [animation-delay:200ms]"><QuizEmblem className="bob size-[clamp(7rem,10.5vw,11rem)]" /></div>
     </header>
+  )
+}
+
+/**
+ * How a round works. It sits under the categories, not above them: a visitor came here to pick one,
+ * and on a laptop window (1366x768 leaves about 640px of page) a strip this tall above the grid pushed
+ * the "Oyna" buttons off the screen entirely.
+ */
+function HowItWorks() {
+  return (
+    <ol className="grid w-full grid-cols-3 gap-3 max-sm:gap-2">
+      {STEPS.map((step, i) => (
+        <li key={step.title} style={{ animationDelay: `${150 + i * 90}ms` }} className="rise flex items-center gap-3 rounded-2xl bg-white/[0.05] px-3.5 py-2.5 ring-1 ring-white/10 max-sm:flex-col max-sm:gap-1.5 max-sm:px-2 max-sm:py-2.5 max-sm:text-center">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand font-display text-base font-extrabold text-white shadow-[0_3px_0_#4a33c9] max-sm:size-8 max-sm:text-sm">
+            {i + 1}
+          </span>
+          <span className="min-w-0">
+            <span lang="az" className="block text-[clamp(0.9rem,1vw,1rem)] font-extrabold leading-tight text-fg max-sm:text-[0.78rem]">{step.title}</span>
+            <span lang="az" className="block text-[clamp(0.8rem,0.88vw,0.88rem)] font-medium text-fg-3 max-sm:hidden">{step.text}</span>
+          </span>
+        </li>
+      ))}
+    </ol>
   )
 }
 
@@ -225,6 +237,7 @@ export default function HomePage() {
           </li>
         ))}
       </ul>
+      <HowItWorks />
     </GameShowShell>
   )
 }
