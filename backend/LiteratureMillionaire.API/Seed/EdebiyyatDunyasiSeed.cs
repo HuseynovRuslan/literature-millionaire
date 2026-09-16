@@ -15,9 +15,16 @@ namespace LiteratureMillionaire.API.Seed;
 /// resource). The workbook is never read at runtime. Only rows the reviewer marked "Təsdiqlənib" are
 /// carried; the per-question source URL and the reviewer's notes stay in the workbook.
 ///
-/// Idempotency (SourceId is not stored): a question is identified by BookId + its exact text, which the
-/// workbook keeps unique. Existing rows are never updated, so an administrator's edits survive restarts.
-/// The book and the missing questions are written in one transaction.
+/// Reconciliation (SourceId is not stored): a question is identified by BookId + its exact text, which
+/// the workbook keeps unique. The seeder brings the database to match the workbook - rows it no longer
+/// contains are removed, rows whose wording is unchanged but whose options, explanation or picture moved
+/// are updated, and new rows are inserted - all in one transaction, and only if the result is exactly
+/// ExpectedQuestionCount rows.
+///
+/// That means the workbook wins: an edit made directly in the database to a question of THIS book does
+/// not survive the next deployment. It is the right trade for a generated bank whose wording is reviewed
+/// in the workbook, and it is what lets a corrected workbook actually reach production - without it a
+/// reworded question would be inserted a second time and the old one would stay, answers and all.
 ///
 /// No campaign is created here: when the category goes live, an administrator opens a campaign for the
 /// "edebiyyat-dunyasi" quiz mode with the dates, passing score and image target they want.
@@ -182,41 +189,48 @@ public static class EdebiyyatDunyasiSeed
             await db.SaveChangesAsync(ct);
         }
 
-        var existingTexts = (await db.Questions
-                .Where(q => q.BookId == book.Id)
-                .Select(q => q.Text)
-                .ToListAsync(ct))
-            .Select(t => t.Trim())
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var existing = await db.Questions.Where(q => q.BookId == book.Id).ToListAsync(ct);
+        var byText = new Dictionary<string, Question>(StringComparer.OrdinalIgnoreCase);
+        foreach (var row in existing)
+        {
+            // A duplicate text can only come from outside this seeder; keep the first and let the rest be
+            // removed below, so the bank cannot drift into two rows answering the same question.
+            byText.TryAdd(row.Text.Trim(), row);
+        }
 
         var now = DateTime.UtcNow;
-        var missing = seed
-            .Where(q => !existingTexts.Contains(q.Text.Trim()))
-            .Select(q => new Question
-            {
-                BookId = book.Id,
-                QuizModeId = quizModeId,
-                Text = q.Text.Trim(),
-                OptionA = q.OptionA,
-                OptionB = q.OptionB,
-                OptionC = q.OptionC,
-                OptionD = q.OptionD,
-                CorrectOption = q.CorrectOption[0],
-                Difficulty = q.Difficulty,
-                Category = q.Category,
-                Explanation = q.Explanation,
-                ImageUrl = q.ImageUrl,
-                ImageAltText = q.ImageAltText,
-                ImageSource = q.ImageSource,
-                ImageLicense = q.ImageLicense,
-                CreatedAt = now,
-            })
-            .ToList();
+        var keep = new HashSet<int>();
 
-        if (missing.Count > 0)
+        foreach (var q in seed)
         {
-            db.Questions.AddRange(missing);
-            await db.SaveChangesAsync(ct);
+            if (byText.TryGetValue(q.Text.Trim(), out var row))
+            {
+                keep.Add(row.Id);
+                Apply(row, q, quizModeId);
+                continue;
+            }
+
+            var added = new Question { BookId = book.Id, CreatedAt = now };
+            Apply(added, q, quizModeId);
+            db.Questions.Add(added);
+        }
+
+        // Whatever the workbook no longer contains: the reworded originals of the rows just inserted, and
+        // anything else that drifted in. Nothing outside this book is ever touched.
+        var stale = existing.Where(row => !keep.Contains(row.Id)).ToList();
+        if (stale.Count > 0)
+        {
+            db.Questions.RemoveRange(stale);
+        }
+
+        await db.SaveChangesAsync(ct);
+
+        var total = await db.Questions.CountAsync(q => q.BookId == book.Id, ct);
+        if (total != ExpectedQuestionCount)
+        {
+            // Rolls the whole reconciliation back rather than leave the bank in a state nobody reviewed.
+            throw new InvalidOperationException(
+                $"After reconciling, '{BookTitle}' holds {total} questions, expected {ExpectedQuestionCount}.");
         }
 
         // Rows of this book created before quiz modes existed are played in "Ədəbiyyat Dünyası";
@@ -226,6 +240,25 @@ public static class EdebiyyatDunyasiSeed
             .ExecuteUpdateAsync(set => set.SetProperty(q => q.QuizModeId, (int?)quizModeId), ct);
 
         await transaction.CommitAsync(ct);
+    }
+
+    /// <summary>Copies one reviewed row onto a question, leaving Id, BookId and CreatedAt alone.</summary>
+    private static void Apply(Question row, SeedQuestion q, int quizModeId)
+    {
+        row.QuizModeId = quizModeId;
+        row.Text = q.Text.Trim();
+        row.OptionA = q.OptionA;
+        row.OptionB = q.OptionB;
+        row.OptionC = q.OptionC;
+        row.OptionD = q.OptionD;
+        row.CorrectOption = q.CorrectOption[0];
+        row.Difficulty = q.Difficulty;
+        row.Category = q.Category;
+        row.Explanation = q.Explanation;
+        row.ImageUrl = q.ImageUrl;
+        row.ImageAltText = q.ImageAltText;
+        row.ImageSource = q.ImageSource;
+        row.ImageLicense = q.ImageLicense;
     }
 
     private static string Shorten(string value) => value.Length <= 60 ? value : value[..57] + "...";

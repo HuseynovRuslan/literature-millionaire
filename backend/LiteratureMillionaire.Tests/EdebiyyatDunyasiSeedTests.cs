@@ -122,8 +122,14 @@ public class EdebiyyatDunyasiSeedTests
         Assert.Equal(2, await db.MonthlyCampaigns.CountAsync());
     }
 
+    /// <summary>
+    /// The workbook is the source of truth for this bank. A question reworded there has to replace the
+    /// one in the database, not join it: the first version of this bank shipped 147 questions that were
+    /// later rewritten, and a seeder that only inserts would have left both versions live, each with its
+    /// own answer, on a category people are already playing.
+    /// </summary>
     [Fact]
-    public async Task Reseeding_never_overwrites_an_administrators_edits()
+    public async Task Reseeding_makes_the_bank_match_the_workbook_again()
     {
         await using var factory = new LeaderboardApiFactory();
         await factory.CreateDatabaseAsync();
@@ -132,14 +138,24 @@ public class EdebiyyatDunyasiSeedTests
             await DbSeeder.SeedAsync(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
         }
 
+        int rewordedId;
         int editedId;
         await using (var scope = factory.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var question = await db.Questions.FirstAsync(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle && q.ImageUrl != null);
-            question.OptionD = "Admin tərəfindən dəyişdirilib";
-            question.Explanation = "Admin izahı";
-            editedId = question.Id;
+            // One question as the previous workbook worded it: same bank, text no longer in the seed.
+            var reworded = await db.Questions.FirstAsync(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle && q.ImageUrl != null);
+            reworded.Text = "Köhnə redaksiyada verilmiş sual mətni";
+            reworded.ImageUrl = "/question-images/literature-001.webp";
+            rewordedId = reworded.Id;
+
+            // And one whose wording still matches, but whose options and picture drifted.
+            var edited = await db.Questions.FirstAsync(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle && q.ImageUrl == null);
+            edited.OptionD = "Bazada dəyişdirilmiş cavab";
+            edited.Explanation = "Bazada dəyişdirilmiş izah";
+            edited.Category = "Səhv kateqoriya";
+            editedId = edited.Id;
+
             await db.SaveChangesAsync();
         }
 
@@ -150,9 +166,24 @@ public class EdebiyyatDunyasiSeedTests
 
         await using var verify = factory.Services.CreateAsyncScope();
         var check = verify.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var edited = await check.Questions.SingleAsync(q => q.Id == editedId);
-        Assert.Equal(("Admin tərəfindən dəyişdirilib", "Admin izahı"), (edited.OptionD, edited.Explanation));
-        Assert.Equal(150, await check.Questions.CountAsync(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle));
+        var bank = EdebiyyatDunyasiSeed.LoadQuestions();
+
+        // The bank is exactly the workbook: no leftovers, no duplicates.
+        var rows = await check.Questions.Where(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle).ToListAsync();
+        Assert.Equal(150, rows.Count);
+        Assert.Null(await check.Questions.FirstOrDefaultAsync(q => q.Id == rewordedId));
+        Assert.Equal(
+            bank.Select(q => q.Text.Trim()).OrderBy(t => t, StringComparer.Ordinal),
+            rows.Select(q => q.Text).OrderBy(t => t, StringComparer.Ordinal));
+
+        // The row whose wording survived was corrected in place, keeping its id.
+        var restored = await check.Questions.SingleAsync(q => q.Id == editedId);
+        var source = bank.Single(q => q.Text.Trim() == restored.Text);
+        Assert.Equal((source.OptionD, source.Explanation, source.Category), (restored.OptionD, restored.Explanation, restored.Category));
+
+        // Nothing outside this book moved.
+        Assert.Equal(441, await check.Questions.CountAsync(q => q.Book!.Title == BilikYarisiSeed.BookTitle));
+        Assert.Equal(30, await check.Questions.CountAsync(q => q.Book!.Title == OlulerQuestionSeed.BookTitle));
     }
 
     // --- sessions ------------------------------------------------------------
