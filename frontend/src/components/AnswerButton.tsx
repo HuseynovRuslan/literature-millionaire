@@ -1,5 +1,8 @@
 import type { CSSProperties } from 'react'
 import type { AnswerOption } from '../types/game'
+import AnswerShape from './arena/AnswerShape'
+import { OPTION_COLOR } from './arena/optionColors'
+import { LockIcon } from './home/GameShowArt'
 
 export type AnswerVisual = 'idle' | 'selected' | 'correct' | 'wrong' | 'dimmed'
 
@@ -11,35 +14,41 @@ interface Props {
   onSelect: (option: AnswerOption) => void
 }
 
-// Brand accents only tell the four options apart (burgundy, blue, teal, amber): no green/red, and the colour
-// belongs to the letter slot, which the server shuffles per session, so it says nothing about correctness.
-// During the quiz only idle / selected / dimmed are used; `correct` / `wrong` have no special styling here
-// (see .gs-answer in index.css), so no state can reveal an answer.
-const ACCENT: Record<AnswerOption, string> = { A: '#9c3b47', B: '#3d5a96', C: '#2e7a70', D: '#a07434' }
-
+// Colour and shape belong to the letter slot, which the server shuffles per session, so they say nothing
+// about correctness. During the quiz only idle / selected / dimmed are used; `correct` / `wrong` have no
+// special styling (see .answer in index.css), so no state can reveal an answer.
 export default function AnswerButton({ option, text, visual, disabled, onSelect }: Props) {
+  const selected = visual === 'selected'
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={() => onSelect(option)}
-      aria-pressed={visual === 'selected'}
+      aria-pressed={selected}
       aria-label={`${option}: ${text}`}
       data-option={option}
       data-visual={visual}
-      style={{ '--accent': ACCENT[option] } as CSSProperties}
-      className="tap gs-answer flex min-h-[clamp(5.5rem,11vh,8.5rem)] w-full min-w-0 items-center gap-[clamp(0.9rem,1.4vw,1.6rem)] rounded-2xl px-[clamp(1rem,1.6vw,1.8rem)] py-[clamp(0.6rem,1.2vh,1.1rem)] text-left disabled:cursor-default max-sm:min-h-[3.625rem] max-sm:flex-col max-sm:justify-center max-sm:gap-1 max-sm:rounded-xl max-sm:px-2 max-sm:py-1.5 max-sm:text-center"
+      style={{ '--opt': OPTION_COLOR[option] } as CSSProperties}
+      className="answer flex min-h-[clamp(5rem,11vh,8rem)] w-full min-w-0 items-center gap-[clamp(0.8rem,1.3vw,1.4rem)] rounded-[1.4rem] px-[clamp(0.9rem,1.4vw,1.5rem)] py-[clamp(0.6rem,1.2vh,1rem)] text-left disabled:cursor-default max-sm:min-h-[4.5rem] max-sm:flex-col max-sm:justify-center max-sm:gap-1.5 max-sm:rounded-2xl max-sm:px-2 max-sm:py-2 max-sm:text-center"
     >
-      <span aria-hidden="true" className="gs-answer-badge grid size-[clamp(3rem,min(4vw,6.6vh),4.6rem)] shrink-0 rotate-45 place-items-center rounded-lg max-sm:my-0.5 max-sm:size-6 max-sm:rounded">
-        <span className="-rotate-45 font-display text-[clamp(1.8rem,min(2.5vw,4.2vh),2.8rem)] font-bold leading-none text-[#fbf6ec] max-sm:text-[0.95rem]">{option}</span>
+      <span aria-hidden="true" className="answer-shape relative grid size-[clamp(3rem,min(4.2vw,7vh),4.4rem)] shrink-0 place-items-center rounded-2xl max-sm:size-8 max-sm:rounded-lg">
+        <AnswerShape option={option} className="size-[52%] text-white drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]" />
+        <span className="absolute -bottom-1.5 -right-1.5 grid size-[clamp(1.4rem,1.8vw,1.8rem)] place-items-center rounded-full bg-white font-display text-[clamp(0.7rem,0.9vw,0.9rem)] font-extrabold text-ink-900 max-sm:-bottom-1 max-sm:-right-2 max-sm:size-[1.1rem] max-sm:text-[0.58rem]">
+          {option}
+        </span>
       </span>
       <span
         data-answer-text
         lang="az"
-        className="min-w-0 flex-1 font-sans text-[clamp(1.25rem,min(1.8vw,3.2vh),2.1rem)] font-semibold leading-snug text-[#fbf6ec] [hyphens:auto] [overflow-wrap:anywhere] max-sm:w-full max-sm:flex-none max-sm:text-[0.95rem] max-sm:leading-tight"
+        className="min-w-0 flex-1 font-sans text-[clamp(1.15rem,min(1.75vw,3.1vh),2rem)] font-extrabold leading-snug text-white [hyphens:auto] [overflow-wrap:anywhere] [text-shadow:0_1px_1px_rgba(0,0,0,0.25)] max-sm:w-full max-sm:flex-none max-sm:text-[0.92rem] max-sm:leading-tight max-sm:[overflow-wrap:break-word]"
       >
         {text}
       </span>
+      {selected && (
+        <span className="pop grid size-[clamp(2.2rem,2.8vw,2.8rem)] shrink-0 place-items-center rounded-full bg-white text-ink-900 max-sm:absolute max-sm:right-1.5 max-sm:top-1.5 max-sm:size-6" aria-hidden="true">
+          <LockIcon className="size-[55%]" />
+        </span>
+      )}
     </button>
   )
 }

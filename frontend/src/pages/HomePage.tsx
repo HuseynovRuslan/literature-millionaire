@@ -15,39 +15,63 @@ const ERROR_COPY: Record<CampaignErrorKind, { title: string; text: string }> = {
   unexpected: { title: 'Gözlənilməz xəta baş verdi', text: 'Bir az sonra yenidən cəhd edin.' },
 }
 
+const STEPS = [
+  { title: 'Kateqoriya seç', text: 'Sevdiyin mövzunu götür' },
+  { title: 'Qeydiyyatdan keç', text: 'Ad və telefon nömrəsi' },
+  { title: 'Cavabla və qazan', text: 'Vaxt azdır, tələs!' },
+]
+
 type CategoriesLoad =
   | { kind: 'loading' }
   | { kind: 'ready'; data: CampaignSummary[] }
   | { kind: 'empty' }
   | { kind: 'error'; error: CampaignErrorKind }
 
-/** Loading and error states use the same stage, centred. */
-function StatusStage({ children, alert = false }: { children: ReactNode; alert?: boolean }) {
+/** Loading, empty, error and resume states share one centred card. */
+function StatusStage({ children, alert = false, labelledBy }: { children: ReactNode; alert?: boolean; labelledBy?: string }) {
   return (
     <section
-      role={alert ? 'alert' : 'status'}
-      aria-live={alert ? undefined : 'polite'}
+      role={labelledBy ? undefined : alert ? 'alert' : 'status'}
+      aria-live={labelledBy || alert ? undefined : 'polite'}
+      aria-labelledby={labelledBy}
       data-testid="home-stage"
-      className="home-stage rise flex min-h-[27.625rem] flex-col items-center justify-center rounded-[clamp(1.2rem,1.6vw,1.44rem)] px-[clamp(1.5rem,4vw,3.6rem)] py-[2.6562rem] text-center max-sm:min-h-[22rem] max-sm:rounded-2xl max-sm:px-5 max-sm:py-8"
+      className="card card-glow rise mx-auto flex min-h-[24rem] w-full max-w-[56rem] flex-col items-center justify-center rounded-[2rem] px-[clamp(1.5rem,4vw,3.5rem)] py-12 text-center max-sm:min-h-[20rem] max-sm:rounded-3xl max-sm:px-5 max-sm:py-9"
     >
       {children}
     </section>
   )
 }
 
-/** Hero banner: the "Bilik Bağı" presentation name and the category-selection instruction. Category data never appears here. */
-function Hero() {
+/** Hero: the "Bilik Bağı" show title, the instruction and a three-step how-to-play strip. No category data here. */
+function Hero({ count }: { count: number }) {
   return (
-    <header className="home-stage rise flex flex-col items-center gap-[0.2656rem] rounded-[clamp(1rem,1.4vw,1.26rem)] px-[clamp(1.5rem,3.4vw,3.06rem)] py-[1.1688rem] text-center max-sm:rounded-2xl max-sm:px-5 max-sm:py-4">
-      <p lang="az" className="font-display text-[clamp(0.9rem,1.15vw,1.035rem)] font-semibold uppercase tracking-[0.22em] text-[var(--p-gold-light)] max-sm:text-[0.72rem] max-sm:tracking-[0.14em]">
-        Oxu • Tanı • Cavablandır
-      </p>
-      <h1 lang="az" className="font-display text-[clamp(2rem,4vw,3.6rem)] gs-title font-bold uppercase leading-[1.05] tracking-[0.06em] max-sm:text-[1.7rem]">
-        Bilik Bağı
-      </h1>
-      <p lang="az" className="mt-[0.2125rem] text-[clamp(0.95rem,1.15vw,1.035rem)] font-medium text-[#d8dbe3] max-sm:text-[0.92rem]">
-        Kateqoriyanı seçin
-      </p>
+    <header className="rise grid grid-cols-[minmax(0,1fr)_auto] items-center gap-[clamp(1.5rem,4vw,4rem)] max-lg:grid-cols-1">
+      <div className="min-w-0">
+        <p lang="az" className="chip px-4 py-2 text-[clamp(0.75rem,0.9vw,0.9rem)] uppercase tracking-[0.16em] text-brand-soft max-sm:text-[0.7rem]">
+          Oxu • Tanı • Cavablandır
+        </p>
+        <h1 lang="az" className="text-gradient mt-4 font-display text-[clamp(2.6rem,6vw,5.6rem)] font-extrabold uppercase leading-[0.95] tracking-tight max-sm:text-[2.4rem]">
+          Bilik Bağı
+        </h1>
+        <p lang="az" className="mt-3 text-[clamp(1.05rem,1.4vw,1.35rem)] font-semibold text-fg-2 max-sm:text-base">
+          Kateqoriyanı seçin{count > 0 ? ` — ${count} yarış sizi gözləyir` : ''}
+        </p>
+
+        <ol className="mt-6 grid max-w-[52rem] grid-cols-3 gap-3 max-sm:mt-4 max-sm:gap-2">
+          {STEPS.map((step, i) => (
+            <li key={step.title} className="flex items-center gap-3 rounded-2xl bg-white/[0.05] px-3.5 py-3 ring-1 ring-white/10 max-sm:flex-col max-sm:gap-1.5 max-sm:px-2 max-sm:py-2.5 max-sm:text-center">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand font-display text-base font-extrabold text-white shadow-[0_3px_0_#4a33c9] max-sm:size-8 max-sm:text-sm">
+                {i + 1}
+              </span>
+              <span className="min-w-0">
+                <span lang="az" className="block text-[clamp(0.9rem,1vw,1rem)] font-extrabold leading-tight text-fg max-sm:text-[0.78rem]">{step.title}</span>
+                <span lang="az" className="block text-[clamp(0.8rem,0.88vw,0.88rem)] font-medium text-fg-3 max-sm:hidden">{step.text}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <QuizEmblem className="pop size-[clamp(9rem,15vw,15rem)] max-lg:hidden" />
     </header>
   )
 }
@@ -96,31 +120,29 @@ export default function HomePage() {
   }
 
   if (activeGame) {
+    const progress = Math.round(((activeGame.questionNumber - 1) / activeGame.totalQuestions) * 100)
     return (
       <GameShowShell>
-        <section
-          aria-labelledby="resume-title"
-          data-testid="home-stage"
-          className="home-stage rise flex min-h-[27.625rem] flex-col items-center justify-center rounded-[clamp(1.2rem,1.6vw,1.44rem)] px-[clamp(1.5rem,4vw,3.6rem)] py-[2.6562rem] text-center max-sm:min-h-[22rem] max-sm:rounded-2xl max-sm:px-5 max-sm:py-8"
-        >
-          <QuizEmblem className="size-[6rem] max-sm:size-20" />
-          <p className="mt-4 font-display text-[clamp(0.9rem,1.1vw,0.99rem)] font-semibold uppercase tracking-[0.18em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]">
-            Davam edən sessiya
-          </p>
-          <h1 id="resume-title" lang="az" className="mt-1 max-w-[26ch] font-display text-[clamp(2.2rem,3.8vw,3.42rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.9rem]">
+        <StatusStage labelledBy="resume-title">
+          <QuizEmblem className="pop size-28 max-sm:size-24" />
+          <p className="chip mt-5 px-4 py-1.5 text-[clamp(0.75rem,0.9vw,0.88rem)] uppercase tracking-[0.14em] text-sun">Davam edən sessiya</p>
+          <h1 id="resume-title" lang="az" className="mt-3 max-w-[24ch] font-display text-[clamp(1.9rem,3.4vw,3rem)] font-bold leading-tight max-sm:text-[1.6rem]">
             {activeGame.quizMode.title}
           </h1>
-          <p className="mt-4 max-w-[42rem] text-[clamp(1.05rem,1.5vw,1.35rem)] leading-relaxed text-[#d8dbe3] max-sm:text-base">
+          <p className="mt-3 max-w-[40rem] text-[clamp(1.05rem,1.4vw,1.3rem)] leading-relaxed text-fg-2 max-sm:text-base">
             Başlanmış quiz var: sual {activeGame.questionNumber} / {activeGame.totalQuestions}. Davam etsəniz, vaxt sıfırlanmır.
           </p>
-        </section>
-        <nav aria-label="Sessiya seçimləri" data-testid="home-actions" className="rise flex w-full max-w-[78rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.26rem)] self-center [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
+          <div className="mt-5 h-3 w-full max-w-[26rem] overflow-hidden rounded-full bg-white/10" aria-hidden="true">
+            <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--color-brand),var(--color-sun))]" style={{ width: `${Math.max(progress, 6)}%` }} />
+          </div>
+        </StatusStage>
+        <nav aria-label="Sessiya seçimləri" data-testid="home-actions" className="rise mx-auto flex w-full max-w-[56rem] items-stretch gap-4 [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
           <button type="button" onClick={() => navigate('/game')} className={`${PRIMARY} flex-[1.7]`} data-testid="home-primary">
-            DAVAM ET
-            <PlayIcon className="size-[0.8em] shrink-0" />
+            Davam et
+            <PlayIcon className="size-[0.85em] shrink-0" />
           </button>
           <button type="button" onClick={cancelSession} className={`${SECONDARY} flex-1`} data-testid="home-cancel-session">
-            SESSİYANI LƏĞV ET
+            Sessiyanı ləğv et
           </button>
         </nav>
       </GameShowShell>
@@ -131,9 +153,9 @@ export default function HomePage() {
     return (
       <GameShowShell>
         <StatusStage>
-          <QuizEmblem className="size-[7rem] max-sm:size-24" />
-          <span className="spin mt-6 inline-block h-12 w-12 rounded-full border-4 border-white/20 border-t-[var(--p-gold-light)]" aria-hidden />
-          <p className="mt-5 font-display text-[clamp(1.8rem,2.8vw,2.52rem)] font-semibold max-sm:text-[1.6rem]">Kateqoriyalar yüklənir…</p>
+          <QuizEmblem className="pop size-32 max-sm:size-24" />
+          <span className="spin mt-7 inline-block size-12 rounded-full border-4 border-white/15 border-t-sun" aria-hidden />
+          <p className="mt-5 font-display text-[clamp(1.4rem,2.2vw,2rem)] font-bold max-sm:text-[1.3rem]">Kateqoriyalar yüklənir…</p>
         </StatusStage>
       </GameShowShell>
     )
@@ -144,12 +166,12 @@ export default function HomePage() {
     return (
       <GameShowShell>
         <StatusStage alert>
-          <QuizEmblem className="size-[6rem] max-sm:size-20" />
-          <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2.4rem,4.4vw,3.96rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2rem]">{copy.title}</h1>
-          <p className="mt-4 max-w-[40rem] text-[clamp(1.1rem,1.6vw,1.44rem)] leading-relaxed text-[#d8dbe3] max-sm:text-base">{copy.text}</p>
+          <QuizEmblem className="size-28 max-sm:size-24" />
+          <h1 className="mt-6 max-w-[24ch] font-display text-[clamp(1.9rem,3.6vw,3.2rem)] font-bold leading-tight max-sm:text-[1.6rem]">{copy.title}</h1>
+          <p className="mt-3 max-w-[40rem] text-[clamp(1.05rem,1.4vw,1.3rem)] leading-relaxed text-fg-2 max-sm:text-base">{copy.text}</p>
         </StatusStage>
         <div className="rise flex justify-center [animation-delay:90ms]" data-testid="home-actions">
-          <button type="button" onClick={retry} className={`${PRIMARY} w-full max-w-[34rem]`} data-testid="home-primary">
+          <button type="button" onClick={retry} className={`${PRIMARY} w-full max-w-[30rem]`} data-testid="home-primary">
             Yenidən yoxla
           </button>
         </div>
@@ -161,12 +183,12 @@ export default function HomePage() {
     return (
       <GameShowShell>
         <StatusStage>
-          <QuizEmblem className="size-[6rem] max-sm:size-20" />
-          <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2rem,3.6vw,3.24rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.7rem]">Hazırda heç bir kateqoriya yoxdur</h1>
-          <p className="mt-4 max-w-[40rem] text-[clamp(1.05rem,1.4vw,1.26rem)] leading-relaxed text-[#d8dbe3] max-sm:text-base">Yeni bilik yarışları tezliklə əlavə olunacaq.</p>
+          <QuizEmblem className="size-28 max-sm:size-24" />
+          <h1 className="mt-6 max-w-[24ch] font-display text-[clamp(1.8rem,3.2vw,2.8rem)] font-bold leading-tight max-sm:text-[1.5rem]">Hazırda heç bir kateqoriya yoxdur</h1>
+          <p className="mt-3 max-w-[40rem] text-[clamp(1.05rem,1.4vw,1.3rem)] leading-relaxed text-fg-2 max-sm:text-base">Yeni bilik yarışları tezliklə əlavə olunacaq.</p>
         </StatusStage>
         <div className="rise flex justify-center [animation-delay:90ms]" data-testid="home-actions">
-          <button type="button" onClick={retry} className={`${SECONDARY} w-full max-w-[34rem]`} data-testid="home-primary">
+          <button type="button" onClick={retry} className={`${SECONDARY} w-full max-w-[30rem]`} data-testid="home-primary">
             Yenidən yoxla
           </button>
         </div>
@@ -179,10 +201,10 @@ export default function HomePage() {
 
   return (
     <GameShowShell>
-      <Hero />
+      <Hero count={data.length} />
       <ul
         data-testid="category-grid"
-        className="grid w-full grid-cols-2 gap-[clamp(0.7rem,1.3vw,1.17rem)] xl:grid-cols-3 max-sm:grid-cols-1 max-sm:gap-3"
+        className="grid w-full grid-cols-2 gap-[clamp(1rem,1.6vw,1.5rem)] xl:grid-cols-3 max-sm:grid-cols-1 max-sm:gap-4"
       >
         {data.map((campaign, index) => (
           <li
@@ -195,6 +217,7 @@ export default function HomePage() {
           >
             <CategoryCard
               campaign={campaign}
+              index={index}
               onSelect={() => selectCategory(campaign.campaignId)}
               onLeaderboard={() => navigate(`/leaderboard/${campaign.campaignId}`)}
             />

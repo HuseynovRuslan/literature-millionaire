@@ -1,28 +1,20 @@
 import BrandMark from '../national/BrandMark'
 import { PRODUCT_NAME } from '../national/KioskBrand'
 
-/**
- * Home page brand bar: the Bakı Abadlıq Xidməti mark, a gold divider and the product name as the
- * main wordmark. Home-only, so the shared KioskBrand used by the other screens stays unchanged.
- * `uppercase` relies on lang="az" so that "i" becomes "İ".
- */
+/** Brand bar for the information screens: organisation logo, product wordmark and the product type. */
 export default function HomeHeader() {
   return (
-    <header className="relative z-10 flex shrink-0 items-center px-[calc(var(--frame)_+_2rem)] pt-[calc(var(--frame)_+_1rem)] max-sm:px-[calc(var(--frame)_+_0.75rem)] max-sm:pt-[calc(var(--frame)_+_0.6rem_+_var(--safe-top))]">
-      <div className="flex min-w-0 items-center gap-[clamp(0.9rem,1.3vw,1.17rem)] max-sm:gap-2.5" data-testid="kiosk-brand">
-        {/* Phones: if the logo image fails, its text fallback may wrap instead of pushing the wordmark off screen. */}
+    <header className="relative z-10 mx-auto flex w-full max-w-[112rem] shrink-0 items-center gap-4 px-[clamp(1.2rem,3vw,3rem)] pt-[clamp(1rem,2.4vh,1.8rem)] max-sm:px-4 max-sm:pt-[calc(0.8rem_+_var(--safe-top))]">
+      <div className="flex min-w-0 items-center gap-[clamp(0.8rem,1.2vw,1.2rem)] max-sm:gap-2.5" data-testid="kiosk-brand">
         <BrandMark className="max-sm:min-w-0 max-sm:shrink" />
-        <span
-          aria-hidden
-          className="h-[clamp(2.8rem,4.2vw,3.78rem)] w-[3px] shrink-0 rounded-full bg-gradient-to-b from-transparent via-[var(--p-gold)] to-transparent max-sm:h-9 max-sm:w-[2px]"
-        />
-        <p
-          lang="az"
-          className="shrink-0 whitespace-nowrap font-display text-[clamp(2.1rem,3vw,2.7rem)] font-bold uppercase leading-none tracking-[0.07em] text-[var(--p-burgundy)] max-sm:text-[1.4rem] max-sm:tracking-[0.05em]"
-          data-testid="product-name"
-        >
-          {PRODUCT_NAME}
-        </p>
+        <div className="min-w-0">
+          <p lang="az" className="whitespace-nowrap font-display text-[clamp(1.4rem,2.2vw,2.2rem)] font-extrabold uppercase leading-none tracking-tight max-sm:text-[1.1rem]" data-testid="product-name">
+            {PRODUCT_NAME}
+          </p>
+          <p className="mt-1 text-[clamp(0.72rem,0.9vw,0.9rem)] font-bold uppercase tracking-[0.18em] text-fg-3 max-sm:text-[0.62rem] max-sm:tracking-[0.12em]">
+            Bilik yarışı
+          </p>
+        </div>
       </div>
     </header>
   )

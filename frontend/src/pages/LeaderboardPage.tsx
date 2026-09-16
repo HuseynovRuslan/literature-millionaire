@@ -1,10 +1,12 @@
 import { startTransition, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { PlayIcon, TrophyIcon } from '../components/home/GameShowArt'
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import GameShowShell from '../components/home/GameShowShell'
 import RankMedal from '../components/home/RankMedal'
 import { useGame } from '../game/GameContext'
 import { useLeaderboard } from '../hooks/useLeaderboard'
+import type { LeaderboardEntry } from '../types/leaderboard'
 
 function parseCampaignId(value: string | undefined): number | null {
   if (!value || !/^[1-9]\d*$/.test(value)) return null
@@ -22,14 +24,44 @@ function formatDuration(seconds: number): string {
 /** Centred message block inside the stage (loading, empty, error, not found). */
 function StageMessage({ children, role }: { children: ReactNode; role?: 'status' | 'alert' }) {
   return (
-    <div role={role} aria-live={role === 'status' ? 'polite' : undefined} className="flex min-h-[22.3125rem] flex-col items-center justify-center px-6 text-center max-sm:min-h-[16rem] max-sm:px-2">
+    <div role={role} aria-live={role === 'status' ? 'polite' : undefined} className="flex min-h-[20rem] flex-col items-center justify-center px-6 text-center max-sm:min-h-[15rem] max-sm:px-2">
       {children}
     </div>
   )
 }
 
-const MESSAGE_TITLE = 'font-display text-[clamp(1.8rem,3vw,2.7rem)] font-bold text-[#fbf6ec] max-sm:text-[1.6rem]'
-const MESSAGE_TEXT = 'mt-2 max-w-[40rem] text-[clamp(1.05rem,1.35vw,1.215rem)] text-[#d8dbe3] max-sm:text-[0.98rem]'
+const MESSAGE_TITLE = 'font-display text-[clamp(1.5rem,2.6vw,2.3rem)] font-bold max-sm:text-[1.35rem]'
+const MESSAGE_TEXT = 'mt-2 max-w-[40rem] text-[clamp(1rem,1.25vw,1.15rem)] font-medium text-fg-2 max-sm:text-[0.95rem]'
+
+/** Podium heights and colours for places 1-3, shown in the classic 2-1-3 order. */
+const PODIUM = {
+  1: { height: 'h-[clamp(7rem,14vh,9.5rem)] max-sm:h-24', bar: 'bg-[linear-gradient(180deg,#ffd75e,#e0a100)] text-[#3a2600]' },
+  2: { height: 'h-[clamp(5rem,10vh,7rem)] max-sm:h-16', bar: 'bg-[linear-gradient(180deg,#e3e8f2,#9aa5b8)] text-[#22283a]' },
+  3: { height: 'h-[clamp(3.8rem,7.5vh,5.5rem)] max-sm:h-12', bar: 'bg-[linear-gradient(180deg,#f0b88c,#b36a3a)] text-[#3a1d0b]' },
+} as const
+
+function Podium({ entries }: { entries: LeaderboardEntry[] }) {
+  const byRank = (rank: number) => entries.find((e) => e.rank === rank)
+  const order = [2, 1, 3].map(byRank).filter((e): e is LeaderboardEntry => !!e && e.rank <= 3)
+  if (order.length === 0) return null
+  return (
+    <div className="mx-auto grid w-full max-w-[44rem] grid-cols-3 items-end gap-[clamp(0.6rem,1.4vw,1.2rem)] px-2" aria-hidden="true">
+      {order.map((entry) => {
+        const p = PODIUM[entry.rank as 1 | 2 | 3]
+        return (
+          <div key={entry.rank} className={`pop flex min-w-0 flex-col items-center ${entry.rank === 1 ? 'col-start-2 row-start-1' : entry.rank === 2 ? 'col-start-1 row-start-1' : 'col-start-3 row-start-1'}`} style={{ animationDelay: `${(4 - entry.rank) * 120}ms` }}>
+            {entry.rank === 1 && <TrophyIcon className="mb-1 size-8 text-sun max-sm:size-6" />}
+            <p className="w-full truncate text-center text-[clamp(0.9rem,1.15vw,1.1rem)] font-extrabold text-fg max-sm:text-[0.8rem]">{entry.displayName}</p>
+            <p className="font-display text-[clamp(0.9rem,1.1vw,1.05rem)] font-bold tabular-nums text-sun max-sm:text-[0.78rem]">{entry.pointsEarned} xal</p>
+            <div className={`mt-2 flex w-full items-start justify-center rounded-t-2xl pt-2 font-display text-[clamp(1.6rem,2.6vw,2.4rem)] font-extrabold shadow-[inset_0_2px_0_rgba(255,255,255,0.45)] ${p.height} ${p.bar} max-sm:text-xl`}>
+              {entry.rank}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 export default function LeaderboardPage() {
   const { campaignId: routeCampaignId } = useParams()
@@ -57,19 +89,18 @@ export default function LeaderboardPage() {
       <section
         data-testid="leaderboard-stage"
         aria-labelledby="leaderboard-title"
-        // Masked names are short by design ("Sinaq Y."), so stretching this to a 1920px monitor leaves a
-        // corridor of empty space between the name and the numbers. The panel keeps a readable width.
-        className="home-stage rise mx-auto flex w-full min-h-0 max-w-[76rem] flex-col rounded-[clamp(1.2rem,1.6vw,1.44rem)] px-[clamp(1.2rem,2.8vw,2.52rem)] py-[1.1688rem] max-sm:rounded-2xl max-sm:px-3 max-sm:py-4"
+        // Masked names are short by design ("Sinaq Y."), so the panel keeps a readable width on wide monitors.
+        className="card rise mx-auto flex w-full min-h-0 max-w-[64rem] flex-col rounded-[2rem] px-[clamp(1rem,2.8vw,2.6rem)] py-[clamp(1.2rem,2.6vh,2rem)] max-sm:rounded-3xl max-sm:px-3 max-sm:py-5"
       >
-        <header className="px-[clamp(0rem,0.6vw,0.54rem)]">
-          <p className="text-[clamp(0.85rem,1vw,0.9rem)] font-semibold uppercase tracking-[0.16em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]">
-            {!invalidRoute && load.kind === 'ready' ? load.data.quizMode.title : 'KAMPANİYA NƏTİCƏLƏRİ'}
+        <header className="flex flex-col items-center text-center">
+          <p className="chip px-4 py-1.5 text-[clamp(0.75rem,0.9vw,0.88rem)] uppercase tracking-[0.14em] text-brand-soft max-sm:text-[0.7rem]">
+            {!invalidRoute && load.kind === 'ready' ? load.data.quizMode.title : 'Kampaniya nəticələri'}
           </p>
-          <h1 id="leaderboard-title" className="gs-title font-display text-[clamp(2.2rem,3.6vw,3.24rem)] font-bold leading-tight max-sm:text-[1.9rem]">Lider cədvəli</h1>
-          <p className="text-[clamp(0.85rem,1vw,0.9rem)] font-semibold text-[#c2c7d3] max-sm:text-[0.78rem]">Top 10</p>
+          <h1 id="leaderboard-title" className="text-gradient mt-3 font-display text-[clamp(2rem,3.6vw,3.2rem)] font-extrabold leading-tight max-sm:text-[1.7rem]">Lider cədvəli</h1>
+          <p className="text-[clamp(0.85rem,1vw,0.95rem)] font-bold text-fg-3 max-sm:text-[0.8rem]">Top 10</p>
         </header>
 
-        <div className="mt-[0.6375rem]">
+        <div className="mt-5">
           {invalidRoute && (
             <StageMessage role="alert">
               <p className={MESSAGE_TITLE}>Kampaniya ünvanı düzgün deyil</p>
@@ -79,7 +110,7 @@ export default function LeaderboardPage() {
 
           {!invalidRoute && load.kind === 'loading' && (
             <StageMessage role="status">
-              <span className="spin inline-block h-12 w-12 rounded-full border-4 border-white/20 border-t-[var(--p-gold-light)]" aria-hidden />
+              <span className="spin inline-block size-12 rounded-full border-4 border-white/15 border-t-sun" aria-hidden />
               <p className={`${MESSAGE_TITLE} mt-5`}>Lider cədvəli yüklənir…</p>
             </StageMessage>
           )}
@@ -95,55 +126,62 @@ export default function LeaderboardPage() {
             <StageMessage role="alert">
               <p className={MESSAGE_TITLE}>Lider cədvəlini yükləmək mümkün olmadı</p>
               <p className={MESSAGE_TEXT}>Şəbəkə bağlantısını yoxlayın və yenidən cəhd edin.</p>
-              <button type="button" onClick={retry} className={`${SECONDARY_CTA} mt-5 min-h-[4.5rem]! px-10`}>Yenidən yoxla</button>
+              <button type="button" onClick={retry} className={`${SECONDARY_CTA} mt-5 min-h-[4rem]! px-10`}>Yenidən yoxla</button>
             </StageMessage>
           )}
 
           {!invalidRoute && load.kind === 'ready' && load.data.entries.length === 0 && (
             <StageMessage>
-              <p className={MESSAGE_TITLE}>Hələ tamamlanmış nəticə yoxdur</p>
+              <TrophyIcon className="size-14 text-fg-3" />
+              <p className={`${MESSAGE_TITLE} mt-3`}>Hələ tamamlanmış nəticə yoxdur</p>
               <p className={MESSAGE_TEXT}>İlk tamamlanmış quiz nəticəsi burada görünəcək.</p>
             </StageMessage>
           )}
 
           {!invalidRoute && load.kind === 'ready' && load.data.entries.length > 0 && (
-            <table
-              className="w-full table-fixed border-separate border-spacing-y-[0.2922rem] text-left text-[clamp(1rem,1.3vw,1.17rem)] text-[#fbf6ec] max-sm:text-[0.82rem] max-sm:[&_td]:px-1.5 max-sm:[&_th]:px-1.5"
-              data-testid="leaderboard-table"
-            >
-              <caption className="sr-only">Kampaniyanın ilk on iştirakçısı və nəticələri</caption>
-              <thead>
-                <tr className="text-[clamp(0.78rem,0.9vw,0.81rem)] uppercase tracking-[0.1em] text-[var(--p-gold-light)] max-sm:text-[0.66rem] max-sm:tracking-[0.02em]">
-                  <th scope="col" className="w-[12%] px-4 py-1 font-semibold max-sm:w-[17%]">Yer</th>
-                  <th scope="col" className="w-[40%] px-4 py-1 font-semibold max-sm:w-[31%]">İştirakçı</th>
-                  <th scope="col" className="w-[16%] px-4 py-1 text-right font-semibold max-sm:w-[16%]">Xal</th>
-                  <th scope="col" className="w-[17%] px-4 py-1 text-right font-semibold max-sm:w-[19%]">Düzgün cavab</th>
-                  <th scope="col" className="w-[15%] px-4 py-1 text-right font-semibold max-sm:w-[17%]">Müddət</th>
-                </tr>
-              </thead>
-              <tbody>
-                {load.data.entries.map((entry) => (
-                  <tr key={entry.rank} className={entry.rank <= 3 ? 'bg-[rgba(232,210,156,0.1)]' : 'bg-white/[0.06]'}>
-                    <th scope="row" className="h-[2.2313rem] rounded-l-xl px-4 py-0.5 max-sm:h-11">
-                      <RankMedal rank={entry.rank} compact />
-                    </th>
-                    <td className="px-4 py-0.5 font-semibold">
-                      <span className="block [overflow-wrap:anywhere]" data-testid="participant-name">{entry.displayName}</span>
-                    </td>
-                    <td className="px-4 py-0.5 text-right font-display font-bold tabular-nums text-[var(--p-gold-light)]">{entry.pointsEarned}/{entry.maxPoints}</td>
-                    <td className="px-4 py-0.5 text-right tabular-nums">{entry.correctAnswers}/{entry.totalQuestions}</td>
-                    <td className="rounded-r-xl px-4 py-0.5 text-right tabular-nums text-[#c2c7d3]">{formatDuration(entry.durationSeconds)}</td>
+            <>
+              <Podium entries={load.data.entries} />
+              <table
+                className="mt-4 w-full table-fixed border-separate border-spacing-y-2 text-left text-[clamp(0.95rem,1.15vw,1.1rem)] max-sm:text-[0.82rem] max-sm:[&_td]:px-1.5 max-sm:[&_th]:px-1.5"
+                data-testid="leaderboard-table"
+              >
+                <caption className="sr-only">Kampaniyanın ilk on iştirakçısı və nəticələri</caption>
+                <thead>
+                  <tr className="text-[clamp(0.72rem,0.85vw,0.8rem)] uppercase tracking-[0.1em] text-fg-3 max-sm:text-[0.62rem] max-sm:tracking-[0.02em]">
+                    <th scope="col" className="w-[12%] px-4 py-1 font-bold max-sm:w-[16%]">Yer</th>
+                    <th scope="col" className="w-[38%] px-4 py-1 font-bold max-sm:w-[32%]">İştirakçı</th>
+                    <th scope="col" className="w-[16%] px-4 py-1 text-right font-bold">Xal</th>
+                    <th scope="col" className="w-[18%] px-4 py-1 text-right font-bold max-sm:w-[19%]">Düzgün cavab</th>
+                    <th scope="col" className="w-[16%] px-4 py-1 text-right font-bold max-sm:w-[17%]">Müddət</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {load.data.entries.map((entry, i) => (
+                    <tr key={entry.rank} className={`rise ${entry.rank <= 3 ? 'bg-sun/[0.08]' : 'bg-white/[0.05]'}`} style={{ animationDelay: `${120 + i * 40}ms` }}>
+                      <th scope="row" className="h-14 rounded-l-2xl px-4 py-1 max-sm:h-12">
+                        <RankMedal rank={entry.rank} compact />
+                      </th>
+                      <td className="px-4 py-1 font-bold">
+                        <span className="block [overflow-wrap:anywhere]" data-testid="participant-name">{entry.displayName}</span>
+                      </td>
+                      <td className="px-4 py-1 text-right font-display font-extrabold tabular-nums text-sun">{entry.pointsEarned}/{entry.maxPoints}</td>
+                      <td className="px-4 py-1 text-right font-semibold tabular-nums">{entry.correctAnswers}/{entry.totalQuestions}</td>
+                      <td className="rounded-r-2xl px-4 py-1 text-right font-semibold tabular-nums text-fg-3">{formatDuration(entry.durationSeconds)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
         </div>
       </section>
 
-      <nav aria-label="Lider cədvəli seçimləri" data-testid="leaderboard-actions" className="rise flex w-full max-w-[76rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.26rem)] self-center [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
-        <button type="button" onClick={() => campaignId && go(`/register/${campaignId}`, true)} disabled={navigating || invalidRoute} className={`${PRIMARY_CTA} min-h-[5.0469rem]! flex-[1.5] text-[clamp(1.5rem,2.3vw,2.07rem)]! disabled:opacity-60 max-sm:min-h-[3.75rem]! max-sm:text-[1.35rem]!`} data-testid="leaderboard-next">NÖVBƏTİ İŞTİRAKÇI</button>
-        <button type="button" onClick={() => go('/', false)} disabled={navigating} className={`${SECONDARY_CTA} min-h-[5.0469rem]! flex-1 disabled:opacity-60 max-sm:min-h-[3.25rem]!`} data-testid="leaderboard-home">ANA SƏHİFƏ</button>
+      <nav aria-label="Lider cədvəli seçimləri" data-testid="leaderboard-actions" className="rise mx-auto flex w-full max-w-[64rem] items-stretch gap-4 [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
+        <button type="button" onClick={() => campaignId && go(`/register/${campaignId}`, true)} disabled={navigating || invalidRoute} className={`${PRIMARY_CTA} flex-[1.5]`} data-testid="leaderboard-next">
+          Növbəti iştirakçı
+          <PlayIcon className="size-[0.85em] shrink-0" />
+        </button>
+        <button type="button" onClick={() => go('/', false)} disabled={navigating} className={`${SECONDARY_CTA} flex-1`} data-testid="leaderboard-home">Ana səhifə</button>
       </nav>
     </GameShowShell>
   )
