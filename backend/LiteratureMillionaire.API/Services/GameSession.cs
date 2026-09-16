@@ -22,6 +22,19 @@ public sealed class SessionQuestion
 
     /// <summary>Points awarded for a correct, on-time answer; fixed when the session is created.</summary>
     public required int Points { get; init; }
+
+    /// <summary>
+    /// What the player picked, as a display letter (A-D), or null when the clock closed the question
+    /// with nothing selected. Written once, when the question closes, and read only to build the
+    /// end-of-quiz review.
+    /// </summary>
+    public char? SelectedDisplayOption { get; set; }
+
+    /// <summary>True when the deadline closed this question, including an answer that arrived late.</summary>
+    public bool TimedOut { get; set; }
+
+    /// <summary>Whether the answer counted. Decided by the server when the question closed, never later.</summary>
+    public bool IsCorrect { get; set; }
 }
 
 /// <summary>

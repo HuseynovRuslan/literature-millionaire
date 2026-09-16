@@ -4,8 +4,10 @@ import { OpenBookMark, RewardMedal, VictoryStar } from '../components/home/GameS
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import GameShowShell from '../components/home/GameShowShell'
 import RankMedal from '../components/home/RankMedal'
+import AnswerReview from '../components/game/AnswerReview'
 import { useGame } from '../game/GameContext'
 import { useLeaderboard, type LeaderboardLoad } from '../hooks/useLeaderboard'
+import type { QuizAnswerReview } from '../types/game'
 import { formatRank } from '../utils/leaderboard'
 
 const STAGE = 'home-stage rise rounded-[clamp(1.2rem,1.6vw,2rem)] max-sm:rounded-2xl'
@@ -14,51 +16,96 @@ const NAV_TEXT = 'text-[clamp(1.35rem,2vw,2.5rem)]! max-sm:text-[1.35rem]!'
 
 function TopFive({ load, retry }: { load: LeaderboardLoad; retry: () => void }) {
   return (
+    <div className="flex min-h-[clamp(12rem,30vh,20rem)] flex-1 flex-col justify-center max-sm:min-h-[10rem]">
+      {load.kind === 'idle' && (
+        <p className="text-center font-display text-[clamp(1.3rem,1.8vw,2rem)] font-semibold text-[#d6deec]">Lider cədvəli hazırda əlçatan deyil</p>
+      )}
+
+      {load.kind === 'loading' && (
+        <div role="status" aria-live="polite" className="flex flex-col gap-[clamp(0.35rem,0.8vh,0.6rem)]">
+          <p className="text-center font-medium text-[#d6deec]">Lider cədvəli yüklənir…</p>
+          {[1, 2, 3, 4, 5].map((row) => <span key={row} aria-hidden className="h-[clamp(2.4rem,5.2vh,3.6rem)] animate-pulse rounded-xl bg-white/[0.07] motion-reduce:animate-none" />)}
+        </div>
+      )}
+
+      {load.kind === 'error' && (
+        <div role="alert" className="flex flex-col items-center text-center">
+          <p className="font-display text-[clamp(1.3rem,1.8vw,2rem)] font-semibold text-[#fbf6ec]">Lider cədvəlini yükləmək mümkün olmadı</p>
+          <button type="button" onClick={retry} className={`${SECONDARY_CTA} mt-4 min-h-[clamp(4.5rem,8vh,5.5rem)]! px-10`}>Yenidən yoxla</button>
+        </div>
+      )}
+
+      {load.kind === 'ready' && load.data.entries.length === 0 && (
+        <p className="text-center font-display text-[clamp(1.3rem,1.8vw,2rem)] font-semibold text-[#d6deec]">Hələ tamamlanmış nəticə yoxdur</p>
+      )}
+
+      {load.kind === 'ready' && load.data.entries.length > 0 && (
+        <ol className="flex flex-col gap-[clamp(0.35rem,0.8vh,0.6rem)]" aria-label="İlk beş iştirakçı">
+          {load.data.entries.map((entry) => (
+            <li key={entry.rank} className="grid min-h-[clamp(2.8rem,5.6vh,4rem)] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-[clamp(0.7rem,1vw,1.1rem)] rounded-xl bg-white/[0.07] px-[clamp(0.7rem,1vw,1.1rem)] py-1 ring-1 ring-white/10 max-sm:gap-2.5 max-sm:px-2.5">
+              <RankMedal rank={entry.rank} compact />
+              <span className="min-w-0 font-semibold text-[clamp(1.05rem,1.35vw,1.5rem)] text-[#fbf6ec] [overflow-wrap:anywhere] max-sm:text-[0.98rem]">{entry.displayName}</span>
+              <span className="text-right tabular-nums leading-tight">
+                <strong className="block font-display text-[clamp(1.2rem,1.6vw,1.8rem)] text-[var(--p-gold-light)] max-sm:text-[1.05rem]">{entry.pointsEarned}/{entry.maxPoints} xal</strong>
+                <span className="text-[clamp(0.8rem,0.95vw,1.05rem)] text-[#c9d3e6] max-sm:text-[0.78rem]">{entry.correctAnswers}/{entry.totalQuestions} düzgün</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Right-hand panel of the result screen. Two tabs share it because the kiosk never scrolls: the
+ * answers open first, since that is the only moment of the quiz when they are disclosed at all.
+ */
+function SidePanel({ load, retry, review }: { load: LeaderboardLoad; retry: () => void; review: QuizAnswerReview[] }) {
+  const [tab, setTab] = useState<'answers' | 'top'>(review.length > 0 ? 'answers' : 'top')
+  const tabs = [
+    { id: 'answers' as const, label: 'Cavablarım', enabled: review.length > 0 },
+    { id: 'top' as const, label: 'İlk beşlik', enabled: true },
+  ].filter((t) => t.enabled)
+
+  return (
     <section
       data-testid="top-five"
-      aria-labelledby="top-five-title"
       className={`${STAGE} flex min-h-0 flex-col px-[clamp(1.2rem,2.2vw,2.6rem)] py-[clamp(1rem,2.4vh,2.2rem)] [animation-delay:60ms] max-sm:px-4 max-sm:py-4`}
     >
       <p className="text-[clamp(0.8rem,0.95vw,1.05rem)] font-semibold uppercase tracking-[0.14em] text-[var(--p-gold-light)] max-sm:text-[0.72rem]">KAMPANİYA NƏTİCƏLƏRİ</p>
-      <h2 id="top-five-title" className="font-display text-[clamp(1.9rem,min(2.6vw,4.6vh),3.2rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.6rem]">İlk beşlik</h2>
 
-      <div className="mt-[clamp(0.6rem,1.6vh,1.2rem)] flex min-h-[clamp(12rem,30vh,20rem)] flex-1 flex-col justify-center max-sm:min-h-[10rem]">
-        {load.kind === 'idle' && (
-          <p className="text-center font-display text-[clamp(1.3rem,1.8vw,2rem)] font-semibold text-[#d6deec]">Lider cədvəli hazırda əlçatan deyil</p>
-        )}
+      <div role="tablist" aria-label="Nəticə paneli" className="mt-[clamp(0.2rem,0.5vh,0.5rem)] flex gap-[clamp(0.4rem,0.8vw,0.9rem)]">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            id={`panel-tab-${t.id}`}
+            aria-selected={tab === t.id}
+            aria-controls={`panel-${t.id}`}
+            onClick={() => setTab(t.id)}
+            data-testid={`panel-tab-${t.id}`}
+            className={`tap min-h-[clamp(2.6rem,5vh,3.4rem)] rounded-xl px-[clamp(0.7rem,1.2vw,1.3rem)] font-display text-[clamp(1.2rem,min(1.8vw,3.2vh),2.1rem)] font-bold leading-tight max-sm:text-[1.25rem] ${
+              tab === t.id
+                ? 'bg-[rgba(233,192,105,0.16)] text-[#fbf6ec] ring-1 ring-[rgba(233,192,105,0.6)]'
+                : 'text-[#c9d3e6]'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-        {load.kind === 'loading' && (
-          <div role="status" aria-live="polite" className="flex flex-col gap-[clamp(0.35rem,0.8vh,0.6rem)]">
-            <p className="text-center font-medium text-[#d6deec]">Lider cədvəli yüklənir…</p>
-            {[1, 2, 3, 4, 5].map((row) => <span key={row} aria-hidden className="h-[clamp(2.4rem,5.2vh,3.6rem)] animate-pulse rounded-xl bg-white/[0.07] motion-reduce:animate-none" />)}
-          </div>
-        )}
-
-        {load.kind === 'error' && (
-          <div role="alert" className="flex flex-col items-center text-center">
-            <p className="font-display text-[clamp(1.3rem,1.8vw,2rem)] font-semibold text-[#fbf6ec]">Lider cədvəlini yükləmək mümkün olmadı</p>
-            <button type="button" onClick={retry} className={`${SECONDARY_CTA} mt-4 min-h-[clamp(4.5rem,8vh,5.5rem)]! px-10`}>Yenidən yoxla</button>
-          </div>
-        )}
-
-        {load.kind === 'ready' && load.data.entries.length === 0 && (
-          <p className="text-center font-display text-[clamp(1.3rem,1.8vw,2rem)] font-semibold text-[#d6deec]">Hələ tamamlanmış nəticə yoxdur</p>
-        )}
-
-        {load.kind === 'ready' && load.data.entries.length > 0 && (
-          <ol className="flex flex-col gap-[clamp(0.35rem,0.8vh,0.6rem)]" aria-label="İlk beş iştirakçı">
-            {load.data.entries.map((entry) => (
-              <li key={entry.rank} className="grid min-h-[clamp(2.8rem,5.6vh,4rem)] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-[clamp(0.7rem,1vw,1.1rem)] rounded-xl bg-white/[0.07] px-[clamp(0.7rem,1vw,1.1rem)] py-1 ring-1 ring-white/10 max-sm:gap-2.5 max-sm:px-2.5">
-                <RankMedal rank={entry.rank} compact />
-                <span className="min-w-0 font-semibold text-[clamp(1.05rem,1.35vw,1.5rem)] text-[#fbf6ec] [overflow-wrap:anywhere] max-sm:text-[0.98rem]">{entry.displayName}</span>
-                <span className="text-right tabular-nums leading-tight">
-                  <strong className="block font-display text-[clamp(1.2rem,1.6vw,1.8rem)] text-[var(--p-gold-light)] max-sm:text-[1.05rem]">{entry.pointsEarned}/{entry.maxPoints} xal</strong>
-                  <span className="text-[clamp(0.8rem,0.95vw,1.05rem)] text-[#c9d3e6] max-sm:text-[0.78rem]">{entry.correctAnswers}/{entry.totalQuestions} düzgün</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-        )}
+      <div
+        role="tabpanel"
+        id={`panel-${tab}`}
+        aria-labelledby={`panel-tab-${tab}`}
+        tabIndex={0}
+        // A kiosk has no mouse, so the list needs a visible rail to show that it continues below the fold.
+        className="mt-[clamp(0.5rem,1.4vh,1.1rem)] flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain [scrollbar-color:rgba(233,192,105,0.55)_rgba(255,255,255,0.08)] [scrollbar-width:thin]"
+      >
+        {tab === 'answers' ? <AnswerReview items={review} /> : <TopFive load={load} retry={retry} />}
       </div>
     </section>
   )
@@ -150,7 +197,7 @@ export default function GameResult() {
           {error && <p role="alert" className="mt-3 rounded-xl bg-[rgba(125,22,29,0.6)] px-4 py-2 text-[clamp(0.95rem,1.1vw,1.2rem)] text-[#fbf6ec] ring-1 ring-[#ff9aa2]">{error}</p>}
         </section>
 
-        <TopFive load={load} retry={retry} />
+        <SidePanel load={load} retry={retry} review={r?.review ?? []} />
       </div>
 
       <nav aria-label="Nəticə seçimləri" data-testid="result-actions" className="rise flex w-full max-w-[96rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.5rem)] self-center [animation-delay:120ms] max-sm:flex-col max-sm:gap-3">

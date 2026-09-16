@@ -45,6 +45,32 @@ export interface StartGameInput {
   campaignId?: number
 }
 
+/**
+ * One question replayed on the result screen.
+ *
+ * Reaches the client only inside {@link QuizResult}, which the backend sets when the last question
+ * has closed. No in-game response carries it, so the correct answers stay sealed for the whole round.
+ */
+export interface QuizAnswerReview {
+  /** 1-based position in the session. */
+  questionNumber: number
+  text: string
+  imageUrl?: string | null
+  imageAltText?: string | null
+  /** Letters as the player saw them in this session (options are shuffled per session). */
+  correctOption: AnswerOption
+  correctAnswer: string
+  /** null when the clock closed the question with nothing picked. */
+  selectedOption: AnswerOption | null
+  selectedAnswer: string | null
+  isCorrect: boolean
+  timedOut: boolean
+  explanation?: string | null
+  difficulty: Difficulty
+  /** What a correct answer was worth. */
+  points: number
+}
+
 /** Final outcome, computed by the backend. rewardTitle is present only when passed. */
 export interface QuizResult {
   /** Campaign and rank are authoritative server values; the frontend never derives either one. */
@@ -60,6 +86,8 @@ export interface QuizResult {
   maxPoints: number
   /** Quiz mode the campaign belongs to; the category shown on the result screen comes from here. */
   quizMode: QuizModeRef
+  /** Every question with its correct answer. Empty only for a result the server could not describe. */
+  review: QuizAnswerReview[]
 }
 
 /** Progression after an answer or timeout. Carries no correctness information until the final result. */

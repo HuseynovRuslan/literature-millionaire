@@ -14,6 +14,8 @@ export default function GameStageHeader({
   urgent,
   expired,
   quizModeTitle,
+  soundOn,
+  onToggleSound,
 }: {
   questionNumber: number
   totalQuestions: number
@@ -23,6 +25,9 @@ export default function GameStageHeader({
   expired: boolean
   /** Category the session is playing, from the server's start/session data. Empty string renders nothing. */
   quizModeTitle: string
+  /** Whether the atmosphere is audible; the toggle is here so a venue can silence the kiosk mid-round. */
+  soundOn: boolean
+  onToggleSound: () => void
 }) {
   return (
     <header
@@ -51,6 +56,22 @@ export default function GameStageHeader({
             </p>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={onToggleSound}
+          aria-pressed={soundOn}
+          aria-label={soundOn ? 'Səsi söndür' : 'Səsi aç'}
+          title={soundOn ? 'Səsi söndür' : 'Səsi aç'}
+          data-testid="sound-toggle"
+          data-sound={soundOn ? 'on' : 'off'}
+          className="tap ml-[clamp(0.4rem,0.8vw,0.9rem)] grid size-[clamp(2.1rem,2.8vw,2.8rem)] shrink-0 place-items-center rounded-full text-[#fbf6ec] ring-1 ring-[rgba(233,192,105,0.45)] max-sm:size-9"
+        >
+          <svg viewBox="0 0 24 24" className="size-[58%]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4a.5.5 0 0 1-.5-.5v-4a.5.5 0 0 1 .5-.5Z" />
+            {soundOn ? <path d="M15.6 9a4.2 4.2 0 0 1 0 6M18.2 6.6a7.6 7.6 0 0 1 0 10.8" /> : <path d="m16 9.5 4.5 5M20.5 9.5 16 14.5" />}
+          </svg>
+        </button>
       </div>
 
       <div className="min-w-0 [grid-area:progress]">

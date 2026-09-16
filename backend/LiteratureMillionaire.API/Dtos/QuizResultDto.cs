@@ -14,4 +14,7 @@ public record QuizResultDto(
     int PointsEarned,
     int MaxPoints,
     // Quiz mode the campaign belongs to; the leaderboard stays per campaign.
-    QuizModeRefDto QuizMode);
+    QuizModeRefDto QuizMode,
+    // Every question of the session with its correct answer and the player's own. Nothing during the
+    // quiz carries this; it exists only here, on the finished result.
+    IReadOnlyList<QuizAnswerReviewDto> Review);

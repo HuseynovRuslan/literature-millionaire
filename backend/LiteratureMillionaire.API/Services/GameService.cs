@@ -99,7 +99,7 @@ public class GameService : IGameService
             var late = DateTime.UtcNow > session.QuestionDeadlineUtc;
             var isCorrect = !late && dto.SelectedOption[0] == session.Current.CorrectDisplayOption;
 
-            return await CompleteCurrentAsync(session, isCorrect, timedOut: late, ct);
+            return await CompleteCurrentAsync(session, dto.SelectedOption[0], isCorrect, timedOut: late, ct);
         }
         finally
         {
@@ -129,7 +129,8 @@ public class GameService : IGameService
                     });
             }
 
-            return await CompleteCurrentAsync(session, isCorrect: false, timedOut: true, ct);
+            // Nothing was picked, so the review will show this question as unanswered.
+            return await CompleteCurrentAsync(session, selected: null, isCorrect: false, timedOut: true, ct);
         }
         finally
         {
@@ -144,9 +145,10 @@ public class GameService : IGameService
     /// both answers and timeouts so the game can never advance twice for one question.
     /// Caller must hold the session gate.
     /// </summary>
-    private async Task<AnswerResultDto> CompleteCurrentAsync(GameSession session, bool isCorrect, bool timedOut, CancellationToken ct)
+    private async Task<AnswerResultDto> CompleteCurrentAsync(GameSession session, char? selected, bool isCorrect, bool timedOut, CancellationToken ct)
     {
         var closedNumber = session.CurrentQuestionNumber;
+        var closed = session.Current;
 
         // Compute first, commit to the session only after any persistence succeeded, so a failed
         // database write leaves the session replayable instead of reporting a result nobody stored.
@@ -160,6 +162,9 @@ public class GameService : IGameService
             await StoreResultAsync(session, correct, points, passed, ct);
         }
 
+        closed.SelectedDisplayOption = selected;
+        closed.TimedOut = timedOut;
+        closed.IsCorrect = isCorrect;
         session.CorrectAnswers = correct;
         session.PointsEarned = points;
         session.CurrentIndex++;
@@ -168,6 +173,8 @@ public class GameService : IGameService
         {
             session.IsGameOver = true;
             Store(session);
+
+            var review = await BuildReviewAsync(session, ct);
 
             int? leaderboardPosition = null;
             try
@@ -202,7 +209,8 @@ public class GameService : IGameService
                     RewardTitle: session.Passed ? session.RewardTitle : null,
                     PointsEarned: session.PointsEarned,
                     MaxPoints: session.MaxPoints,
-                    QuizMode: session.QuizMode));
+                    QuizMode: session.QuizMode,
+                    Review: review));
         }
 
         // The next question's clock starts now, on the server, regardless of client latency.
@@ -460,6 +468,57 @@ public class GameService : IGameService
             _logger.LogError("Result for attempt {AttemptId} could not be stored (rows affected: {Rows}).", session.AttemptId, rows);
             throw new InvalidOperationException($"Result for attempt {session.AttemptId} could not be stored.");
         }
+    }
+
+    /// <summary>
+    /// Replays the finished session for the result screen: every question with its correct answer and
+    /// the player's own. Called only after the last question has closed.
+    ///
+    /// A question removed from the bank while the quiz was in progress is left out rather than allowed
+    /// to fail the call: the result is already stored and scored, and the review is an extra.
+    /// </summary>
+    private async Task<IReadOnlyList<QuizAnswerReviewDto>> BuildReviewAsync(GameSession session, CancellationToken ct)
+    {
+        var ids = session.Questions.Select(q => q.QuestionId).ToArray();
+        var rows = await _db.Questions.AsNoTracking()
+            .Where(q => ids.Contains(q.Id))
+            .ToDictionaryAsync(q => q.Id, ct);
+
+        var review = new List<QuizAnswerReviewDto>(session.Questions.Count);
+        for (var i = 0; i < session.Questions.Count; i++)
+        {
+            var sq = session.Questions[i];
+            if (!rows.TryGetValue(sq.QuestionId, out var entity))
+            {
+                _logger.LogWarning(
+                    "Question {QuestionId} vanished during attempt {AttemptId}; it is omitted from the answer review.",
+                    sq.QuestionId, session.AttemptId);
+                continue;
+            }
+
+            // Name the options the way this session showed them, not the way they are stored.
+            var shown = GameQuestionDto.FromEntity(entity, sq.OptionOrder);
+            var texts = new[] { shown.OptionA, shown.OptionB, shown.OptionC, shown.OptionD };
+            var correctSlot = Letters.IndexOf(sq.CorrectDisplayOption);
+            var selectedSlot = sq.SelectedDisplayOption is { } picked ? Letters.IndexOf(picked) : -1;
+
+            review.Add(new QuizAnswerReviewDto(
+                QuestionNumber: i + 1,
+                Text: shown.Text,
+                ImageUrl: shown.ImageUrl,
+                ImageAltText: shown.ImageAltText,
+                CorrectOption: sq.CorrectDisplayOption.ToString(),
+                CorrectAnswer: correctSlot >= 0 ? texts[correctSlot] : string.Empty,
+                SelectedOption: sq.SelectedDisplayOption?.ToString(),
+                SelectedAnswer: selectedSlot >= 0 ? texts[selectedSlot] : null,
+                IsCorrect: sq.IsCorrect,
+                TimedOut: sq.TimedOut,
+                Explanation: entity.Explanation,
+                Difficulty: sq.Difficulty,
+                Points: sq.Points));
+        }
+
+        return review;
     }
 
     private async Task<GameQuestionDto> LoadQuestionAsync(SessionQuestion sq, CancellationToken ct)

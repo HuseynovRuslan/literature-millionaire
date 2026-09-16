@@ -241,6 +241,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             pointsEarned: 0,
             maxPoints: 0,
             quizMode: s.quizMode ?? { id: 0, slug: '', title: '' },
+            review: [],
           },
         })
       }

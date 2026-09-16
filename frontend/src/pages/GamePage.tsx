@@ -5,10 +5,14 @@ import GameStageHeader from '../components/game/GameStageHeader'
 import GameResult from './GameResult'
 import SessionExpired from './SessionExpired'
 import { useGame } from '../game/GameContext'
+import * as sound from '../game/sound'
 import { SessionInvalidError } from '../game/errors'
 import { ANSWER_OPTIONS, optionText, type AnswerOption, type AnswerResult } from '../types/game'
 
-const TRANSITION_MS = 1100
+// The dramatic pause after an answer is locked in. The question is already closed and the clock has
+// stopped; this is the beat of silence before the next question, with the heartbeat still running.
+// Nothing about correctness is shown here - the round stays sealed until the result screen.
+const TRANSITION_MS = 2600
 const TIMEOUT_RETRY_MS = 2000
 // Answer taps are ignored this long after a question appears, so a stray second tap from the
 // previous screen (e.g. a double tap on "NÖVBƏTİ İŞTİRAKÇI") cannot answer the first question.
@@ -40,6 +44,7 @@ export default function GamePage() {
   // Warning window scales with the question time: 5 s of 10 or 15, 10 s of 30.
   const urgentSeconds = Math.max(5, Math.round(total / 3))
   const [imageFailed, setImageFailed] = useState(false)
+  const [soundOn, setSoundOn] = useState(() => sound.isEnabled())
 
   // Visual countdown only: it mirrors the backend deadline; the backend decides lateness.
   useEffect(() => {
@@ -47,6 +52,21 @@ export default function GamePage() {
     const id = window.setInterval(() => setNow(Date.now()), 200)
     return () => window.clearInterval(id)
   }, [state.status])
+
+  // Atmosphere: the heartbeat quickens with the step of the climb and with the clock. It knows nothing
+  // about answers, and it stops as soon as the screen is left.
+  useEffect(() => {
+    if (state.status !== 'playing' || !soundOn) return
+    sound.updateRound(state.questionNumber, state.totalQuestions, remainingSec, total)
+  }, [state.status, state.questionNumber, state.totalQuestions, remainingSec, total, soundOn])
+
+  useEffect(() => () => sound.stopAll(), [])
+
+  // The quiz is over: one cue, then quiet.
+  useEffect(() => {
+    if (state.status === 'finished') sound.finish(state.result?.passed ?? false)
+    if (state.status === 'expired') sound.stopAll()
+  }, [state.status, state.result?.passed])
 
   // Clear any pending transition or retry when the page unmounts.
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current) }, [])
@@ -68,6 +88,9 @@ export default function GamePage() {
     if (phase.kind !== 'open' || inFlight.current || remainingMs <= 0) return
     if (Date.now() - questionShownAt.current < QUESTION_INPUT_GUARD_MS) return // input guard, see constant above
     inFlight.current = true
+    // A tap is the gesture browsers require before audio may start.
+    sound.resume()
+    sound.lockIn()
     setPhase({ kind: 'sending', selected: option })
     setSendError(null)
     try {
@@ -151,6 +174,13 @@ export default function GamePage() {
           urgent={urgent}
           expired={remainingMs <= 0}
           quizModeTitle={state.quizMode?.title ?? ''}
+          soundOn={soundOn}
+          onToggleSound={() => {
+            const next = !soundOn
+            sound.setEnabled(next)
+            setSoundOn(next)
+            if (next) sound.resume()
+          }}
         />
 
         <div
