@@ -137,6 +137,58 @@ public class QrLoginApiTests
         Assert.Equal(HttpStatusCode.Conflict, never.StatusCode);
     }
 
+    /// <summary>
+    /// The quiz files a player under "+994XXXXXXXXX" and its one-attempt rule is keyed on that, so a
+    /// sign-in has to arrive in a form it can use. It did not, the first time this shipped: QRLog sent
+    /// the nine national digits its own column holds, the confirmation was accepted, the kiosk showed a
+    /// name, and the start button then failed with nothing on screen to explain it. Refusing at the door
+    /// is the difference between an integrator seeing the problem and a player seeing a dead button.
+    /// </summary>
+    [Theory]
+    [InlineData("501234567")]          // nine national digits, as QRLog stores them
+    [InlineData("1234567")]            // right length, not a number this quiz knows
+    [InlineData("0121234567")]         // a landline prefix
+    [InlineData("not a phone at all")]
+    public async Task A_phone_the_quiz_cannot_use_is_refused_at_the_door(string phone)
+    {
+        await using var factory = new LeaderboardApiFactory(qrLogSecret: Secret);
+        using var client = factory.CreateClient();
+        var (code, pollSecret) = await StartAsync(client);
+        var timestamp = Now();
+
+        using var response = await ConfirmAsync(client, code, Sign(code, phone, timestamp), timestamp, phone);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("INVALID_PHONE", await response.Content.ReadAsStringAsync());
+
+        // And the kiosk is left waiting rather than handed something it cannot start a quiz with.
+        var still = await client.GetFromJsonAsync<JsonElement>($"/api/qrlog-login/{code}?secret={pollSecret}");
+        Assert.Equal("pending", still.GetProperty("status").GetString());
+    }
+
+    /// <summary>
+    /// However it is spelled, the kiosk receives the one form the quiz uses - so somebody who signed in
+    /// with QRLog and somebody who once typed the same number by hand are the same participant, and the
+    /// one attempt per campaign still means one.
+    /// </summary>
+    [Theory]
+    [InlineData("+994501234567")]
+    [InlineData("0501234567")]
+    [InlineData("994 50 123 45 67")]
+    [InlineData("050-123-45-67")]
+    public async Task Every_accepted_spelling_reaches_the_kiosk_as_the_same_number(string phone)
+    {
+        await using var factory = new LeaderboardApiFactory(qrLogSecret: Secret);
+        using var client = factory.CreateClient();
+        var (code, pollSecret) = await StartAsync(client);
+        var timestamp = Now();
+
+        using var response = await ConfirmAsync(client, code, Sign(code, phone, timestamp), timestamp, phone);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        var confirmed = await client.GetFromJsonAsync<JsonElement>($"/api/qrlog-login/{code}?secret={pollSecret}");
+        Assert.Equal("+994501234567", confirmed.GetProperty("phoneNumber").GetString());
+    }
+
     [Fact]
     public async Task With_no_secret_configured_the_feature_refuses_rather_than_trusts()
     {

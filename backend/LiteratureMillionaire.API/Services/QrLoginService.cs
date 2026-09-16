@@ -31,6 +31,15 @@ public interface IQrLoginService
     /// <summary>Confirms a code on behalf of QRLog. Returns false when the code is unknown, used or expired.</summary>
     bool Confirm(string code, string fullName, string phoneNumber);
 
+    /// <summary>
+    /// The phone as this quiz files players under, or false when it is not one it can use.
+    ///
+    /// Checked at the door on purpose. A number the quiz cannot read is not a small problem later: the
+    /// sign-in looks like it worked, the kiosk shows a name, and the start button then fails - which is
+    /// exactly how this first shipped, with QRLog sending the nine national digits it stores.
+    /// </summary>
+    bool TryNormalizePhone(string phoneNumber, out string normalized);
+
     /// <summary>What the kiosk sees. Wrong or missing secret reads as "no such login", not as a hint.</summary>
     QrLoginStatusDto? Poll(string code, string pollSecret);
 
@@ -81,6 +90,9 @@ public sealed class QrLoginService : IQrLoginService
         _cache.Set(CacheKey(code), new PendingLogin { PollSecret = pollSecret }, Lifetime);
         return new QrLoginStartedDto(code, pollSecret, DateTime.UtcNow.Add(Lifetime), (int)Lifetime.TotalSeconds);
     }
+
+    public bool TryNormalizePhone(string phoneNumber, out string normalized) =>
+        PhoneNumber.TryNormalize(phoneNumber, out normalized);
 
     public bool Confirm(string code, string fullName, string phoneNumber)
     {

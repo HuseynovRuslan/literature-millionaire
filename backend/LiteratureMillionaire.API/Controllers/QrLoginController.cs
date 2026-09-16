@@ -44,7 +44,16 @@ public class QrLoginController : ControllerBase
             return Unauthorized(new { code = "INVALID_SIGNATURE", message = "Təsdiq imzası etibarlı deyil." });
         }
 
-        if (!_logins.Confirm(dto.Code, dto.FullName.Trim(), dto.PhoneNumber.Trim()))
+        // Refuse a number this quiz cannot play with, rather than hand the kiosk an identity that
+        // fails at the start button. The signature is checked first, so this only ever answers a
+        // caller that already holds the shared secret - it tells an integrator what is wrong, nobody else.
+        if (!_logins.TryNormalizePhone(dto.PhoneNumber, out var phone))
+        {
+            _logger.LogWarning("QRLog sign-in confirmation rejected: the phone number is not one the quiz can use.");
+            return BadRequest(new { code = "INVALID_PHONE", message = "Telefon nömrəsi yarışın tanıdığı formada deyil." });
+        }
+
+        if (!_logins.Confirm(dto.Code, dto.FullName.Trim(), phone))
         {
             return Conflict(new { code = "LOGIN_NOT_PENDING", message = "Bu QR kodun vaxtı bitib və ya artıq istifadə olunub." });
         }
