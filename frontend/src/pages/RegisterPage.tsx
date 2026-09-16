@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getAvailableCampaigns } from '../api/campaigns'
 import QuizModeIcon from '../components/home/QuizModeIcon'
+import { accentFor } from '../components/home/categoryThemes'
 import { ArrowLeftIcon, CheckIcon, ClockIcon, ListIcon, PhoneIcon, PlayIcon, RewardMedal, RuleBadge, TargetIcon, UserIcon } from '../components/home/GameShowArt'
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import { Octagram } from '../components/arena/NationalMotifs'
@@ -300,8 +301,12 @@ export default function RegisterPage() {
         <section data-testid="register-stage" className="grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-[clamp(1rem,1.6vw,1.5rem)] max-lg:grid-cols-1">
           {/* Category summary */}
           <div className={`${CARD} flex min-w-0 flex-col overflow-hidden`}>
-            <div className="flex items-center gap-4 bg-[linear-gradient(135deg,#8f78ff,#5a3fe0)] px-[clamp(1.2rem,2vw,2rem)] py-5" data-testid="register-category">
-              <span aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-2xl bg-white/20 text-white max-sm:size-12">
+            <div
+              style={{ '--accent': accentFor(campaign.quizMode.slug, 0) } as CSSProperties}
+              className="flex items-center gap-4 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_92%,#ffffff),color-mix(in_srgb,var(--accent)_72%,#110c2c))] px-[clamp(1.2rem,2vw,2rem)] py-5"
+              data-testid="register-category"
+            >
+              <span aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[color-mix(in_srgb,var(--accent)_45%,#ffffff_28%)] text-white ring-1 ring-white/30 max-sm:size-12">
                 <QuizModeIcon iconKey={campaign.quizMode.iconKey} className="size-[58%]" />
               </span>
               <div className="min-w-0">
