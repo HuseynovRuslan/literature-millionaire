@@ -33,3 +33,7 @@ deploy/backups/*
 *.key
 *.crt
 
+# Delivered source images for the question banks: the published copies under
+# frontend/public/question-images are the ones the app serves, so the originals are
+# not committed twice. The workbook/CSV beside them IS committed as the provenance record.
+docs/edebiyyat-import/images/

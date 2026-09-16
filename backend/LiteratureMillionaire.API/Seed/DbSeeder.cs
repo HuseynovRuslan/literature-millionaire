@@ -39,6 +39,9 @@ public static class DbSeeder
         // Demo "Bilik yarışı" bank + campaign. Runs after "Ölülər" so, on first import, it can switch the
         // "Ölülər" campaign off; the "Ölülər" book, questions and campaign row are kept (transactional, idempotent).
         await BilikYarisiSeed.SeedAsync(db, ct);
+
+        // Approved "Ədəbiyyat Dünyası" bank (own book + quiz mode, no campaign of its own).
+        await EdebiyyatDunyasiSeed.SeedAsync(db, ct);
     }
 
     /// <summary>

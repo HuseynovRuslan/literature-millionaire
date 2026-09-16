@@ -54,6 +54,8 @@ public class ApplicationDbContext : DbContext
             entity.Property(q => q.Explanation).HasMaxLength(2000);
             entity.Property(q => q.ImageUrl).HasMaxLength(500);
             entity.Property(q => q.ImageAltText).HasMaxLength(300);
+            entity.Property(q => q.ImageSource).HasMaxLength(500);
+            entity.Property(q => q.ImageLicense).HasMaxLength(300);
             // Defense in depth: force Kind=Utc on read so the value serializes with a trailing
             // "Z" and compares correctly with DateTime.UtcNow, regardless of provider quirks.
             entity.Property(q => q.CreatedAt)

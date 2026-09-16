@@ -38,4 +38,12 @@ public class Question
     /// </summary>
     public string? ImageUrl { get; set; }
     public string? ImageAltText { get; set; }
+
+    /// <summary>
+    /// Where an illustration came from and under which licence, kept with the question because some
+    /// pictures are published under licences (CC BY, CC BY-SA) that require the credit to stay with the
+    /// work. Null for text-only questions and for illustrations that need no attribution.
+    /// </summary>
+    public string? ImageSource { get; set; }
+    public string? ImageLicense { get; set; }
 }
