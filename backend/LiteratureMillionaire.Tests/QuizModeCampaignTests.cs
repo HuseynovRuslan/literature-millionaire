@@ -385,7 +385,10 @@ public class QuizModeCampaignTests
         await using var factory = new LeaderboardApiFactory();
         using var client = factory.CreateClient();
         await AddCampaignAsync(factory, QuizModeSlugs.BilikDunyasi, "bilik");
-        var campaign = await AddCampaignAsync(factory, QuizModeSlugs.YasilBaki, "yasil", imageTarget: imageTarget, imagesPerDifficulty: 4, withBook: false);
+        // Any bookless mode that draws on the stored question bank will do here; "Yaşıl Bakı" no longer
+        // does, because its campaigns are plant-recognition rounds built from the plant catalogue
+        // (see PlantCatalogTests), where every question carries a photograph by construction.
+        var campaign = await AddCampaignAsync(factory, QuizModeSlugs.EdebiyyatDunyasi, "edebiyyat", imageTarget: imageTarget, imagesPerDifficulty: 4, withBook: false);
 
         var shuffled = false;
         for (var session = 0; session < 6; session++)
@@ -400,7 +403,7 @@ public class QuizModeCampaignTests
             Assert.Equal(10, played.Questions.Select(q => q.Id).Distinct().Count());
             Assert.Equal((3, 4, 3), (played.Questions.Count(q => q.Difficulty == "Easy"), played.Questions.Count(q => q.Difficulty == "Medium"), played.Questions.Count(q => q.Difficulty == "Hard")));
             Assert.Equal(imageTarget, played.Questions.Count(q => q.HasImage));
-            Assert.All(played.Questions, q => Assert.Equal("yasil", q.Category));
+            Assert.All(played.Questions, q => Assert.Equal("edebiyyat", q.Category));
             shuffled |= played.Questions.Any(q => q.OptionA != $"q{q.Id}-A");
 
             AssertNoAnswerLeak(played.StartRaw);

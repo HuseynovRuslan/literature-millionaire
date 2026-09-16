@@ -15,6 +15,10 @@ public static class DbSeeder
         // Quiz modes first: campaigns and per-mode questions reference them.
         await QuizModeSeed.SeedAsync(db, ct);
 
+        // Reviewed plant-recognition catalogue (39 plants, 50 photographs). Independent of the question
+        // bank: plant questions are built from these rows at session start, not stored as Question rows.
+        await PlantCatalogSeed.SeedAsync(db, ct);
+
         var questions = StarterQuestions().ToList();
         Validate(questions);
 

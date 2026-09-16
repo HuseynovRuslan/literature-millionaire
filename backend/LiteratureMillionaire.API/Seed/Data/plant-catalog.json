@@ -1,0 +1,955 @@
+{
+  "plants": [
+    {
+      "catalogId": "PLT-001",
+      "name": "Pittosporum",
+      "scientificName": "Pittosporum tobira",
+      "quizStatus": "Approved",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-001.webp",
+          "imageUrl": "/images/plants/plant-001.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Japanese_Cheesewood_--_Pittosporum_tobira.jpg",
+          "author": "Jim Evans",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+          "specimenSpecies": "Pittosporum tobira",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-002",
+      "name": "Lavanda",
+      "scientificName": "Lavandula",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloq adı daha genişdir; şəkildə bir nümunə növ göstərilir.",
+      "images": [
+        {
+          "fileName": "plant-002.webp",
+          "imageUrl": "/images/plants/plant-002.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lavandula_angustifolia_in_Sedovo_1.jpg",
+          "author": "Andrey Butko",
+          "license": "CC BY-SA 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+          "specimenSpecies": "Lavandula angustifolia",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-003",
+      "name": "Sürünən rozmarin",
+      "scientificName": "Rosmarinus prostratus",
+      "quizStatus": "Approved",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-003.webp",
+          "imageUrl": "/images/plants/plant-003.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Salvia_rosmarinus_%27Prostratus%27_kz01.jpg",
+          "author": "Krzysztof Ziarnek, Kenraiz",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+          "specimenSpecies": "Salvia rosmarinus Prostratus",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-004",
+      "name": "Rozmarin",
+      "scientificName": "Rosmarinus",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-004.webp",
+          "imageUrl": "/images/plants/plant-004.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/106603616",
+          "author": "no rights reserved",
+          "license": "CC0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "specimenSpecies": "Salvia rosmarinus",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-040.webp",
+          "imageUrl": "/images/plants/plant-040.webp",
+          "isPrimary": false,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/360662906",
+          "author": "(c) zebedeugalinha, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Salvia rosmarinus",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-005",
+      "name": "Parthenocissus",
+      "scientificName": "Parthenocissus",
+      "quizStatus": "Approved",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-005.webp",
+          "imageUrl": "/images/plants/plant-005.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Parthenocissus_quinquefolia20190910_16476.jpg",
+          "author": "Bff",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+          "specimenSpecies": "Parthenocissus quinquefolia",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-041.webp",
+          "imageUrl": "/images/plants/plant-041.webp",
+          "isPrimary": false,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Parthenocissus_quinquefolia20180912_14894.jpg",
+          "author": "Bff",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+          "specimenSpecies": "Parthenocissus quinquefolia",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-006",
+      "name": "Passifloraceae",
+      "scientificName": "Passifloraceae",
+      "quizStatus": "Conditional",
+      "botanicalNote": "Kataloq adı daha genişdir; şəkildə bir nümunə növ göstərilir.",
+      "images": [
+        {
+          "fileName": "plant-006.webp",
+          "imageUrl": "/images/plants/plant-006.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Passiflora_caerulea_-_two_flowers_2019-06-27.jpg",
+          "author": "Franz van Duns",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+          "specimenSpecies": "Passiflora caerulea",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-007",
+      "name": "Photinia",
+      "scientificName": "Photinia",
+      "quizStatus": "Approved",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-007.webp",
+          "imageUrl": "/images/plants/plant-007.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Photinia_fraseri_%27Red_Robin%27.jpg",
+          "author": "Homoarborea",
+          "license": "CC0",
+          "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+          "specimenSpecies": "Photinia × fraseri",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-042.webp",
+          "imageUrl": "/images/plants/plant-042.webp",
+          "isPrimary": false,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/36326193",
+          "author": "no rights reserved",
+          "license": "CC0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "specimenSpecies": "Photinia × fraseri",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-008",
+      "name": "Elaeagnus",
+      "scientificName": "Elaeagnus",
+      "quizStatus": "Approved",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-008.webp",
+          "imageUrl": "/images/plants/plant-008.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Elaeagnus_ebbingei.jpg",
+          "author": "K. Thomas",
+          "license": "CC BY-SA 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+          "specimenSpecies": "Elaeagnus × ebbingei",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-043.webp",
+          "imageUrl": "/images/plants/plant-043.webp",
+          "isPrimary": false,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Elaeagnus_ebbingei_1c.JPG",
+          "author": "Consultaplantas",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+          "specimenSpecies": "Elaeagnus × ebbingei",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-009",
+      "name": "Berberis",
+      "scientificName": "Berberis",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-009.webp",
+          "imageUrl": "/images/plants/plant-009.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/115046943",
+          "author": "no rights reserved",
+          "license": "CC0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "specimenSpecies": "Berberis thunbergii",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-044.webp",
+          "imageUrl": "/images/plants/plant-044.webp",
+          "isPrimary": false,
+          "source": "Mehdiabad istixanasının Excel hesabatı",
+          "sourceUrl": "Mehdiabad həftəlik hesabat 26.08.2024 (1).xlsx / Sektor-1-ş-01.jpg",
+          "author": "Müəllif hesabatda göstərilməyib",
+          "license": "Təşkilatın istifadə icazəsi gözlənilir",
+          "licenseUrl": null,
+          "specimenSpecies": "Mənbə etiketi əsasında",
+          "originalLabel": "Beri-beris qırmızı (1.5l)"
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-010",
+      "name": "Dəfnə",
+      "scientificName": "Laurus nobilis",
+      "quizStatus": "Approved",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-010.webp",
+          "imageUrl": "/images/plants/plant-010.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/334613166",
+          "author": "(c) zebedeugalinha, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Laurus nobilis",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-011",
+      "name": "Ligustrum",
+      "scientificName": "Ligustrum",
+      "quizStatus": "Conditional",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-011.webp",
+          "imageUrl": "/images/plants/plant-011.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/38601677",
+          "author": "(c) Takaaki Hattori, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Ligustrum japonicum",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-045.webp",
+          "imageUrl": "/images/plants/plant-045.webp",
+          "isPrimary": false,
+          "source": "Mehdiabad istixanasının Excel hesabatı",
+          "sourceUrl": "Mehdiabad həftəlik hesabat 26.08.2024 (1).xlsx / Sektor-1-ş-17.jpg",
+          "author": "Müəllif hesabatda göstərilməyib",
+          "license": "Təşkilatın istifadə icazəsi gözlənilir",
+          "licenseUrl": null,
+          "specimenSpecies": "Mənbə etiketi əsasında",
+          "originalLabel": "Ligustrum (1.5l)"
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-012",
+      "name": "Sedum",
+      "scientificName": "Sedum",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-012.webp",
+          "imageUrl": "/images/plants/plant-012.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/103945534",
+          "author": "(c) Dmitriy Bochkov, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Sedum acre",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-013",
+      "name": "Spartium",
+      "scientificName": "Spartium",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-013.webp",
+          "imageUrl": "/images/plants/plant-013.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/249409457",
+          "author": "(c) zebedeugalinha, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Spartium junceum",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-014",
+      "name": "Aster",
+      "scientificName": "Aster",
+      "quizStatus": "Conditional",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-014.webp",
+          "imageUrl": "/images/plants/plant-014.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/127724880",
+          "author": "(c) Aleksei Baushev, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Aster amellus",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-015",
+      "name": "Aptenia",
+      "scientificName": "Aptenia",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-015.webp",
+          "imageUrl": "/images/plants/plant-015.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/42619158",
+          "author": "(c) Tony Rebelo, some rights reserved (CC BY-SA)",
+          "license": "CC-BY-SA",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "specimenSpecies": "Mesembryanthemum cordifolium",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-016",
+      "name": "Westringia",
+      "scientificName": "Westringia",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-016.webp",
+          "imageUrl": "/images/plants/plant-016.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/100383927",
+          "author": "(c) ronavery, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Westringia fruticosa",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-046.webp",
+          "imageUrl": "/images/plants/plant-046.webp",
+          "isPrimary": false,
+          "source": "Mehdiabad istixanasının Excel hesabatı",
+          "sourceUrl": "Mehdiabad həftəlik hesabat 26.08.2024 (1).xlsx / Sektor-1-ş-03.jpg",
+          "author": "Müəllif hesabatda göstərilməyib",
+          "license": "Təşkilatın istifadə icazəsi gözlənilir",
+          "licenseUrl": null,
+          "specimenSpecies": "Mənbə etiketi əsasında",
+          "originalLabel": "Westringia (2.8l)"
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-017",
+      "name": "Oleandr",
+      "scientificName": "Nerium oleander",
+      "quizStatus": "Approved",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-017.webp",
+          "imageUrl": "/images/plants/plant-017.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:N20150824-0002%E2%80%94Nerium_oleander_(red)%E2%80%94Ohlone_Pathway_(21042706469).jpg",
+          "author": "John Rusk  from Berkeley, CA, United States of America",
+          "license": "CC BY 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+          "specimenSpecies": "Nerium oleander",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-047.webp",
+          "imageUrl": "/images/plants/plant-047.webp",
+          "isPrimary": false,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Nerium_Oleander_-_geograph.org.uk_-_960195.jpg",
+          "author": "Christine Matthews",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+          "specimenSpecies": "Nerium oleander",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-018",
+      "name": "Hibiskus",
+      "scientificName": "Hibiscus",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-018.webp",
+          "imageUrl": "/images/plants/plant-018.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:20250823_Hibiscus_syriacus_Ketmia_syryjska_Panewniki_02.jpg",
+          "author": "Abraham",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+          "specimenSpecies": "Hibiscus syriacus",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-019",
+      "name": "Campsis",
+      "scientificName": "Campsis",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-019.webp",
+          "imageUrl": "/images/plants/plant-019.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/130718019",
+          "author": "no rights reserved",
+          "license": "CC0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "specimenSpecies": "Campsis radicans",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-020",
+      "name": "Pyracantha",
+      "scientificName": "Pyracantha",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-020.webp",
+          "imageUrl": "/images/plants/plant-020.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/7663064",
+          "author": "(c) Chelsea Welch, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Pyracantha coccinea",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-021",
+      "name": "Leucanthemum",
+      "scientificName": "Leucanthemum",
+      "quizStatus": "Conditional",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-021.webp",
+          "imageUrl": "/images/plants/plant-021.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:20210612_Leucanthemum_vulgare.jpg",
+          "author": "Flocci Nivis",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+          "specimenSpecies": "Leucanthemum vulgare",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-022",
+      "name": "Jasmin",
+      "scientificName": "Jasminum",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-022.webp",
+          "imageUrl": "/images/plants/plant-022.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/361995888",
+          "author": "no rights reserved",
+          "license": "CC0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "specimenSpecies": "Jasminum officinale",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-023",
+      "name": "Euonymus",
+      "scientificName": "Euonymus",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-023.webp",
+          "imageUrl": "/images/plants/plant-023.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/28959706",
+          "author": "(c) Sandy Wolkenberg, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Euonymus japonicus",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-048.webp",
+          "imageUrl": "/images/plants/plant-048.webp",
+          "isPrimary": false,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/173625613",
+          "author": "no rights reserved",
+          "license": "CC0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "specimenSpecies": "Euonymus japonicus",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-024",
+      "name": "Qızılgül",
+      "scientificName": "Rosa",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-024.webp",
+          "imageUrl": "/images/plants/plant-024.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/45675208",
+          "author": "(c) Charlotte Jones, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Rosa rugosa",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-049.webp",
+          "imageUrl": "/images/plants/plant-049.webp",
+          "isPrimary": false,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/190190817",
+          "author": "(c) AnimalObserverDeniz321, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Rosa rugosa",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-025",
+      "name": "Jacobaea maritima",
+      "scientificName": "Jacobaea maritima",
+      "quizStatus": "Approved",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-025.webp",
+          "imageUrl": "/images/plants/plant-025.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/50250914",
+          "author": "(c) Максим Шумских, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Jacobaea maritima",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-026",
+      "name": "Teucrium fruticans",
+      "scientificName": "Teucrium fruticans",
+      "quizStatus": "Conditional",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-026.webp",
+          "imageUrl": "/images/plants/plant-026.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/392678831",
+          "author": "(c) zebedeugalinha, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Teucrium fruticans",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-027",
+      "name": "Microphyllus",
+      "scientificName": "Microphyllus",
+      "quizStatus": "Conditional",
+      "botanicalNote": "Microphyllus növ adı deyil; yalnız mənbə Excel fotosu istifadə olunub.",
+      "images": [
+        {
+          "fileName": "plant-027.webp",
+          "imageUrl": "/images/plants/plant-027.webp",
+          "isPrimary": true,
+          "source": "Mehdiabad istixanasının Excel hesabatı",
+          "sourceUrl": "Mehdiabad həftəlik hesabat 26.08.2024 (1).xlsx / Sektor-2-ş-18.jpg",
+          "author": "Müəllif hesabatda göstərilməyib",
+          "license": "Təşkilatın istifadə icazəsi gözlənilir",
+          "licenseUrl": null,
+          "specimenSpecies": "Dəqiqləşdirilməyib",
+          "originalLabel": "Microphyllus (2,8l)"
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-028",
+      "name": "Viburnum lucidum",
+      "scientificName": "Viburnum lucidum",
+      "quizStatus": "Approved",
+      "botanicalNote": "Viburnum lucidum adı yoxlanmalıdır; mənbə Excel fotosu saxlanıb.",
+      "images": [
+        {
+          "fileName": "plant-028.webp",
+          "imageUrl": "/images/plants/plant-028.webp",
+          "isPrimary": true,
+          "source": "Mehdiabad istixanasının Excel hesabatı",
+          "sourceUrl": "Mehdiabad həftəlik hesabat 26.08.2024 (1).xlsx / Sektor-2-ş-35.jpg",
+          "author": "Müəllif hesabatda göstərilməyib",
+          "license": "Təşkilatın istifadə icazəsi gözlənilir",
+          "licenseUrl": null,
+          "specimenSpecies": "Dəqiqləşdirilməyib",
+          "originalLabel": "Viburnum Lucidum (2,5l)"
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-029",
+      "name": "Sarmaşıq",
+      "scientificName": "Hedera helix",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-029.webp",
+          "imageUrl": "/images/plants/plant-029.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/24846027",
+          "author": "(c) Marianna Boi, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Hedera helix",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-030",
+      "name": "Osteospermum",
+      "scientificName": "Osteospermum",
+      "quizStatus": "Conditional",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-030.webp",
+          "imageUrl": "/images/plants/plant-030.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Osteospermum_ecklonis1.JPG",
+          "author": "Joaquim Alves Gaspar",
+          "license": "CC BY 2.5",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+          "specimenSpecies": "Osteospermum ecklonis",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-031",
+      "name": "Buxus",
+      "scientificName": "Buxus",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-031.webp",
+          "imageUrl": "/images/plants/plant-031.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/272593323",
+          "author": "(c) zebedeugalinha, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Buxus sempervirens",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-032",
+      "name": "Chamaerops humilis",
+      "scientificName": "Chamaerops humilis",
+      "quizStatus": "Conditional",
+      "botanicalNote": null,
+      "images": [
+        {
+          "fileName": "plant-032.webp",
+          "imageUrl": "/images/plants/plant-032.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/86560303",
+          "author": "(c) etrusko25, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Chamaerops humilis",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-033",
+      "name": "Eldar şamı",
+      "scientificName": "Pinus eldarica",
+      "quizStatus": "Approved",
+      "botanicalNote": "Eldar şamı üçün mənbə Excel fotosu saxlanıb.",
+      "images": [
+        {
+          "fileName": "plant-033.webp",
+          "imageUrl": "/images/plants/plant-033.webp",
+          "isPrimary": true,
+          "source": "Mehdiabad istixanasının Excel hesabatı",
+          "sourceUrl": "Mehdiabad həftəlik hesabat 26.08.2024 (1).xlsx / Sektor-2-ş-04.jpg",
+          "author": "Müəllif hesabatda göstərilməyib",
+          "license": "Təşkilatın istifadə icazəsi gözlənilir",
+          "licenseUrl": null,
+          "specimenSpecies": "Pinus eldarica (mənbə etiketi)",
+          "originalLabel": "Pinus Eldarica (1,5l )"
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-034",
+      "name": "Geran (Pelargonium)",
+      "scientificName": "Pelargonium",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-034.webp",
+          "imageUrl": "/images/plants/plant-034.webp",
+          "isPrimary": true,
+          "source": "Wikimedia Commons",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Flowers_of_Pelargonium_zonale_with_pink_or_magenta_petals.jpg",
+          "author": "Leo219",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+          "specimenSpecies": "Pelargonium zonale",
+          "originalLabel": null
+        },
+        {
+          "fileName": "plant-050.webp",
+          "imageUrl": "/images/plants/plant-050.webp",
+          "isPrimary": false,
+          "source": "Mehdiabad istixanasının Excel hesabatı",
+          "sourceUrl": "Mehdiabad həftəlik hesabat 26.08.2024 (1).xlsx / Sektor-2-ş-28.jpg",
+          "author": "Müəllif hesabatda göstərilməyib",
+          "license": "Təşkilatın istifadə icazəsi gözlənilir",
+          "licenseUrl": null,
+          "specimenSpecies": "Mənbə etiketi əsasında",
+          "originalLabel": "Pelargonium (1,5l)"
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-035",
+      "name": "Abelia",
+      "scientificName": "Abelia",
+      "quizStatus": "Conditional",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-035.webp",
+          "imageUrl": "/images/plants/plant-035.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/187449611",
+          "author": "(c) Yung-Lun Lin, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Abelia chinensis",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-036",
+      "name": "Schinus",
+      "scientificName": "Schinus",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-036.webp",
+          "imageUrl": "/images/plants/plant-036.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/137322135",
+          "author": "no rights reserved",
+          "license": "CC0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "specimenSpecies": "Schinus molle",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-037",
+      "name": "Callistemon",
+      "scientificName": "Callistemon",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-037.webp",
+          "imageUrl": "/images/plants/plant-037.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/382766794",
+          "author": "(c) Max Campbell, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Melaleuca citrina",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-038",
+      "name": "Qartenziya (Hydrangea)",
+      "scientificName": "Hydrangea",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-038.webp",
+          "imageUrl": "/images/plants/plant-038.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/308290903",
+          "author": "(c) zebedeugalinha, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Hydrangea macrophylla",
+          "originalLabel": null
+        }
+      ]
+    },
+    {
+      "catalogId": "PLT-039",
+      "name": "Santolina",
+      "scientificName": "Santolina",
+      "quizStatus": "Approved",
+      "botanicalNote": "Kataloqda cins/ümumi ad var; şəkildə göstərilən növ nümunədir.",
+      "images": [
+        {
+          "fileName": "plant-039.webp",
+          "imageUrl": "/images/plants/plant-039.webp",
+          "isPrimary": true,
+          "source": "iNaturalist",
+          "sourceUrl": "https://www.inaturalist.org/observations/289361813",
+          "author": "(c) Chris Webb, some rights reserved (CC BY)",
+          "license": "CC-BY",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "specimenSpecies": "Santolina chamaecyparissus",
+          "originalLabel": null
+        }
+      ]
+    }
+  ]
+}

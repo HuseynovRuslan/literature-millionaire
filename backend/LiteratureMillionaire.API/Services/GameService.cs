@@ -19,6 +19,12 @@ public class GameService : IGameService
     private static readonly TimeSpan QuestionTime = TimeSpan.FromSeconds(QuizRules.SecondsPerQuestion);
     private const string Letters = "ABCD";
 
+    // Wording of a plant-recognition question. The alt text must never name the plant, or a screen
+    // reader would read the answer out; the four options carry the names instead.
+    private const string PlantQuestionText = "Şəkildəki bitki hansıdır?";
+    private const string PlantQuestionCategory = "Bitkilər";
+    private const string PlantQuestionImageAlt = "Tanınmalı bitkinin fotoşəkli";
+
     // Unique index names from the migration. A 23505 unique_violation is only ever treated as a
     // resolvable race when it names exactly one of these - anything else is a genuine DB failure.
     private const string ParticipantPhoneUniqueIndex = "IX_Participants_NormalizedPhoneNumber";
@@ -252,6 +258,14 @@ public class GameService : IGameService
     /// </summary>
     private async Task<IReadOnlyList<SessionQuestion>> SelectQuestionsAsync(ActiveCampaign campaign, CancellationToken ct)
     {
+        // "Yaşıl Bakı" is a recognition round: its questions are built from the plant catalogue when the
+        // session starts, so each one can show a different photograph of the plant and offer four
+        // different plants as options. Every other mode uses the stored question bank below.
+        if (campaign.QuizModeSlug == QuizModeSlugs.YasilBaki)
+        {
+            return await SelectPlantQuestionsAsync(campaign, ct);
+        }
+
         var quizModeId = campaign.QuizModeId;
         var bookId = campaign.BookId;
 
@@ -462,8 +476,77 @@ public class GameService : IGameService
         }
     }
 
+    /// <summary>
+    /// Builds a plant-recognition round from the catalogue: ten different approved plants, one of each
+    /// plant's own photographs, and four different plants as options. "Şərti" plants stay out until an
+    /// administrator approves them, so an unconfirmed name is never shown as an answer.
+    /// </summary>
+    private async Task<IReadOnlyList<SessionQuestion>> SelectPlantQuestionsAsync(ActiveCampaign campaign, CancellationToken ct)
+    {
+        var candidates = await _db.Plants
+            .AsNoTracking()
+            .Where(p => p.QuizStatus == PlantQuizStatus.Approved && p.Images.Count > 0)
+            .OrderBy(p => p.Id)
+            .Select(p => new PlantCandidate(
+                p.Id,
+                p.Name,
+                p.Images.OrderBy(i => i.DisplayOrder).Select(i => new PlantPhoto(i.Id, i.ImageUrl)).ToList()))
+            .ToListAsync(ct);
+
+        if (!PlantQuestionPlanner.CanFillRound(candidates.Count))
+        {
+            var photos = candidates.Sum(c => c.Photos.Count);
+            _logger.LogError(
+                "Campaign {CampaignId} (quiz mode {QuizModeSlug}) cannot fill a plant round: {Approved} approved plants with {Photos} photographs, {Required} plants required.",
+                campaign.CampaignId, campaign.QuizModeSlug, candidates.Count, photos, PlantQuestionPlanner.MinimumPlants);
+
+            throw GameException.Conflict(
+                "Not enough approved plants for this campaign",
+                $"A plant round needs at least {PlantQuestionPlanner.MinimumPlants} approved plants, and {candidates.Count} are available.",
+                new Dictionary<string, object?>
+                {
+                    ["code"] = "INSUFFICIENT_PLANTS",
+                    ["campaignId"] = campaign.CampaignId,
+                    ["quizMode"] = campaign.QuizModeSlug,
+                    ["required"] = PlantQuestionPlanner.MinimumPlants,
+                    ["available"] = candidates.Count,
+                });
+        }
+
+        return PlantQuestionPlanner.Plan(candidates, Random.Shared)
+            .Select(p => new SessionQuestion
+            {
+                // The photograph identifies the question; it appears at most once per session.
+                QuestionId = p.ImageId,
+                OptionOrder = new[] { 0, 1, 2, 3 }, // options are already in display order
+                CorrectDisplayOption = p.CorrectDisplayOption,
+                Difficulty = p.Difficulty,
+                Points = QuizRules.PointsFor(p.Difficulty),
+                Plant = new SessionPlantQuestion(p.PlantId, p.ImageUrl, p.Options),
+            })
+            .ToArray();
+    }
+
     private async Task<GameQuestionDto> LoadQuestionAsync(SessionQuestion sq, CancellationToken ct)
     {
+        // A plant question was built for this session and carries everything it needs; nothing is stored
+        // for it, so there is no row to re-read. The alt text is deliberately generic: naming the plant
+        // would hand the answer to anyone using a screen reader.
+        if (sq.Plant is { } plant)
+        {
+            return new GameQuestionDto(
+                Id: sq.QuestionId,
+                Text: PlantQuestionText,
+                OptionA: plant.Options[0],
+                OptionB: plant.Options[1],
+                OptionC: plant.Options[2],
+                OptionD: plant.Options[3],
+                Difficulty: sq.Difficulty,
+                Category: PlantQuestionCategory,
+                ImageUrl: plant.ImageUrl,
+                ImageAltText: PlantQuestionImageAlt);
+        }
+
         var entity = await _db.Questions.AsNoTracking().FirstOrDefaultAsync(q => q.Id == sq.QuestionId, ct)
             ?? throw GameException.Conflict(
                 "Question unavailable",

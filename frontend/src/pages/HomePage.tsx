@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { classifyCampaignError, getAvailableCampaigns, type CampaignErrorKind } from '../api/campaigns'
 import CategoryCard from '../components/home/CategoryCard'
 import { PlayIcon, QuizEmblem } from '../components/home/GameShowArt'
@@ -14,6 +14,9 @@ const ERROR_COPY: Record<CampaignErrorKind, { title: string; text: string }> = {
   unavailable: { title: 'Serverlə əlaqə yoxdur', text: 'Şəbəkə bağlantısını yoxlayın və yenidən cəhd edin.' },
   unexpected: { title: 'Gözlənilməz xəta baş verdi', text: 'Bir az sonra yenidən cəhd edin.' },
 }
+
+/** The category whose questions are plant photographs; its picture credits must stay reachable. */
+const PLANT_QUIZ_MODE_SLUG = 'yasil-baki'
 
 type CategoriesLoad =
   | { kind: 'loading' }
@@ -35,8 +38,12 @@ function StatusStage({ children, alert = false }: { children: ReactNode; alert?:
   )
 }
 
-/** Hero banner: the "Bilik Bağı" presentation name and the category-selection instruction. Category data never appears here. */
-function Hero() {
+/**
+ * Hero banner: the "Bilik Bağı" presentation name and the category-selection instruction. Category data
+ * never appears here, except the link to the photograph credits, which the picture licences of the plant
+ * category require to stay reachable. The link shares the instruction's line, so the banner keeps its height.
+ */
+function Hero({ showPlantCredits }: { showPlantCredits: boolean }) {
   return (
     <header className="home-stage rise flex flex-col items-center gap-[clamp(0.15rem,0.5vh,0.4rem)] short:gap-1 rounded-[clamp(1rem,1.4vw,1.6rem)] px-[clamp(1.5rem,3.4vw,3.5rem)] py-[clamp(0.9rem,2.2vh,1.6rem)] short:py-3 text-center max-sm:rounded-2xl max-sm:px-5 max-sm:py-4">
       <p lang="az" className="font-display text-[clamp(0.9rem,1.15vw,1.2rem)] font-semibold uppercase tracking-[0.22em] text-[var(--p-gold-light)] max-sm:text-[0.72rem] max-sm:tracking-[0.14em]">
@@ -47,6 +54,14 @@ function Hero() {
       </h1>
       <p lang="az" className="mt-[clamp(0.1rem,0.4vh,0.35rem)] text-[clamp(0.95rem,1.15vw,1.25rem)] font-medium text-[#d6deec] max-sm:text-[0.92rem]">
         Kateqoriyanı seçin
+        {showPlantCredits && (
+          <>
+            <span aria-hidden="true" className="mx-2 text-[var(--p-gold-light)]">·</span>
+            <Link to="/sekil-menbeleri" data-testid="home-plant-credits" className="tap rounded underline decoration-[var(--p-gold)] underline-offset-4">
+              Şəkil mənbələri
+            </Link>
+          </>
+        )}
       </p>
     </header>
   )
@@ -179,7 +194,7 @@ export default function HomePage() {
 
   return (
     <GameShowShell>
-      <Hero />
+      <Hero showPlantCredits={data.some((c) => c.quizMode.slug === PLANT_QUIZ_MODE_SLUG)} />
       <ul
         data-testid="category-grid"
         className="grid w-full grid-cols-2 gap-[clamp(0.7rem,1.3vw,1.3rem)] short:gap-[0.55rem] max-sm:grid-cols-1 max-sm:gap-3"

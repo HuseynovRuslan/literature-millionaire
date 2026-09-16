@@ -26,6 +26,12 @@
          Compiled into the assembly; not published as a loose file and never read from Excel at runtime. -->
     <Content Remove="Seed/Data/bilik-yarisi-questions.json" />
     <EmbeddedResource Include="Seed/Data/bilik-yarisi-questions.json" LogicalName="LiteratureMillionaire.API.Seed.Data.bilik-yarisi-questions.json" />
+
+    <!-- Reviewed plant-recognition catalogue (generated from docs/plants-import/mapping-and-sources.csv at
+         implementation time). Compiled into the assembly; the CSV is never read at runtime and is not
+         served from frontend/public. -->
+    <Content Remove="Seed/Data/plant-catalog.json" />
+    <EmbeddedResource Include="Seed/Data/plant-catalog.json" LogicalName="LiteratureMillionaire.API.Seed.Data.plant-catalog.json" />
   </ItemGroup>
 
 </Project>

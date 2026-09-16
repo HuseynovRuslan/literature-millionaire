@@ -10,6 +10,11 @@ namespace LiteratureMillionaire.API.Services;
 /// </summary>
 public sealed class SessionQuestion
 {
+    /// <summary>
+    /// Identifies the question to the client and in EnsureCurrent. A stored question uses its Questions
+    /// row id; a plant-recognition question uses the id of the photograph it shows, which is unique and
+    /// appears at most once per session.
+    /// </summary>
     public required int QuestionId { get; init; }
 
     /// <summary>Display slot i (0 = A .. 3 = D) shows the original option at index OptionOrder[i].</summary>
@@ -22,7 +27,22 @@ public sealed class SessionQuestion
 
     /// <summary>Points awarded for a correct, on-time answer; fixed when the session is created.</summary>
     public required int Points { get; init; }
+
+    /// <summary>
+    /// Set for plant-recognition questions, which are built when the session starts instead of being
+    /// stored as Question rows. Null for the ordinary book/knowledge questions.
+    /// </summary>
+    public SessionPlantQuestion? Plant { get; init; }
 }
+
+/// <summary>
+/// A plant-recognition question as it exists inside a session: the photograph shown and the four answer
+/// names already in display order. Held only in server memory; the catalogue rows are never changed.
+/// </summary>
+public sealed record SessionPlantQuestion(
+    int PlantId,
+    string ImageUrl,
+    IReadOnlyList<string> Options);
 
 /// <summary>
 /// In-memory state of one campaign quiz. Lives only in IMemoryCache for this MVP.

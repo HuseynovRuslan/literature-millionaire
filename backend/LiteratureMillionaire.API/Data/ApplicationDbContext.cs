@@ -15,6 +15,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
     public DbSet<QuizMode> QuizModes => Set<QuizMode>();
+    public DbSet<Plant> Plants => Set<Plant>();
+    public DbSet<PlantImage> PlantImages => Set<PlantImage>();
 
     // Schema-level ceiling for AttemptNumber, baked into the InitialPostgreSql migration's CHECK
     // constraint. Deliberately NOT QuizRules.MaxAttemptsPerCampaign: the product rule can be
@@ -105,6 +107,53 @@ public class ApplicationDbContext : DbContext
 
             entity.HasIndex(m => m.Slug).IsUnique();
             entity.HasIndex(m => m.DisplayOrder);
+        });
+
+        modelBuilder.Entity<Plant>(entity =>
+        {
+            entity.ToTable("Plants");
+            entity.HasKey(p => p.Id);
+
+            entity.Property(p => p.CatalogId).IsRequired().HasMaxLength(Plant.CatalogIdMaxLength).IsUnicode(false);
+            entity.Property(p => p.Name).IsRequired().HasMaxLength(Plant.NameMaxLength);
+            entity.Property(p => p.ScientificName).IsRequired().HasMaxLength(Plant.ScientificNameMaxLength);
+            entity.Property(p => p.BotanicalNote).HasMaxLength(Plant.BotanicalNoteMaxLength);
+            entity.Property(p => p.QuizStatus).IsRequired().HasConversion<int>();
+
+            // The import matches on CatalogId; the answer name must stay unique so two options can never
+            // show the same text.
+            entity.HasIndex(p => p.CatalogId).IsUnique();
+            entity.HasIndex(p => p.Name).IsUnique();
+            // Live-quiz lookup: only approved plants are ever drawn.
+            entity.HasIndex(p => p.QuizStatus);
+        });
+
+        modelBuilder.Entity<PlantImage>(entity =>
+        {
+            entity.ToTable("PlantImages");
+            entity.HasKey(i => i.Id);
+
+            entity.Property(i => i.FileName).IsRequired().HasMaxLength(PlantImage.FileNameMaxLength).IsUnicode(false);
+            entity.Property(i => i.ImageUrl).IsRequired().HasMaxLength(PlantImage.ImageUrlMaxLength);
+            entity.Property(i => i.IsPrimary).IsRequired();
+            entity.Property(i => i.DisplayOrder).IsRequired();
+            entity.Property(i => i.Source).IsRequired().HasMaxLength(PlantImage.SourceMaxLength);
+            entity.Property(i => i.SourceUrl).HasMaxLength(PlantImage.UrlMaxLength);
+            entity.Property(i => i.Author).HasMaxLength(PlantImage.AuthorMaxLength);
+            entity.Property(i => i.License).IsRequired().HasMaxLength(PlantImage.LicenseMaxLength);
+            entity.Property(i => i.LicenseUrl).HasMaxLength(PlantImage.UrlMaxLength);
+            entity.Property(i => i.SpecimenSpecies).HasMaxLength(PlantImage.SpecimenSpeciesMaxLength);
+            entity.Property(i => i.OriginalLabel).HasMaxLength(PlantImage.OriginalLabelMaxLength);
+
+            // Deleting a plant takes its photographs with it; the catalogue is one unit.
+            entity.HasOne(i => i.Plant)
+                .WithMany(p => p.Images)
+                .HasForeignKey(i => i.PlantId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // The import matches on FileName, so the same delivered file can never be stored twice.
+            entity.HasIndex(i => i.FileName).IsUnique();
+            entity.HasIndex(i => new { i.PlantId, i.DisplayOrder });
         });
 
         modelBuilder.Entity<Book>(entity =>
