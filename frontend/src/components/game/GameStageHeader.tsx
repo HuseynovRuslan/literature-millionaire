@@ -3,7 +3,7 @@ import { PRODUCT_NAME } from '../national/KioskBrand'
 import GameTimer from './GameTimer'
 
 /**
- * Compact game header: brand, "Sual N / 10" with a segmented progress bar, and the timer medallion.
+ * Compact game header: brand and category, "Sual N / 10" with a segmented progress bar, and the timer.
  * Progress comes from the server's questionNumber / totalQuestions; nothing about score or correctness.
  */
 export default function GameStageHeader({
@@ -32,27 +32,17 @@ export default function GameStageHeader({
   return (
     <header
       data-testid="game-header"
-      className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-[clamp(1.2rem,2.6vw,3.2rem)] [grid-template-areas:'brand_progress_timer'] max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-x-3 max-sm:gap-y-2 max-sm:[grid-template-areas:'brand_timer'_'progress_timer']"
+      className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-[clamp(1rem,2.4vw,3rem)] [grid-template-areas:'brand_progress_timer'] max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-x-3 max-sm:gap-y-2.5 max-sm:[grid-template-areas:'brand_timer'_'progress_timer']"
     >
       <div data-testid="kiosk-brand" className="flex min-w-0 items-center gap-[clamp(0.6rem,0.9vw,1rem)] [grid-area:brand]">
         <BrandMark size="sm" className="max-sm:min-w-0 max-sm:shrink" />
-        {/* Same single line as before the category label was added (Task 15B): the category name sits
-            inline after the product name and truncates on its own, so the header never grows taller. */}
-        <div className="flex min-w-0 items-baseline gap-x-[clamp(0.4rem,0.6vw,0.6rem)]">
-          <p
-            lang="az"
-            data-testid="product-name"
-            className="shrink-0 whitespace-nowrap font-display text-[clamp(1.3rem,1.7vw,2rem)] font-bold uppercase leading-none tracking-[0.07em] text-[#fbf6ec] max-sm:text-[1rem] max-sm:tracking-[0.05em]"
-          >
+        <div className="min-w-0 max-w-[18rem]">
+          <p lang="az" data-testid="product-name" className="whitespace-nowrap font-display text-[clamp(1rem,1.3vw,1.4rem)] font-extrabold uppercase leading-none tracking-tight max-sm:text-[0.9rem]">
             {PRODUCT_NAME}
           </p>
           {quizModeTitle && (
-            <p
-              lang="az"
-              data-testid="game-quiz-mode"
-              className="min-w-0 truncate text-[clamp(0.62rem,0.78vw,0.85rem)] font-semibold uppercase leading-none tracking-[0.06em] text-[var(--p-gold-light)] max-sm:text-[0.58rem]"
-            >
-              · {quizModeTitle}
+            <p lang="az" data-testid="game-quiz-mode" className="mt-1 truncate text-[clamp(0.72rem,0.85vw,0.9rem)] font-bold leading-none text-brand-soft max-sm:text-[0.66rem]">
+              {quizModeTitle}
             </p>
           )}
         </div>
@@ -65,9 +55,9 @@ export default function GameStageHeader({
           title={soundOn ? 'Səsi söndür' : 'Səsi aç'}
           data-testid="sound-toggle"
           data-sound={soundOn ? 'on' : 'off'}
-          className="tap ml-[clamp(0.4rem,0.8vw,0.9rem)] grid size-[clamp(2.1rem,2.8vw,2.8rem)] shrink-0 place-items-center rounded-full text-[#fbf6ec] ring-1 ring-[rgba(233,192,105,0.45)] max-sm:size-9"
+          className="icon-btn ml-[clamp(0.2rem,0.6vw,0.8rem)] size-[clamp(2.75rem,3.2vw,3.1rem)] shrink-0 max-sm:size-10"
         >
-          <svg viewBox="0 0 24 24" className="size-[58%]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg viewBox="0 0 24 24" className="size-[52%]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4a.5.5 0 0 1-.5-.5v-4a.5.5 0 0 1 .5-.5Z" />
             {soundOn ? <path d="M15.6 9a4.2 4.2 0 0 1 0 6M18.2 6.6a7.6 7.6 0 0 1 0 10.8" /> : <path d="m16 9.5 4.5 5M20.5 9.5 16 14.5" />}
           </svg>
@@ -75,9 +65,11 @@ export default function GameStageHeader({
       </div>
 
       <div className="min-w-0 [grid-area:progress]">
-        <p data-testid="question-counter" className="font-display text-[clamp(1.6rem,2.3vw,2.8rem)] font-bold leading-none text-[#fbf6ec] max-sm:text-[1.2rem]">
-          Sual {questionNumber} / {totalQuestions}
-        </p>
+        <div className="flex items-baseline justify-between gap-3">
+          <p data-testid="question-counter" className="font-display text-[clamp(1.3rem,2vw,2.3rem)] font-extrabold leading-none max-sm:text-[1.05rem]">
+            Sual {questionNumber} <span className="text-fg-3">/ {totalQuestions}</span>
+          </p>
+        </div>
         <div
           role="progressbar"
           aria-label={`Sual ${questionNumber} / ${totalQuestions}`}
@@ -85,14 +77,18 @@ export default function GameStageHeader({
           aria-valuemax={totalQuestions}
           aria-valuenow={questionNumber}
           data-testid="game-progress"
-          className="mt-[clamp(0.45rem,0.9vh,0.75rem)] flex gap-[clamp(0.25rem,0.4vw,0.45rem)] max-sm:mt-1.5 max-sm:gap-1"
+          className="mt-[clamp(0.5rem,1vh,0.8rem)] flex gap-[clamp(0.25rem,0.4vw,0.45rem)] max-sm:mt-1.5 max-sm:gap-1"
         >
           {Array.from({ length: totalQuestions }, (_, i) => (
             <span
               key={i}
               aria-hidden="true"
-              className={`h-[clamp(0.45rem,0.9vh,0.7rem)] flex-1 rounded-full max-sm:h-1.5 ${
-                i < questionNumber - 1 ? 'bg-[#cf9c3c]' : i === questionNumber - 1 ? 'bg-[#f3d77e] shadow-[0_0_0.6rem_rgba(243,215,126,0.7)]' : 'bg-white/15'
+              className={`h-[clamp(0.55rem,1vh,0.8rem)] flex-1 rounded-full transition-colors duration-300 max-sm:h-1.5 ${
+                i < questionNumber - 1
+                  ? 'bg-brand'
+                  : i === questionNumber - 1
+                    ? 'pill-fill bg-sun shadow-[0_0_0.8rem_rgba(255,201,61,0.7)]'
+                    : 'bg-white/12'
               }`}
             />
           ))}

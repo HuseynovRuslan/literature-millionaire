@@ -1,25 +1,67 @@
 @import "tailwindcss";
-@import "@fontsource/cormorant-garamond/600.css";
-@import "@fontsource/cormorant-garamond/700.css";
-@import "@fontsource/fira-sans/400.css";
-@import "@fontsource/fira-sans/500.css";
-@import "@fontsource/fira-sans/600.css";
+@import "@fontsource/unbounded/600.css";
+@import "@fontsource/unbounded/700.css";
+@import "@fontsource/unbounded/800.css";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/600.css";
+@import "@fontsource/manrope/700.css";
+@import "@fontsource/manrope/800.css";
 
-
+/* ============================================================================================
+   Kitabxana 2.0 — "Bilik Arenası" design system.
+   A night-time quiz arena: deep indigo room, a violet brand light, sunny gold for the one action and
+   the rewards, and four jewel-toned answer tiles that also carry a shape (triangle, diamond, circle,
+   square) so no answer is ever told apart by colour alone. Components use these tokens, not raw hex.
+   ============================================================================================ */
 @theme {
-  --font-display: "Cormorant Garamond", "Georgia", "Times New Roman", serif;
-  --font-sans: "Fira Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Unbounded", "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Manrope", "Segoe UI", system-ui, sans-serif;
 
-  --color-navy-900: #06122a;
-  --color-navy-800: #0b1d3f;
-  --color-navy-700: #14294f;
-  --color-navy-600: #1f3a6b;
-  --color-gold: #d4a83b;
-  --color-gold-light: #f3d77e;
-  --color-ivory: #fbf6ea;
-  --color-mist: #a8b7d1;
-  --color-ok: #2fb67a;
-  --color-bad: #e04e5e;
+  /* Surfaces, darkest to lightest. */
+  --color-ink-950: #0a0720;
+  --color-ink-900: #110c2c;
+  --color-ink-800: #191340;
+  --color-ink-700: #231b54;
+  --color-ink-600: #32296e;
+
+  /* Text on dark surfaces (all >= 4.5:1 on ink-900). */
+  --color-fg: #f7f5ff;
+  --color-fg-2: #cdc7ec;
+  --color-fg-3: #a39bcf;
+
+  /* Brand violet, reward gold, feedback. */
+  --color-brand: #7b61ff;
+  --color-brand-soft: #b3a3ff;
+  --color-sun: #ffc93d;
+  --color-sun-deep: #d99a00;
+  --color-ok: #3ddc97;
+  --color-bad: #ff7a8a;
+
+  /* Answer tiles: deep jewel tones, white text >= 4.5:1 on each. */
+  --color-opt-a: #c42f66;
+  --color-opt-b: #2c5fd8;
+  --color-opt-c: #a55f00;
+  --color-opt-d: #0b7a8a;
+
+  /* Legacy names kept for the admin screen. */
+  --color-navy-900: #0a0720;
+  --color-navy-800: #110c2c;
+  --color-navy-700: #231b54;
+  --color-navy-600: #32296e;
+  --color-gold: #ffc93d;
+  --color-gold-light: #ffe08a;
+  --color-ivory: #f7f5ff;
+  --color-mist: #a39bcf;
+
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 }
 
 html, body, #root {
@@ -28,14 +70,19 @@ html, body, #root {
 
 body {
   margin: 0;
-  background: var(--color-navy-900);
-  color: var(--color-ivory);
+  background: var(--color-ink-950);
+  color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }
 
-/* Kiosk: no accidental zoom, text selection, tap flashes or long-press menus. */
+.font-display {
+  font-variant-numeric: lining-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Kiosk behaviour ---------- */
 .kiosk {
   touch-action: manipulation;
   user-select: none;
@@ -45,12 +92,7 @@ body {
   overflow: hidden;
   height: 100dvh;
 }
-
-/* Information screens (home, registration, result, leaderboard, session expired) fill the window but
-   may outgrow it. Without this they are clipped at the viewport with no way to reach the rest: a
-   900x600 browser window cut the phone field and the submit button off the registration form
-   entirely. The game stage deliberately opts out - its timer and answers must never move, and it has
-   been measured to fit unscrolled down to 800x560. */
+/* Information screens may outgrow the window and scroll; the game screen never moves. */
 .kiosk.kiosk-scroll {
   height: auto;
   min-height: 100dvh;
@@ -58,291 +100,484 @@ body {
   overflow-y: visible;
 }
 
-/* Eight-pointed star tiling (two squares rotated 45deg), drawn in thin gold. */
-.ornament {
-  background-color: var(--color-navy-900);
+/* ---------- Arena background ----------
+   Soft violet and magenta light pools over a faint dot grid. Decorative shapes float slowly behind
+   the content (see ArenaBackdrop); everything here sits behind and never takes a pointer. */
+.arena {
+  position: relative;
+  isolation: isolate;
+  color: var(--color-fg);
+  background-color: var(--color-ink-950);
   background-image:
-    radial-gradient(ellipse at 50% 0%, rgba(31, 58, 107, 0.55), transparent 60%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><g fill='none' stroke='%23d4a83b' stroke-opacity='0.09' stroke-width='1'><rect x='40' y='40' width='80' height='80'/><rect x='40' y='40' width='80' height='80' transform='rotate(45 80 80)'/><circle cx='80' cy='80' r='5'/></g></svg>");
-  background-size: auto, 160px 160px;
+    radial-gradient(ellipse 60% 50% at 15% -5%, rgba(123, 97, 255, 0.34), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 100% 10%, rgba(196, 47, 102, 0.2), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 110%, rgba(44, 95, 216, 0.22), transparent 70%),
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1px, transparent 0);
+  background-size: auto, auto, auto, 28px 28px;
 }
 
-/* Cormorant defaults to old-style figures; the kiosk needs lining numerals ("1 / 15", ladder). */
-.font-display {
-  font-variant-numeric: lining-nums;
+.arena-shape {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.1;
+  animation: float 16s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -18px, 0) rotate(8deg); }
 }
 
-/* Big touch buttons: no hover dependency, obvious pressed state. */
-.tap {
-  transition: transform 120ms ease, background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+/* ---------- Surfaces ---------- */
+.card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(40, 31, 92, 0.72) 0%, rgba(22, 16, 56, 0.78) 100%);
+  border: 1px solid rgba(179, 163, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1.5rem 3rem -1.5rem rgba(4, 2, 18, 0.8);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
-.tap:active:not(:disabled) {
-  transform: scale(0.97);
+.card-glow::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(123, 97, 255, 0.9), rgba(196, 47, 102, 0.5) 45%, rgba(255, 201, 61, 0.6));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
-.tap:focus-visible {
-  outline: 3px solid var(--color-gold-light);
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(179, 163, 255, 0.18);
+  color: var(--color-fg-2);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Gradient text for the big titles; plain light text where clipping is unsupported. */
+.text-gradient {
+  color: var(--color-fg);
+  background: linear-gradient(95deg, #ffffff 0%, #d9d0ff 45%, #ffd978 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ---------- Buttons ----------
+   Chunky game buttons: a solid face and a darker "edge" underneath that compresses on press. */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  border-radius: 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-out-soft), box-shadow 120ms var(--ease-out-soft), filter 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+.btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.btn:focus-visible {
+  outline: 3px solid var(--color-brand-soft);
   outline-offset: 4px;
 }
 
-@keyframes rise {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+.btn-primary {
+  color: #231500;
+  background: linear-gradient(180deg, #ffe07a 0%, var(--color-sun) 55%, #f5b820 100%);
+  box-shadow: 0 6px 0 var(--color-sun-deep), 0 14px 28px -8px rgba(255, 201, 61, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
-.rise { animation: rise 320ms ease-out both; }
+.btn-primary:active:not(:disabled) {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 var(--color-sun-deep), 0 6px 14px -6px rgba(255, 201, 61, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.btn-secondary {
+  color: var(--color-fg);
+  background: linear-gradient(180deg, #2c2366 0%, #221a52 100%);
+  border: 1px solid rgba(179, 163, 255, 0.28);
+  box-shadow: 0 6px 0 #140e36, 0 14px 26px -12px rgba(4, 2, 18, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 #140e36, 0 6px 12px -8px rgba(4, 2, 18, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+@media (hover: hover) {
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.05) saturate(1.05); }
+  .btn-secondary:hover:not(:disabled) { border-color: rgba(179, 163, 255, 0.55); background: linear-gradient(180deg, #342a75 0%, #281f5e 100%); }
+}
+
+/* Small round icon button (sound toggle). */
+.icon-btn {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--color-fg);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(179, 163, 255, 0.24);
+  transition: background-color 160ms ease, transform 120ms ease;
+}
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn:focus-visible { outline: 3px solid var(--color-brand-soft); outline-offset: 3px; }
+@media (hover: hover) { .icon-btn:hover { background: rgba(255, 255, 255, 0.12); } }
+
+/* ---------- Form fields ---------- */
+.field {
+  color: var(--color-fg);
+  background: rgba(10, 7, 32, 0.55);
+  border: 2px solid rgba(179, 163, 255, 0.22);
+  caret-color: var(--color-sun);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+.field::placeholder { color: #8a82b8; opacity: 1; }
+.field:focus {
+  outline: none;
+  border-color: var(--color-brand-soft);
+  background: rgba(10, 7, 32, 0.75);
+  box-shadow: 0 0 0 4px rgba(123, 97, 255, 0.32);
+}
+.field[aria-invalid="true"] {
+  border-color: var(--color-bad);
+  box-shadow: 0 0 0 4px rgba(255, 122, 138, 0.18);
+}
+.field:-webkit-autofill,
+.field:-webkit-autofill:hover,
+.field:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-fg);
+  -webkit-box-shadow: 0 0 0 1000px #15103a inset;
+  transition: background-color 9999s ease-out 0s;
+}
+
+/* ---------- Game: question card ----------
+   A bright card on the dark arena: the question is the most important text of the whole product. */
+.q-card {
+  position: relative;
+  color: #1b1440;
+  background: linear-gradient(180deg, #ffffff 0%, #f1eeff 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.6),
+    0 10px 0 rgba(123, 97, 255, 0.45),
+    0 2rem 3.5rem -1.2rem rgba(4, 2, 18, 0.85);
+}
+
+/* ---------- Game: answer tiles ----------
+   Solid jewel tile with a darker edge; a shape badge on the left. The colour belongs to the letter slot,
+   which the server shuffles per session, so it says nothing about correctness. */
+.answer {
+  --opt: var(--color-opt-a);
+  position: relative;
+  color: #ffffff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--opt) 88%, #ffffff 12%) 0%, var(--opt) 100%);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--opt) 60%, #000000 40%), 0 16px 28px -14px rgba(4, 2, 18, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 140ms var(--ease-out-soft), box-shadow 140ms var(--ease-out-soft), opacity 220ms ease, filter 220ms ease;
+}
+.answer:active:not(:disabled) {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--opt) 60%, #000000 40%), 0 6px 14px -8px rgba(4, 2, 18, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+@media (hover: hover) {
+  .answer:hover:not(:disabled) { filter: brightness(1.08); }
+}
+.answer:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+.answer-shape {
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+/* Locked in: lifted, ringed in white, a lock chip; the other three step back. */
+.answer[data-visual="selected"] {
+  transform: translateY(-3px) scale(1.015);
+  box-shadow: 0 0 0 4px #ffffff, 0 0 0 8px rgba(255, 255, 255, 0.22), 0 9px 0 color-mix(in srgb, var(--opt) 60%, #000000 40%), 0 22px 40px -10px rgba(4, 2, 18, 0.9);
+  animation: lock-in 420ms var(--ease-out-back);
+}
+@keyframes lock-in {
+  0% { transform: translateY(0) scale(1); }
+  60% { transform: translateY(-5px) scale(1.035); }
+  100% { transform: translateY(-3px) scale(1.015); }
+}
+.answer[data-visual="dimmed"] {
+  opacity: 0.38;
+  filter: saturate(0.4);
+}
+
+/* ---------- Game: timer & progress ---------- */
+.timer-urgent {
+  animation: timer-beat 1s ease-in-out infinite;
+}
+@keyframes timer-beat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* ---------- Result: confetti ---------- */
+.confetti {
+  position: absolute;
+  top: -12px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  animation: confetti-fall 3.2s var(--ease-out-soft) forwards;
+}
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg); }
+  100% { opacity: 0; transform: translate3d(var(--dx, 0px), 560px, 0) rotate(540deg); }
+}
+
+/* ---------- Motion ----------
+   Entrance classes only hold their start frame before they run (fill-mode: backwards), so once finished
+   they no longer override hover lifts, dimmed answers or any other state styling. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.rise { animation: rise 480ms var(--ease-out-soft) backwards; }
+
+@keyframes pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  70% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.pop { animation: pop 560ms var(--ease-out-back) backwards; }
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.slide-in-right { animation: slide-in-right 460ms var(--ease-out-soft) backwards; }
+
+@keyframes grow-up {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+.grow-up { transform-origin: bottom; animation: grow-up 700ms var(--ease-out-back) backwards; }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.bob { animation: bob 4.5s ease-in-out infinite; }
+
+@keyframes bounce-in {
+  0% { opacity: 0; transform: translateY(-40px) scale(0.6); }
+  60% { opacity: 1; transform: translateY(6px) scale(1.1); }
+  80% { transform: translateY(-3px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.bounce-in { animation: bounce-in 800ms var(--ease-out-soft) backwards; }
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 201, 61, 0); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 201, 61, 0.14), 0 0 2rem rgba(255, 201, 61, 0.25); }
+}
+.glow-pulse { animation: glow-pulse 2.6s ease-in-out infinite; }
+
+/* Slow shimmer across gradient titles. */
+@keyframes shimmer {
+  from { background-position: 0% 50%; }
+  to { background-position: 200% 50%; }
+}
+.text-gradient.shimmer {
+  background-image: linear-gradient(95deg, #ffffff 0%, #d9d0ff 25%, #ffd978 50%, #d9d0ff 75%, #ffffff 100%);
+  background-size: 200% 100%;
+  animation: shimmer 6s linear infinite;
+}
+
+/* A light sweep crossing the primary button every few seconds. */
+.btn-primary { overflow: hidden; isolation: isolate; }
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  z-index: -1;
+  width: 40%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  transform: skewX(-20deg);
+  animation: btn-sweep 4.2s ease-in-out 1s infinite;
+}
+.btn-primary:disabled::after { animation: none; display: none; }
+@keyframes btn-sweep {
+  0%, 65% { left: -60%; }
+  100% { left: 140%; }
+}
+
+/* Category cards lift on hover (pointer devices) and their icon gives a little wiggle. */
+@media (hover: hover) {
+  .card-lift { transition: transform 240ms var(--ease-out-soft), box-shadow 240ms var(--ease-out-soft); }
+  .card-lift:hover { transform: translateY(-6px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2.4rem 3.6rem -1.6rem rgba(4, 2, 18, 0.9); }
+  .card-lift:hover .wiggle { animation: wiggle 600ms ease-in-out; }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg) scale(1.08); }
+  60% { transform: rotate(8deg) scale(1.08); }
+}
+
+/* Drifting light pools behind every screen. */
+.arena::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(123, 97, 255, 0.18), transparent 35%),
+    radial-gradient(circle at 70% 60%, rgba(196, 47, 102, 0.12), transparent 35%);
+  animation: drift 22s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  from { transform: translate3d(-4%, -2%, 0) rotate(0deg); }
+  to { transform: translate3d(4%, 3%, 0) rotate(12deg); }
+}
+
+/* ---------- Game: question transitions ----------
+   In: a "Sual N" splash bursts in the middle, the card swings up, the answers deal in one by one.
+   Out: once the answer is recorded the card lifts away and the tiles drop before the next question. */
+.q-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.q-splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  border-radius: 2rem;
+  padding: 0.5em 1.1em;
+  color: #ffffff;
+  background: linear-gradient(135deg, #8f78ff, #5a3fe0);
+  box-shadow: 0 10px 0 #3a26a8, 0 2rem 4rem -1rem rgba(4, 2, 18, 0.9);
+  animation: q-splash 650ms var(--ease-out-soft) forwards;
+}
+@keyframes q-splash {
+  0% { opacity: 0; transform: scale(0.3) rotate(-8deg); }
+  28% { opacity: 1; transform: scale(1.08) rotate(2deg); }
+  40% { transform: scale(1) rotate(0deg); }
+  72% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.35); visibility: hidden; }
+}
+
+@keyframes q-card-in {
+  from { opacity: 0; transform: perspective(1200px) translateY(40px) rotateX(18deg) scale(0.94); }
+  to { opacity: 1; transform: perspective(1200px) translateY(0) rotateX(0) scale(1); }
+}
+.q-card-enter { animation: q-card-in 440ms var(--ease-out-soft) 100ms backwards; }
+
+@keyframes q-content-in {
+  from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.q-content-enter { animation: q-content-in 380ms var(--ease-out-soft) 220ms backwards; }
+
+@keyframes answer-in {
+  from { opacity: 0; transform: translateY(36px) scale(0.86); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.answer {
+  animation: answer-in 380ms var(--ease-out-back) backwards;
+  animation-delay: calc(200ms + var(--i, 0) * 50ms);
+}
+
+@keyframes q-card-out {
+  to { opacity: 0; transform: perspective(1200px) translateY(-40px) rotateX(-14deg) scale(0.94); }
+}
+@keyframes answer-out {
+  to { opacity: 0; transform: translateY(40px) scale(0.9); }
+}
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+.q-stage[data-leaving="true"] .q-card { animation: q-card-out 360ms var(--ease-out-soft) forwards; }
+.q-stage[data-leaving="true"] .answer { animation: answer-out 300ms ease-in forwards; animation-delay: calc(var(--i, 0) * 25ms); }
+.q-stage[data-leaving="true"] [data-testid="game-status"] { animation: fade-out 300ms ease forwards; }
+
+/* Current progress pill fills in; the countdown number ticks each second. */
+@keyframes pill-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.pill-fill { transform-origin: left; animation: pill-fill 700ms var(--ease-out-soft) 200ms backwards; }
+
+@keyframes tick {
+  0% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.tick { display: inline-block; animation: tick 300ms var(--ease-out-soft); }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px) rotate(-2deg); }
+  40% { transform: translateX(3px) rotate(2deg); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+.timer-urgent .tick { animation: tick 300ms var(--ease-out-soft), shake 400ms ease-in-out; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 900ms linear infinite; }
 
-@media (prefers-reduced-motion: reduce) {
-  .rise, .spin { animation: none; }
-  .tap { transition: none; }
-}
-
-/* ---------- Paper theme: national look for the "Ayın kitabı" home screen only. ----------
-   Scoped to .paper so the dark game screens (.ornament) are untouched. Gold is used for
-   borders and ornaments, never for text on paper (contrast). */
-.paper {
-  --p-paper: #fbf6ec;
-  --p-paper-2: #f4ecdd;
-  --p-line: #e3d5bb;
-  --p-ink: #2a1c14;
-  --p-ink-2: #6a594a;
-  --p-burgundy: #7d161d;
-  --p-burgundy-dark: #5c0e18;
-  --p-indigo: #16294f;
-  --p-gold: #cf9c3c;
-  --p-gold-light: #e9c069;
-  --p-teal: #1ea79c;
-  --p-shadow: 0 0.6rem 1.4rem rgba(88, 62, 30, 0.12), 0 0.15rem 0.4rem rgba(88, 62, 30, 0.08);
-  --frame: clamp(18px, 2.3vh, 30px);
-
-  position: relative;
-  color: var(--p-ink);
-  background-color: var(--p-paper);
-  /* Layer order matters: the transparent lattice texture must sit ABOVE the opaque paper
-     gradient, otherwise the gradient hides it. Kept faint so text contrast is unaffected. */
-  background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='230' height='230' viewBox='0 0 230 230'><g fill='none' stroke='%237d161d' stroke-opacity='0.07' stroke-width='2'><path d='M115 74 L156 115 L115 156 L74 115 Z'/><path d='M115 96 L134 115 L115 134 L96 115 Z'/></g><g fill='%231ea79c' fill-opacity='0.08'><path d='M10 10 L18 18 L10 26 L2 18 Z'/><path d='M225 10 L233 18 L225 26 L217 18 Z'/><path d='M10 225 L18 233 L10 241 L2 233 Z'/><path d='M225 225 L233 233 L225 241 L217 233 Z'/></g><g fill='%23cf9c3c' fill-opacity='0.10'><path d='M115 8 L122 15 L115 22 L108 15 Z'/><path d='M8 115 L15 122 L8 129 L1 122 Z'/><path d='M222 115 L229 122 L222 129 L215 122 Z'/><path d='M115 222 L122 229 L115 236 L108 229 Z'/></g></svg>"),
-    linear-gradient(160deg, #fffdf9 0%, #fbf6ec 55%, #f4ecdd 100%);
-  background-size: 230px 230px, auto;
-}
-
-.paper .tap:focus-visible {
-  outline-color: var(--p-burgundy);
-}
-
-/* Primary action on paper: burgundy pill with a gold edge, pressed state via .tap. */
-.paper-cta {
-  color: var(--p-paper);
-  background: linear-gradient(180deg, #b83840, var(--p-burgundy) 70%, var(--p-burgundy-dark));
-  border: 2px solid var(--p-gold-light);
-  box-shadow: 0 0.35rem 0 var(--p-burgundy-dark), 0 0.9rem 1.8rem rgba(92, 14, 24, 0.25);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-.paper-cta:active:not(:disabled) {
-  box-shadow: 0 0.1rem 0 var(--p-burgundy-dark), 0 0.4rem 0.8rem rgba(92, 14, 24, 0.22);
-}
-.paper-cta:disabled {
-  opacity: 0.7;
-}
-
-.paper-ghost {
-  color: var(--p-burgundy);
-  background: #ffffff;
-  border: 2px solid var(--p-gold-light);
-  box-shadow: var(--p-shadow);
-}
-
-/* ---------- Phones (portrait, narrower than Tailwind's sm breakpoint, 640px). ----------
-   Everything below only applies under 640px, so the kiosk/desktop layouts are untouched.
-   Safe-area insets are exposed as variables (0 on devices without notches) for max-sm: paddings. */
-:root {
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-}
-@media (max-width: 639.98px) {
-  .paper {
-    --frame: 10px;
-  }
-}
-
-/* ---------- Home page "game show" stage (Task 14A). Only used by HomePage. ----------
-   A deep indigo broadcast panel on the warm paper page: gold is kept to the frame and accents,
-   the eight-pointed star lattice stays a faint background texture behind the content. */
-.home-stage {
-  position: relative;
-  isolation: isolate;
-  color: #fbf6ec;
-  background-color: #13274d;
-  background-image:
-    radial-gradient(ellipse 60% 85% at 18% 20%, rgba(74, 118, 196, 0.42), transparent 65%),
-    radial-gradient(ellipse 55% 70% at 92% 105%, rgba(125, 22, 29, 0.38), transparent 62%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><g fill='none' stroke='%23e9c069' stroke-opacity='0.075' stroke-width='1.2'><rect x='50' y='50' width='80' height='80'/><rect x='50' y='50' width='80' height='80' transform='rotate(45 90 90)'/><circle cx='90' cy='90' r='6'/></g></svg>"),
-    linear-gradient(155deg, #1d3768 0%, #12264b 55%, #0b1936 100%);
-  background-size: auto, auto, 180px 180px, auto;
-  box-shadow: inset 0 0 0 2px rgba(233, 192, 105, 0.55), 0 1.6rem 3.2rem -1.2rem rgba(11, 25, 54, 0.5);
-}
-
-/* Thin inner gold rule, like a broadcast frame. */
-.home-stage::after {
-  content: "";
-  position: absolute;
-  inset: 10px;
-  z-index: -1;
-  border: 1px solid rgba(233, 192, 105, 0.22);
-  border-radius: calc(clamp(1.2rem, 1.6vw, 2rem) - 8px);
-  pointer-events: none;
-}
-
-@media (max-width: 639.98px) {
-  /* Phones: simpler background (no lattice), tighter inner rule. */
-  .home-stage {
-    background-image:
-      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(74, 118, 196, 0.4), transparent 70%),
-      linear-gradient(160deg, #1d3768 0%, #12264b 60%, #0b1936 100%);
-    background-size: auto, auto;
-  }
-  .home-stage::after {
-    inset: 6px;
-    border-radius: 0.9rem;
-  }
-}
-
-/* ---------- Game-show form inputs (Task 14B, registration). ----------
-   Light fields on the indigo stage: clear gold focus ring, a distinct invalid state (also marked with
-   aria-invalid and an icon + message under the field), and browser autofill kept in the same colours. */
-.gs-input {
-  color: #2a1c14;
-  background-color: #fffdf8;
-  border-color: rgba(233, 192, 105, 0.9);
-  caret-color: #7d161d;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
-}
-.gs-input::placeholder {
-  color: #8a7a6a;
-  opacity: 1;
-}
-.gs-input:focus {
-  outline: none;
-  border-color: #f3d77e;
-  box-shadow: 0 0 0 4px rgba(243, 215, 126, 0.6);
-}
-.gs-input[aria-invalid="true"] {
-  border-color: #ff9aa2;
-  box-shadow: 0 0 0 3px rgba(255, 154, 162, 0.35);
-}
-.gs-input[aria-invalid="true"]:focus {
-  box-shadow: 0 0 0 4px rgba(255, 154, 162, 0.6);
-}
-.gs-input:-webkit-autofill,
-.gs-input:-webkit-autofill:hover,
-.gs-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #2a1c14;
-  -webkit-box-shadow: 0 0 0 1000px #fffdf8 inset;
-  transition: background-color 9999s ease-out 0s;
-}
-@media (prefers-reduced-motion: reduce) {
-  .gs-input {
-    transition: none;
-  }
-}
-
-/* ---------- Game stage (Task 14C). Only used by GamePage. ----------
-   Dark indigo broadcast stage with a faint star lattice and a thin gold frame; the question sits on a
-   high-contrast paper card; answers are dark tiles told apart by brand accents (never green/red). */
-.game-stage {
-  position: relative;
-  color: #fbf6ec;
-  background-color: #0d1d3f;
-  background-image:
-    radial-gradient(ellipse 75% 45% at 50% -5%, rgba(64, 108, 186, 0.38), transparent 70%),
-    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(125, 22, 29, 0.28), transparent 70%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><g fill='none' stroke='%23e9c069' stroke-opacity='0.055' stroke-width='1.2'><rect x='50' y='50' width='80' height='80'/><rect x='50' y='50' width='80' height='80' transform='rotate(45 90 90)'/><circle cx='90' cy='90' r='6'/></g></svg>"),
-    linear-gradient(180deg, #142b57 0%, #0e1f44 55%, #0a1834 100%);
-  background-size: auto, auto, 180px 180px, auto;
-}
-
-.game-stage::before {
-  content: "";
-  position: absolute;
-  inset: clamp(5px, 0.5vw, 10px);
-  z-index: 0;
-  border: 1px solid rgba(233, 192, 105, 0.4);
-  border-radius: clamp(10px, 0.9vw, 16px);
-  pointer-events: none;
-}
-
-.gs-question-card {
-  color: #2a1c14;
-  background: linear-gradient(180deg, #fffdf8 0%, #f8f1e3 100%);
-  border-radius: clamp(1rem, 1.3vw, 1.75rem);
-  box-shadow:
-    inset 0 0 0 2px #d4a83b,
-    inset 0 0 0 7px #fffdf8,
-    inset 0 0 0 8px rgba(212, 168, 59, 0.45),
-    0 1.2rem 2.6rem -1rem rgba(0, 0, 0, 0.55);
-}
-
-.gs-answer {
-  --accent: #b8323c;
-  color: #fbf6ec;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035));
-  border: 2px solid color-mix(in srgb, var(--accent) 70%, rgba(255, 255, 255, 0.2));
-  box-shadow: inset 0.4rem 0 0 var(--accent), 0 0.6rem 1.2rem -0.6rem rgba(0, 0, 0, 0.5);
-  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, opacity 160ms ease;
-}
-.gs-answer-badge {
-  background: var(--accent);
-  box-shadow: 0 0 0 2px rgba(251, 246, 236, 0.85), 0 0 0 4px var(--accent);
-}
-/* Chosen answer: neutral gold outline and glow, identical for every letter. */
-.gs-answer[data-visual="selected"] {
-  border-color: #f3d77e;
-  background: linear-gradient(180deg, rgba(243, 215, 126, 0.22), rgba(243, 215, 126, 0.08));
-  box-shadow: inset 0.4rem 0 0 var(--accent), 0 0 0 3px rgba(243, 215, 126, 0.55), 0 0 1.8rem rgba(243, 215, 126, 0.4);
-}
-.gs-answer[data-visual="dimmed"] {
-  opacity: 0.5;
-}
-.gs-answer:focus-visible {
-  outline: 3px solid #f3d77e;
-  outline-offset: 3px;
-}
-
-/* Last seconds: a gentle beat, only while time is left. */
-.gs-timer-urgent {
-  animation: gs-timer-beat 1s ease-in-out infinite;
-}
-@keyframes gs-timer-beat {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-}
+/* Legacy press feedback used by the admin screen. */
+.tap { transition: transform 120ms ease; }
+.tap:active:not(:disabled) { transform: scale(0.97); }
+.tap:focus-visible { outline: 3px solid var(--color-brand-soft); outline-offset: 4px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .gs-timer-urgent { animation: none; }
-  .gs-answer { transition: none; }
+  .rise, .pop, .spin, .arena-shape, .timer-urgent, .answer, .answer[data-visual="selected"], .slide-in-right, .grow-up, .bob,
+  .bounce-in, .glow-pulse, .text-gradient.shimmer, .q-card-enter, .q-content-enter, .pill-fill, .tick, .arena::before,
+  .btn-primary::after, .q-stage[data-leaving="true"] .q-card, .q-stage[data-leaving="true"] .answer,
+  .q-stage[data-leaving="true"] [data-testid="game-status"] { animation: none; }
+  .confetti, .q-splash, .btn-primary::after { display: none; }
+  .btn, .answer, .field, .icon-btn, .tap, .card-lift { transition: none; }
 }
 
+/* ---------- Phones ---------- */
 @media (max-width: 639.98px) {
-  .game-stage {
-    background-image:
-      radial-gradient(ellipse 90% 40% at 50% -5%, rgba(64, 108, 186, 0.35), transparent 70%),
-      linear-gradient(180deg, #142b57 0%, #0e1f44 55%, #0a1834 100%);
-    background-size: auto, auto;
+  .card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(180deg, rgba(40, 31, 92, 0.92) 0%, rgba(22, 16, 56, 0.95) 100%);
   }
-  .game-stage::before {
-    inset: 4px;
-    border-radius: 10px;
-  }
-  .gs-answer {
-    box-shadow: inset 0 0.25rem 0 var(--accent), 0 0.4rem 0.8rem -0.5rem rgba(0, 0, 0, 0.5);
-  }
-  .gs-answer[data-visual="selected"] {
-    box-shadow: inset 0 0.25rem 0 var(--accent), 0 0 0 3px rgba(243, 215, 126, 0.55), 0 0 1.2rem rgba(243, 215, 126, 0.4);
-  }
-  .gs-answer-badge {
-    box-shadow: 0 0 0 1.5px rgba(251, 246, 236, 0.85);
-  }
+  .btn { border-radius: 0.95rem; }
+  .btn-primary, .btn-secondary, .answer { box-shadow: 0 4px 0 var(--edge, rgba(0, 0, 0, 0.35)), 0 10px 18px -10px rgba(4, 2, 18, 0.9); }
+  .btn-primary { --edge: var(--color-sun-deep); }
+  .btn-secondary { --edge: #140e36; }
+  .answer { --edge: color-mix(in srgb, var(--opt) 60%, #000000 40%); }
+  .q-card { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6), 0 6px 0 rgba(123, 97, 255, 0.45), 0 1rem 2rem -1rem rgba(4, 2, 18, 0.85); }
+  .answer[data-visual="selected"] { box-shadow: 0 0 0 3px #ffffff, 0 5px 0 color-mix(in srgb, var(--opt) 60%, #000000 40%); }
 }
+
+/* A field that fails validation gives a short shake so the eye goes straight to it. */
+.field[aria-invalid="true"] { animation: shake 420ms ease-in-out; }
+@media (prefers-reduced-motion: reduce) { .field[aria-invalid="true"] { animation: none; } }
+
+.spin-slow { animation: spin 18s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .spin-slow { animation: none; } }
