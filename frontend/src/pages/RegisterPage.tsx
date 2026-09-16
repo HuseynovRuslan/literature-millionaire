@@ -6,6 +6,8 @@ import { ArrowLeftIcon, CheckIcon, ClockIcon, ListIcon, PhoneIcon, PlayIcon, Rew
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import { Octagram } from '../components/arena/NationalMotifs'
 import GameShowShell from '../components/home/GameShowShell'
+import QrCode from '../components/QrCode'
+import { useQrLogin } from '../hooks/useQrLogin'
 import { useGame } from '../game/GameContext'
 import type { CampaignSummary } from '../types/campaign'
 import { formatDateRange } from '../utils/date'
@@ -100,6 +102,99 @@ type CampaignLookup = { kind: 'loading' } | { kind: 'found'; campaign: CampaignS
  * with the start request; nothing is written to sessionStorage. campaignId is only a selection
  * identifier - every quiz rule (passing score, image count, book) still comes from the backend.
  */
+/**
+ * "QRLog ilə davam et": most of our colleagues are already registered in QRLog, so rather than typing
+ * their name and phone at the kiosk they scan this with the QRLog app they already carry.
+ *
+ * Only the code is in the QR. The browser keeps a separate secret and polls with that, so the QR being
+ * visible to the room gives nothing away - see the backend's IQrLoginService.
+ */
+function QrLoginPanel({ state, onStart, onCancel }: {
+  state: ReturnType<typeof useQrLogin>['state']
+  onStart: () => void
+  onCancel: () => void
+}) {
+  if (state.kind === 'idle' || state.kind === 'confirmed') {
+    return (
+      <button
+        type="button"
+        onClick={onStart}
+        className={`${SECONDARY_CTA} w-full gap-3`}
+        data-testid="qrlog-start"
+      >
+        <QrGlyph className="size-6 shrink-0 max-sm:size-5" />
+        QRLog ilə davam et
+      </button>
+    )
+  }
+
+  return (
+    <div
+      className="rounded-2xl bg-white/[0.05] p-4 ring-1 ring-white/10 max-sm:p-3"
+      data-testid="qrlog-panel"
+      aria-live="polite"
+    >
+      {state.kind === 'starting' && (
+        <p className="py-6 text-center font-semibold text-fg-2">QR kod hazırlanır…</p>
+      )}
+
+      {state.kind === 'waiting' && (
+        <div className="flex items-center gap-4 max-sm:flex-col max-sm:text-center">
+          <QrCode
+            value={state.qrValue}
+            title="QRLog tətbiqi ilə oxutmaq üçün QR kod"
+            className="size-[clamp(7rem,11vw,9.5rem)] shrink-0 rounded-xl bg-white p-1.5 max-sm:size-36"
+          />
+          <div className="min-w-0">
+            <p lang="az" className="font-display text-[clamp(1rem,1.25vw,1.2rem)] font-bold">
+              QRLog tətbiqi ilə oxudun
+            </p>
+            <p lang="az" className="mt-1 text-[clamp(0.85rem,1vw,0.95rem)] font-medium text-fg-2">
+              Telefonunuzda QRLog tətbiqini açın və bu kodu skan edin. Adınız və nömrəniz avtomatik dolacaq.
+            </p>
+            <p className="mt-2 text-[clamp(0.8rem,0.9vw,0.88rem)] font-bold tabular-nums text-fg-3" data-testid="qrlog-countdown">
+              Kodun vaxtı: {state.secondsLeft} saniyə
+            </p>
+            <button type="button" onClick={onCancel} className="tap mt-2 text-[clamp(0.85rem,1vw,0.95rem)] font-bold text-brand-soft underline underline-offset-4" data-testid="qrlog-cancel">
+              Ləğv et və əl ilə yazım
+            </button>
+          </div>
+        </div>
+      )}
+
+      {(state.kind === 'expired' || state.kind === 'error') && (
+        <div className="text-center" role="alert">
+          <p lang="az" className="font-semibold text-fg-2">
+            {state.kind === 'expired'
+              ? 'QR kodun vaxtı bitdi.'
+              : 'QRLog ilə əlaqə alınmadı. Məlumatlarınızı əl ilə yaza bilərsiniz.'}
+          </p>
+          <div className="mt-3 flex items-center justify-center gap-3 max-sm:flex-col">
+            <button type="button" onClick={onStart} className={`${SECONDARY_CTA} min-h-[3.25rem]! px-6`} data-testid="qrlog-retry">
+              Yeni QR kod
+            </button>
+            <button type="button" onClick={onCancel} className="tap font-bold text-brand-soft underline underline-offset-4" data-testid="qrlog-dismiss">
+              Əl ilə yazım
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Minimal QR glyph for the button; the real code is drawn by QrCode. */
+function QrGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <path d="M14 14h3v3h-3zM19.5 14v0M14 19.5v0M19.5 19.5v0" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export default function RegisterPage() {
   const navigate = useNavigate()
   const { campaignId: routeCampaignId } = useParams()
@@ -109,7 +204,17 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>(NO_ERRORS)
+  const [signedInAs, setSignedInAs] = useState<string | null>(null)
   const [lookup, setLookup] = useState<CampaignLookup>({ kind: 'loading' })
+
+  // A confirmed QRLog sign-in fills the form rather than submitting it: on a shared kiosk the player
+  // should see whose name landed there before the quiz starts under it.
+  const qrLogin = useQrLogin(({ fullName: name, phoneNumber }) => {
+    setFullName(name)
+    setPhone(phoneNumber)
+    setFieldErrors(NO_ERRORS)
+    setSignedInAs(name)
+  })
   const nameRef = useRef<HTMLInputElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
   // One start per registration. The context only ignores taps while a request is in flight; once it
@@ -276,6 +381,24 @@ export default function RegisterPage() {
                 Məlumatlarınızı daxil edin və bilik yarışına başlayın.
               </p>
             </div>
+
+            <QrLoginPanel
+              state={qrLogin.state}
+              onStart={() => { setSignedInAs(null); void qrLogin.begin() }}
+              onCancel={() => { qrLogin.cancel(); nameRef.current?.focus() }}
+            />
+
+            {signedInAs && (
+              <p
+                lang="az"
+                data-testid="qrlog-signed-in"
+                className="flex items-center gap-2.5 rounded-2xl bg-ok/12 px-3.5 py-2.5 text-[clamp(0.9rem,1.05vw,1rem)] font-bold text-ok ring-1 ring-ok/35"
+              >
+                <CheckIcon className="size-5 shrink-0" />
+                QRLog: {signedInAs}. Məlumatlar dolduruldu — yoxlayın və başlayın.
+              </p>
+            )}
+
             <Field
               id="register-full-name"
               label="Ad və soyad"

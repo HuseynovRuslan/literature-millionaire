@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -180,13 +181,16 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
 {
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
     private readonly bool _failPositionLookup;
+    private readonly string? _qrLogSecret;
 
     /// <summary>Every log line written by the API during the test (for PII checks).</summary>
     public ConcurrentQueue<string> Logs { get; } = new();
 
-    public LeaderboardApiFactory(bool failPositionLookup = false)
+    /// <param name="qrLogSecret">The secret QRLog signs sign-in confirmations with; null leaves it unconfigured.</param>
+    public LeaderboardApiFactory(bool failPositionLookup = false, string? qrLogSecret = null)
     {
         _failPositionLookup = failPositionLookup;
+        _qrLogSecret = qrLogSecret;
         _connection.Open();
         _connection.CreateFunction<string, int>("LEN", value => value?.Length ?? 0);
     }
@@ -195,6 +199,11 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     {
         builder.UseEnvironment("Testing");
         builder.ConfigureLogging(logging => logging.AddProvider(new CapturingLoggerProvider(Logs)));
+        if (_qrLogSecret is not null)
+        {
+            builder.ConfigureAppConfiguration(config => config.AddInMemoryCollection(
+                new Dictionary<string, string?> { ["QrLog:VouchSecret"] = _qrLogSecret }));
+        }
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<ApplicationDbContext>();

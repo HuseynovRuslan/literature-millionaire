@@ -89,6 +89,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__DefaultConnection: >-
         Host=db;Port=5432;Database=${APP_DB_NAME:?APP_DB_NAME must be set in deploy/.env};Username=${APP_DB_USER:?APP_DB_USER must be set in deploy/.env};Password=${APP_DB_PASSWORD:?APP_DB_PASSWORD must be set in deploy/.env}
+      # Shared with QRLog, which signs "QRLog ilə davam et" confirmations with it. Optional: left
+      # empty, the button is still shown but every confirmation is refused, so set it before
+      # announcing the feature. Must be the same value on both sides.
+      QrLog__VouchSecret: ${QRLOG_VOUCH_SECRET:-}
     depends_on:
       migrate:
         condition: service_completed_successfully

@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage'
 import RegisterPage from './pages/RegisterPage'
 import GamePage from './pages/GamePage'
 import LeaderboardPage from './pages/LeaderboardPage'
+import QrLoginHelpPage from './pages/QrLoginHelpPage'
 import AdminQuestionsPage from './pages/AdminQuestionsPage'
 
 export default function App() {
@@ -18,6 +19,8 @@ export default function App() {
         <Route path="register/:campaignId" element={<RegisterPage />} />
         <Route path="game" element={<GamePage />} />
         <Route path="leaderboard/:campaignId" element={<LeaderboardPage />} />
+        {/* Where an ordinary phone camera lands when it scans the kiosk's QRLog sign-in QR. */}
+        <Route path="qr/:code" element={<QrLoginHelpPage />} />
 
         {/* Admin keeps the plain layout with navigation. */}
         <Route element={<Layout />}>

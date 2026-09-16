@@ -40,6 +40,10 @@ builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddScoped<IBookService, BookService>();
 
+// "QRLog ilə davam et". Pending logins live in the same memory cache as game sessions and expire on
+// their own; the shared signing secret comes from configuration (QrLog__VouchSecret in production).
+builder.Services.AddSingleton<IQrLoginService, QrLoginService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
