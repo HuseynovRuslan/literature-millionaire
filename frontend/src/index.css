@@ -30,7 +30,9 @@
   --color-fg-3: #a39bcf;
 
   /* Brand violet, reward gold, feedback. */
-  --color-brand: #7b61ff;
+  /* White sits on this (the question pill, the active tab, the primary buttons). At #7b61ff that pairing
+     measured 4.20:1, just under the 4.5:1 WCAG AA wants for text this size; darkened it clears 5:1. */
+  --color-brand: #6d54f0;
   --color-brand-soft: #b3a3ff;
   --color-sun: #ffc93d;
   --color-sun-deep: #d99a00;

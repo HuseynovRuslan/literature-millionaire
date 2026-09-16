@@ -17,6 +17,13 @@ public class GameService : IGameService
     public static readonly TimeSpan SessionLifetime = TimeSpan.FromMinutes(30);
 
     private static readonly TimeSpan QuestionTime = TimeSpan.FromSeconds(QuizRules.SecondsPerQuestion);
+
+    /// <summary>
+    /// How long the client is expected to hold a closed question on screen before the next one appears
+    /// (GamePage's TRANSITION_MS, plus room for the round trip). Added to the next question's deadline so
+    /// that beat is not taken out of the player's answering time. Keep this at or above the client value.
+    /// </summary>
+    private static readonly TimeSpan TransitionAllowance = TimeSpan.FromMilliseconds(1500);
     private const string Letters = "ABCD";
 
     // Unique index names from the migration. A 23505 unique_violation is only ever treated as a
@@ -213,8 +220,12 @@ public class GameService : IGameService
                     Review: review));
         }
 
-        // The next question's clock starts now, on the server, regardless of client latency.
-        session.QuestionDeadlineUtc = DateTime.UtcNow.Add(QuestionTime);
+        // The next question's clock starts now, on the server, regardless of client latency - plus the
+        // beat the client holds the closed question on screen before showing this one. Without that
+        // allowance the pause came straight out of the player's time: measured at 8.4 s of a nominal 10.
+        // Every player gets the same allowance, and the client caps its countdown at the question time,
+        // so nobody sees more than 10 s on the clock.
+        session.QuestionDeadlineUtc = DateTime.UtcNow.Add(QuestionTime).Add(TransitionAllowance);
         Store(session);
         var next = await LoadQuestionAsync(session.Current, ct);
 

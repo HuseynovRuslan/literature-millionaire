@@ -86,6 +86,40 @@ public class AnswerReviewApiTests
             item.GetProperty("points").GetInt32()));
     }
 
+    /// <summary>
+    /// The client holds a closed question on screen for a beat before showing the next one. The server
+    /// starts that question's clock when it records the answer, so without an allowance the pause is
+    /// taken out of the player's ten seconds - it measured 8.4 s in the browser. The deadline therefore
+    /// has to be the question time plus that beat.
+    /// </summary>
+    [Fact]
+    public async Task The_next_question_is_given_its_full_time_plus_the_between_questions_pause()
+    {
+        await using var factory = new LeaderboardApiFactory();
+        using var client = factory.CreateClient();
+        await factory.SeedPlayableCampaignAsync(includeQuestions: true);
+
+        var start = await StartAsync(client, "+994507000004");
+        var sessionId = start.GetProperty("sessionId").GetGuid();
+        var questionId = start.GetProperty("question").GetProperty("id").GetInt32();
+
+        var sentAt = DateTime.UtcNow;
+        using var response = await client.PostAsJsonAsync(
+            $"/api/game/{sessionId}/answer", new { questionId, selectedOption = "A" });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        var deadline = body.GetProperty("nextQuestionExpiresAtUtc").GetDateTime();
+        var granted = deadline - sentAt;
+
+        // The full question time must still be there once the pause has been spent.
+        Assert.True(granted >= TimeSpan.FromSeconds(QuizRules.SecondsPerQuestion + 1),
+            $"Only {granted.TotalSeconds:0.00}s granted; the pause would eat into the question time.");
+        // And not so much that the clock becomes generous.
+        Assert.True(granted <= TimeSpan.FromSeconds(QuizRules.SecondsPerQuestion + 3),
+            $"{granted.TotalSeconds:0.00}s granted, which is more than one question plus a short pause.");
+    }
+
     [Fact]
     public async Task A_question_closed_by_the_clock_is_reviewed_as_unanswered()
     {
