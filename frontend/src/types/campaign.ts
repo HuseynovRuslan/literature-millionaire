@@ -8,13 +8,35 @@ export interface CampaignBook {
   coverImageUrl: string
 }
 
-/** Mirrors CurrentCampaignDto from GET /api/campaigns/current. Dates are ISO calendar dates (YYYY-MM-DD). */
-export interface CurrentCampaign {
+/** Mirrors QuizModeDto from GET /api/campaigns/available. iconKey is a local-icon lookup key, never a URL. */
+export interface QuizMode {
+  id: number
+  slug: string
+  title: string
+  description: string
+  iconKey: string
+  displayOrder: number
+}
+
+/** Mirrors QuizModeRefDto: the minimal identity carried by game start/result/leaderboard responses. */
+export interface QuizModeRef {
+  id: number
+  slug: string
+  title: string
+}
+
+/**
+ * Mirrors CampaignSummaryDto from GET /api/campaigns/available: one playable campaign, as listed on
+ * the category selection screen. `book` is null for quiz modes that are not played from a book.
+ */
+export interface CampaignSummary {
   campaignId: number
   startDate: string
   endDate: string
   passingScore: number
   rewardTitle: string
   questionCount: number
-  book: CampaignBook
+  imageQuestionsPerQuiz: number
+  quizMode: QuizMode
+  book: CampaignBook | null
 }

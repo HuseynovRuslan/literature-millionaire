@@ -1,9 +1,14 @@
 import { isAxiosError } from 'axios'
 import { api } from './client'
-import type { CurrentCampaign } from '../types/campaign'
+import type { CampaignSummary } from '../types/campaign'
 
-export async function getCurrentCampaign(): Promise<CurrentCampaign> {
-  const { data } = await api.get<CurrentCampaign>('/api/campaigns/current')
+/**
+ * Every playable category/campaign, in the order the backend wants them shown (by quiz mode
+ * DisplayOrder). This is the single source of category data for the frontend: no campaign id,
+ * category name or quiz mode is ever hardcoded on the client.
+ */
+export async function getAvailableCampaigns(signal?: AbortSignal): Promise<CampaignSummary[]> {
+  const { data } = await api.get<CampaignSummary[]>('/api/campaigns/available', { signal })
   return data
 }
 

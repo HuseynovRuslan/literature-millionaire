@@ -1,9 +1,13 @@
-import { useRef, useState, type FormEvent, type InputHTMLAttributes, type RefObject } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState, type FormEvent, type InputHTMLAttributes, type RefObject } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { getAvailableCampaigns } from '../api/campaigns'
+import QuizModeIcon from '../components/home/QuizModeIcon'
 import { PlayIcon, RuleBadge } from '../components/home/GameShowArt'
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import GameShowShell from '../components/home/GameShowShell'
 import { useGame } from '../game/GameContext'
+import type { CampaignSummary } from '../types/campaign'
+import { formatDateRange } from '../utils/date'
 
 /** Mirrors the backend rule: Azerbaijani mobile in 0XX…, 994XX… or +994XX… form (spaces and dashes allowed). */
 const PHONE = /^(?:\+?994|0)(?:10|50|51|55|60|70|77|99)\d{7}$/
@@ -17,6 +21,12 @@ const NO_ERRORS: FieldErrors = { fullName: null, phone: null }
 
 const STAGE =
   'home-stage rise rounded-[clamp(1.2rem,1.6vw,2rem)] px-[clamp(2rem,3.6vw,5rem)] py-[clamp(1.4rem,3.4vh,3.2rem)] max-lg:px-8 max-lg:py-7 max-sm:rounded-2xl max-sm:px-4 max-sm:py-5'
+
+function parseCampaignId(value: string | undefined): number | null {
+  if (!value || !/^[1-9]\d*$/.test(value)) return null
+  const parsed = Number(value)
+  return Number.isSafeInteger(parsed) ? parsed : null
+}
 
 /** Label above a large touch input; the field's own error sits right under it and is linked for screen readers. */
 function Field({
@@ -50,17 +60,24 @@ function Field({
   )
 }
 
+type CampaignLookup = { kind: 'loading' } | { kind: 'found'; campaign: CampaignSummary } | { kind: 'not-found' }
+
 /**
- * Touch registration before a quiz. Name and phone live only in this component's state and
- * are sent once with the start request; nothing is written to sessionStorage.
+ * Touch registration before a quiz, for the category selected on the home screen (route
+ * /register/:campaignId). Name and phone live only in this component's state and are sent once
+ * with the start request; nothing is written to sessionStorage. campaignId is only a selection
+ * identifier - every quiz rule (passing score, image count, book) still comes from the backend.
  */
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const { campaignId: routeCampaignId } = useParams()
+  const campaignId = parseCampaignId(routeCampaignId)
   const { state, startGame, reset, error, errorCode } = useGame()
   const starting = state.status === 'starting'
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>(NO_ERRORS)
+  const [lookup, setLookup] = useState<CampaignLookup>({ kind: 'loading' })
   const nameRef = useRef<HTMLInputElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
   // One start per registration. The context only ignores taps while a request is in flight; once it
@@ -68,9 +85,24 @@ export default function RegisterPage() {
   // a second tap in that window would get a 409 and wipe the quiz that was just started.
   const submittedRef = useRef(false)
 
+  // The selected category must still be playable: /api/campaigns/available is the only source of
+  // category identity, so a stale, disabled or unknown campaignId is caught here, before registration.
+  useEffect(() => {
+    if (campaignId === null) return
+    let cancelled = false
+    getAvailableCampaigns()
+      .then((data) => {
+        if (cancelled) return
+        const found = data.find((c) => c.campaignId === campaignId)
+        setLookup(found ? { kind: 'found', campaign: found } : { kind: 'not-found' })
+      })
+      .catch(() => { if (!cancelled) setLookup({ kind: 'not-found' }) })
+    return () => { cancelled = true }
+  }, [campaignId])
+
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (starting || submittedRef.current) return
+    if (starting || submittedRef.current || campaignId === null) return
     const name = fullName.trim().replace(/\s+/g, ' ')
     // Same rules and messages as before; each field now shows its own message under the field.
     const errors: FieldErrors = {
@@ -83,7 +115,7 @@ export default function RegisterPage() {
       return
     }
     submittedRef.current = true
-    const ok = await startGame({ fullName: name, phoneNumber: compact(phone) })
+    const ok = await startGame({ fullName: name, phoneNumber: compact(phone), campaignId })
     if (ok) navigate('/game')
     else submittedRef.current = false // a failed start (network, validation) may be retried
   }
@@ -93,6 +125,42 @@ export default function RegisterPage() {
     navigate('/')
   }
 
+  // No campaignId in the route, or it no longer names a playable category: never silently fall back
+  // to a default campaign. Safe redirect message, back to category selection.
+  if (campaignId === null || lookup.kind === 'not-found') {
+    return (
+      <GameShowShell>
+        <section role="alert" data-testid="register-invalid" className={`${STAGE} flex min-h-[clamp(20rem,52vh,36rem)] flex-col items-center justify-center text-center max-sm:min-h-[22rem]`}>
+          <RuleBadge className="size-[clamp(5.5rem,10vh,8rem)] max-sm:size-20" />
+          <h1 className="mt-5 max-w-[24ch] font-display text-[clamp(2.2rem,3.8vw,4.4rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.9rem]">
+            Bu kateqoriya artıq mövcud deyil
+          </h1>
+          <p className="mt-4 max-w-[44rem] text-[clamp(1.1rem,1.6vw,1.7rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
+            Zəhmət olmasa, kateqoriya seçimi ekranından yenidən seçin.
+          </p>
+        </section>
+        <div className="rise flex justify-center [animation-delay:90ms]" data-testid="register-actions">
+          <button type="button" onClick={goHome} className={`${PRIMARY_CTA} w-full max-w-[34rem]`} data-testid="register-back-home">
+            KATEQORİYALARA QAYIT
+          </button>
+        </div>
+      </GameShowShell>
+    )
+  }
+
+  if (lookup.kind === 'loading') {
+    return (
+      <GameShowShell>
+        <section role="status" aria-live="polite" data-testid="register-loading" className={`${STAGE} flex min-h-[clamp(20rem,52vh,36rem)] flex-col items-center justify-center text-center max-sm:min-h-[22rem]`}>
+          <span className="spin inline-block h-12 w-12 rounded-full border-4 border-white/20 border-t-[var(--p-gold-light)]" aria-hidden />
+          <p className="mt-5 font-display text-[clamp(1.6rem,2.6vw,2.6rem)] font-semibold text-[#fbf6ec] max-sm:text-[1.4rem]">Kateqoriya yoxlanılır…</p>
+        </section>
+      </GameShowShell>
+    )
+  }
+
+  const { campaign } = lookup
+
   if (errorCode === 'ATTEMPT_LIMIT_REACHED') {
     return (
       <GameShowShell>
@@ -101,6 +169,9 @@ export default function RegisterPage() {
           <h1 className="mt-5 max-w-[22ch] font-display text-[clamp(2.6rem,4.6vw,5.2rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2rem]">
             İştirak hüququ istifadə olunub
           </h1>
+          <p className="mt-3 font-display text-[clamp(1.2rem,1.7vw,1.9rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[1.05rem]">
+            {campaign.quizMode.title}
+          </p>
           <p className="mt-4 max-w-[46rem] text-[clamp(1.15rem,1.7vw,1.8rem)] leading-relaxed text-[#d6deec] max-sm:text-base">
             {error ?? 'Bu kampaniyada artıq iştirak etmisiniz.'}
           </p>
@@ -125,9 +196,26 @@ export default function RegisterPage() {
           className={`${STAGE} grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-center gap-x-[clamp(2rem,4.5vw,6rem)] max-lg:grid-cols-1 max-lg:gap-y-6 max-sm:gap-y-5`}
         >
           <div className="min-w-0">
-            <h1 id="register-title" lang="az" className="font-display text-[clamp(3rem,min(4.8vw,9vh),6rem)] font-bold leading-[0.98] text-[#fbf6ec] [text-wrap:balance] max-sm:text-[2.2rem]">
+            <div className="flex items-center gap-3" data-testid="register-category">
+              <span aria-hidden="true" className="grid size-[clamp(2.6rem,3.4vw,3.4rem)] shrink-0 place-items-center rounded-full bg-[rgba(243,215,126,0.14)] text-[var(--p-gold-light)] ring-1 ring-[rgba(233,192,105,0.55)]">
+                <QuizModeIcon iconKey={campaign.quizMode.iconKey} className="size-[56%]" />
+              </span>
+              <p lang="az" className="min-w-0 truncate font-display text-[clamp(1.15rem,1.5vw,1.7rem)] font-semibold uppercase tracking-[0.1em] text-[var(--p-gold-light)] max-sm:text-[0.95rem]">
+                {campaign.quizMode.title}
+              </p>
+            </div>
+            <h1 id="register-title" lang="az" className="mt-[clamp(0.4rem,1vh,0.8rem)] font-display text-[clamp(2.6rem,min(4.4vw,8vh),5.4rem)] font-bold leading-[0.98] text-[#fbf6ec] [text-wrap:balance] max-sm:text-[2rem]">
               İştirakçı qeydiyyatı
             </h1>
+            {campaign.book && (
+              <p lang="az" className="mt-[clamp(0.3rem,0.8vh,0.6rem)] max-w-[36ch] text-[clamp(1rem,1.3vw,1.4rem)] text-[#c9d3e6] max-sm:text-[0.9rem]">
+                Kitab: {campaign.book.title}
+                {campaign.book.author.trim() ? ` — ${campaign.book.author.trim()}` : ''}
+              </p>
+            )}
+            <p className="mt-[clamp(0.3rem,0.8vh,0.6rem)] text-[clamp(0.95rem,1.2vw,1.3rem)] text-[#aab8d4] max-sm:text-[0.85rem]">
+              {formatDateRange(campaign.startDate, campaign.endDate)}
+            </p>
             <p className="mt-[clamp(0.6rem,1.6vh,1.2rem)] max-w-[34ch] text-[clamp(1.15rem,1.6vw,1.8rem)] leading-snug text-[#d6deec] max-sm:text-base">
               Məlumatlarınızı daxil edin və bilik yarışına başlayın.
             </p>

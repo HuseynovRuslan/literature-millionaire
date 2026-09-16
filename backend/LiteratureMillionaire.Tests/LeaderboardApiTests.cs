@@ -51,6 +51,27 @@ public class LeaderboardApiTests
         Assert.Equal(DateTimeKind.Utc, leaderboard.GeneratedAtUtc.Kind);
     }
 
+    [Fact]
+    public async Task Leaderboard_carries_its_campaigns_quiz_mode()
+    {
+        await using var factory = new LeaderboardApiFactory();
+        using var client = factory.CreateClient();
+        var bilikId = await factory.SeedPlayableCampaignAsync(includeQuestions: false, modeSlug: QuizModeSlugs.BilikDunyasi);
+        var ayinId = await factory.SeedPlayableCampaignAsync(includeQuestions: false, modeSlug: QuizModeSlugs.AyinKitabi);
+
+        using var bilikResponse = await client.GetAsync($"/api/campaigns/{bilikId}/leaderboard");
+        var bilikBoard = await bilikResponse.Content.ReadFromJsonAsync<LeaderboardDto>();
+        using var ayinResponse = await client.GetAsync($"/api/campaigns/{ayinId}/leaderboard");
+        var ayinBoard = await ayinResponse.Content.ReadFromJsonAsync<LeaderboardDto>();
+
+        Assert.NotNull(bilikBoard);
+        Assert.Equal(QuizModeSlugs.BilikDunyasi, bilikBoard.QuizMode.Slug);
+        Assert.Equal("Bilik Dünyası", bilikBoard.QuizMode.Title);
+        Assert.NotNull(ayinBoard);
+        Assert.Equal(QuizModeSlugs.AyinKitabi, ayinBoard.QuizMode.Slug);
+        Assert.Equal("Ayın Kitabı", ayinBoard.QuizMode.Title);
+    }
+
     [Theory]
     [InlineData(1, HttpStatusCode.OK)]
     [InlineData(10, HttpStatusCode.OK)]

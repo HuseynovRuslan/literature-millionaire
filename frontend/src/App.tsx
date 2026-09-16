@@ -13,7 +13,9 @@ export default function App() {
       <Routes>
         {/* Kiosk screens: full viewport, no chrome. */}
         <Route index element={<HomePage />} />
-        <Route path="register" element={<RegisterPage />} />
+        {/* No campaignId: never silently pick a default campaign - back to category selection. */}
+        <Route path="register" element={<Navigate to="/" replace />} />
+        <Route path="register/:campaignId" element={<RegisterPage />} />
         <Route path="game" element={<GamePage />} />
         <Route path="leaderboard/:campaignId" element={<LeaderboardPage />} />
 

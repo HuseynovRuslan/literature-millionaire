@@ -1,3 +1,5 @@
+import type { QuizModeRef } from './campaign'
+
 /** Privacy-safe leaderboard entry returned by the campaign leaderboard API. */
 export interface LeaderboardEntry {
   rank: number
@@ -16,4 +18,6 @@ export interface Leaderboard {
   /** ISO 8601 UTC generation timestamp. */
   generatedAtUtc: string
   entries: LeaderboardEntry[]
+  /** Quiz mode the campaign belongs to; shown as the category name on the leaderboard page. */
+  quizMode: QuizModeRef
 }

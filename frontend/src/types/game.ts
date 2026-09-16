@@ -1,4 +1,5 @@
 import type { Difficulty } from './question'
+import type { QuizModeRef } from './campaign'
 
 export type AnswerOption = 'A' | 'B' | 'C' | 'D'
 
@@ -31,12 +32,17 @@ export interface StartGameResponse {
   /** This start's attempt number and how many remain for the campaign. */
   attemptNumber: number
   remainingAttempts: number
+  /** Campaign actually played (the requested one, or the default when none was requested) and its quiz mode. */
+  campaignId: number
+  quizMode: QuizModeRef
 }
 
 /** Registration data sent with the start request. Never persisted in the browser. */
 export interface StartGameInput {
   fullName: string
   phoneNumber: string
+  /** Campaign selected on the category screen. Omitted only by legacy callers; the server owns every rule. */
+  campaignId?: number
 }
 
 /** Final outcome, computed by the backend. rewardTitle is present only when passed. */
@@ -52,6 +58,8 @@ export interface QuizResult {
   /** Weighted score (Easy 1, Medium 2, Hard 3). Informational: passing is decided by correctAnswers. */
   pointsEarned: number
   maxPoints: number
+  /** Quiz mode the campaign belongs to; the category shown on the result screen comes from here. */
+  quizMode: QuizModeRef
 }
 
 /** Progression after an answer or timeout. Carries no correctness information until the final result. */

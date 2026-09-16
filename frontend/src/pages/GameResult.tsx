@@ -89,6 +89,8 @@ export default function GameResult() {
   const line = passed
     ? 'Siz bilik yarışını uğurla keçdiniz.'
     : 'Növbəti bilik yarışında sizi yenidən gözləyirik.'
+  // Only the final server result names the category and campaign: never the mid-game session state.
+  const quizModeTitle = r?.quizMode.title ?? null
 
   return (
     <GameShowShell>
@@ -101,6 +103,11 @@ export default function GameResult() {
           {passed
             ? <VictoryStar className="size-[clamp(3.6rem,min(6vw,10vh),7rem)] max-sm:size-16" />
             : <OpenBookMark className="h-[clamp(3rem,min(5vw,8vh),5.5rem)] w-auto max-sm:h-12" />}
+          {quizModeTitle && (
+            <p data-testid="result-quiz-mode" className="mt-2 font-display text-[clamp(0.85rem,1vw,1.1rem)] font-semibold uppercase tracking-[0.14em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]">
+              {quizModeTitle}
+            </p>
+          )}
           <h1 id="result-title" className={`mt-[clamp(0.3rem,0.8vh,0.7rem)] font-display text-[clamp(2.4rem,min(4.2vw,7.4vh),5.2rem)] font-bold leading-none max-sm:text-[2.1rem] ${passed ? 'text-[var(--p-gold-light)]' : 'text-[#fbf6ec]'}`}>{title}</h1>
           <p className="mt-[clamp(0.3rem,0.8vh,0.6rem)] max-w-[40ch] text-[clamp(1.05rem,min(1.4vw,2.4vh),1.6rem)] leading-snug text-[#d6deec] max-sm:text-[0.98rem]">{line}</p>
 
@@ -147,7 +154,7 @@ export default function GameResult() {
       </div>
 
       <nav aria-label="Nəticə seçimləri" data-testid="result-actions" className="rise flex w-full max-w-[96rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.5rem)] self-center [animation-delay:120ms] max-sm:flex-col max-sm:gap-3">
-        <button type="button" onClick={() => go('/register', true)} disabled={navigating} className={`${PRIMARY_CTA} ${NAV_TEXT} flex-[1.4] disabled:opacity-60`} data-testid="result-next">NÖVBƏTİ İŞTİRAKÇI</button>
+        <button type="button" onClick={() => campaignId && go(`/register/${campaignId}`, true)} disabled={navigating || campaignId === null} className={`${PRIMARY_CTA} ${NAV_TEXT} flex-[1.4] disabled:opacity-60`} data-testid="result-next">NÖVBƏTİ İŞTİRAKÇI</button>
         <button type="button" onClick={() => campaignId && go(`/leaderboard/${campaignId}`, false)} disabled={navigating || campaignId === null} className={`${SECONDARY_CTA} flex-1 disabled:opacity-60`} data-testid="result-leaderboard">LİDER CƏDVƏLİ</button>
         <button type="button" onClick={() => go('/', true)} disabled={navigating} className={`${SECONDARY_CTA} flex-1 disabled:opacity-60`} data-testid="result-home">ANA SƏHİFƏ</button>
       </nav>

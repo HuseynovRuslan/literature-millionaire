@@ -1,9 +1,16 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
 import { isAxiosError } from 'axios'
 import { startGame as apiStartGame, submitAnswer as apiSubmitAnswer, submitTimeout as apiSubmitTimeout } from '../api/game'
+import type { QuizModeRef } from '../types/campaign'
 import type { AnswerOption, AnswerResult, GameQuestion, QuizResult, StartGameInput } from '../types/game'
 import { SessionInvalidError } from './errors'
 import { clearActiveGame, loadActiveGame, saveActiveGame, type ActiveGameSnapshot } from './storage'
+
+/**
+ * Why an in-progress session became unusable. A stable code the UI can branch on, so the display
+ * text (Azerbaijani, subject to wording changes) is never used to make a business decision.
+ */
+export type ExpiredReason = 'SESSION_NOT_FOUND' | 'UNEXPECTED_QUESTION' | 'GAME_OVER' | 'OTHER'
 
 export interface GameState {
   status: 'idle' | 'starting' | 'playing' | 'finished' | 'expired'
@@ -15,15 +22,20 @@ export interface GameState {
   /** ISO UTC deadline of the visible question, set by the backend. */
   questionExpiresAtUtc: string | null
   question: GameQuestion | null
-  /** Set when status is 'finished'. */
+  /** Campaign and quiz mode of the in-progress session (set at start, kept through 'expired'). Null when idle. */
+  campaignId: number | null
+  quizMode: QuizModeRef | null
+  /** Set when status is 'finished'. Authoritative: campaignId/quizMode/score here, not the fields above, decide the result screen. */
   result: QuizResult | null
   /** Set when status is 'expired': why the session can no longer be used. */
+  expiredReason: ExpiredReason | null
+  /** Human-readable detail for the expired screen, shown alongside (never instead of) the reason-driven copy. */
   expiredMessage: string | null
 }
 
 interface GameContextValue {
   state: GameState
-  /** Starts a quiz for the given participant. Resolves true on success; on failure `error`/`errorCode` are set. */
+  /** Starts a quiz for the given participant and campaign. Resolves true on success; on failure `error`/`errorCode` are set. */
   startGame: (input: StartGameInput) => Promise<boolean>
   submitAnswer: (option: AnswerOption) => Promise<AnswerResult>
   /** Reports the deadline of the visible question. Safe to retry with the same question. */
@@ -44,12 +56,15 @@ const initial: GameState = {
   secondsPerQuestion: 30,
   questionExpiresAtUtc: null,
   question: null,
+  campaignId: null,
+  quizMode: null,
   result: null,
+  expiredReason: null,
   expiredMessage: null,
 }
 
 function toSnapshot(s: GameState): ActiveGameSnapshot | null {
-  if (s.status !== 'playing' || !s.sessionId || !s.question || !s.questionExpiresAtUtc) return null
+  if (s.status !== 'playing' || !s.sessionId || !s.question || !s.questionExpiresAtUtc || !s.campaignId || !s.quizMode) return null
   return {
     sessionId: s.sessionId,
     questionNumber: s.questionNumber,
@@ -58,6 +73,8 @@ function toSnapshot(s: GameState): ActiveGameSnapshot | null {
     secondsPerQuestion: s.secondsPerQuestion,
     questionExpiresAtUtc: s.questionExpiresAtUtc,
     question: s.question,
+    campaignId: s.campaignId,
+    quizMode: s.quizMode,
   }
 }
 
@@ -103,6 +120,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         secondsPerQuestion: start.secondsPerQuestion,
         questionExpiresAtUtc: start.questionExpiresAtUtc,
         question: start.question,
+        campaignId: start.campaignId,
+        quizMode: start.quizMode,
       }))
       return true
     } catch (err) {
@@ -113,18 +132,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setErrorCode(code)
       setError(
         status === 404 && code === 'NO_ACTIVE_CAMPAIGN'
-          ? 'Hazırda aktiv "Bilik yarışı" kampaniyası yoxdur.'
-          : code === 'ATTEMPT_LIMIT_REACHED'
-            ? 'Bu kampaniyada artıq iştirak etmisiniz. Hər telefon nömrəsi ilə yalnız bir dəfə iştirak etmək mümkündür.'
-            : code === 'ATTEMPT_CONFLICT'
-              ? 'Cəhd qeydə alına bilmədi. Zəhmət olmasa yenidən cəhd edin.'
-              : code === 'DATABASE_ERROR'
-                ? 'Müvəqqəti server xətası. Zəhmət olmasa yenidən cəhd edin.'
-                : status === 400
-                  ? 'Ad, soyad və ya telefon nömrəsi düzgün deyil.'
-                  : status === 409
-                    ? 'Bu kampaniya üçün kifayət qədər sual yoxdur.'
-                    : 'Oyunu başlatmaq mümkün olmadı. Server cavab vermir.',
+          ? 'Bu kateqoriya artıq mövcud deyil.'
+          : status === 404 && code === 'CAMPAIGN_NOT_FOUND'
+            ? 'Bu kateqoriya artıq mövcud deyil.'
+            : status === 409 && code === 'CAMPAIGN_NOT_ACTIVE'
+              ? 'Bu kateqoriya hazırda aktiv deyil.'
+              : code === 'ATTEMPT_LIMIT_REACHED'
+                ? 'Bu kampaniyada artıq iştirak etmisiniz. Hər telefon nömrəsi ilə yalnız bir dəfə iştirak etmək mümkündür.'
+                : code === 'ATTEMPT_CONFLICT'
+                  ? 'Cəhd qeydə alına bilmədi. Zəhmət olmasa yenidən cəhd edin.'
+                  : code === 'DATABASE_ERROR'
+                    ? 'Müvəqqəti server xətası. Zəhmət olmasa yenidən cəhd edin.'
+                    : status === 400
+                      ? 'Ad, soyad və ya telefon nömrəsi düzgün deyil.'
+                      : status === 409
+                        ? 'Bu kampaniya üçün kifayət qədər sual yoxdur.'
+                        : 'Oyunu başlatmaq mümkün olmadı. Server cavab vermir.',
       )
       return false
     } finally {
@@ -142,7 +165,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         // transition lands on the next question (with its real deadline) or a clean slate.
         if (result.isGameOver || !result.nextQuestion || !result.nextQuestionExpiresAtUtc) {
           clearActiveGame()
-        } else {
+        } else if (state.campaignId && state.quizMode) {
           saveActiveGame({
             sessionId: state.sessionId,
             questionNumber: result.nextQuestionNumber ?? state.questionNumber + 1,
@@ -151,6 +174,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
             secondsPerQuestion: state.secondsPerQuestion,
             questionExpiresAtUtc: result.nextQuestionExpiresAtUtc,
             question: result.nextQuestion,
+            campaignId: state.campaignId,
+            quizMode: state.quizMode,
           })
         }
         return result
@@ -160,24 +185,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
         // QUESTION_TIME_REMAINING is a timing disagreement of a few ms, not a dead session: let the caller retry.
         if (status === 404 || (status === 409 && code !== 'QUESTION_TIME_REMAINING')) {
           clearActiveGame()
-          setState({
+          const reason: ExpiredReason =
+            status === 404 ? 'SESSION_NOT_FOUND' : code === 'UNEXPECTED_QUESTION' ? 'UNEXPECTED_QUESTION' : code === 'GAME_OVER' ? 'GAME_OVER' : 'OTHER'
+          setState((s) => ({
             ...initial,
             status: 'expired',
+            // The category the expired session belonged to is kept (not personal data) so the
+            // "next participant" action on the expired screen can return to the same category.
+            campaignId: s.campaignId,
+            quizMode: s.quizMode,
+            expiredReason: reason,
             expiredMessage:
-              status === 404
+              reason === 'SESSION_NOT_FOUND'
                 ? 'Oyun sessiyasının vaxtı bitib.'
-                : code === 'UNEXPECTED_QUESTION'
+                : reason === 'UNEXPECTED_QUESTION'
                   ? 'Bu sual artıq bağlanıb və oyun davam etdirilə bilmir.'
-                  : code === 'GAME_OVER'
+                  : reason === 'GAME_OVER'
                     ? 'Bu oyun artıq bitib.'
                     : 'Oyun sessiyası artıq etibarlı deyil.',
-          })
+          }))
           throw new SessionInvalidError()
         }
         throw err
       }
     },
-    [state.sessionId, state.question, state.questionNumber, state.totalQuestions, state.passingScore, state.secondsPerQuestion],
+    [state.sessionId, state.question, state.questionNumber, state.totalQuestions, state.passingScore, state.secondsPerQuestion, state.campaignId, state.quizMode],
   )
 
   const submitAnswer = useCallback(
@@ -198,7 +230,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
           status: 'finished',
           question: null,
           questionExpiresAtUtc: null,
-          result: r.result ?? { campaignId: 0, leaderboardPosition: null, correctAnswers: 0, totalQuestions: s.totalQuestions, passingScore: s.passingScore, passed: false, rewardTitle: null, pointsEarned: 0, maxPoints: 0 },
+          result: r.result ?? {
+            campaignId: s.campaignId ?? 0,
+            leaderboardPosition: null,
+            correctAnswers: 0,
+            totalQuestions: s.totalQuestions,
+            passingScore: s.passingScore,
+            passed: false,
+            rewardTitle: null,
+            pointsEarned: 0,
+            maxPoints: 0,
+            quizMode: s.quizMode ?? { id: 0, slug: '', title: '' },
+          },
         })
       }
       return persist({

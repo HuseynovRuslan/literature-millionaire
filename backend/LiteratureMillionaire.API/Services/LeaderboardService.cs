@@ -20,10 +20,12 @@ public class LeaderboardService : ILeaderboardService
             throw new ArgumentOutOfRangeException(nameof(limit), limit, "Limit must be between 1 and 10.");
         }
 
-        if (!await _db.MonthlyCampaigns.AsNoTracking().AnyAsync(campaign => campaign.Id == campaignId, ct))
-        {
-            throw CampaignException.CampaignNotFound(campaignId);
-        }
+        var quizMode = await _db.MonthlyCampaigns
+            .AsNoTracking()
+            .Where(campaign => campaign.Id == campaignId)
+            .Select(campaign => new QuizModeRefDto(campaign.QuizModeId, campaign.QuizMode.Slug, campaign.QuizMode.Title))
+            .FirstOrDefaultAsync(ct)
+            ?? throw CampaignException.CampaignNotFound(campaignId);
 
         var ranked = LeaderboardRanking.Rank(await LoadCompletedAttemptsAsync(campaignId, ct));
         var entries = ranked
@@ -43,7 +45,7 @@ public class LeaderboardService : ILeaderboardService
             })
             .ToArray();
 
-        return new LeaderboardDto(campaignId, DateTime.UtcNow, entries);
+        return new LeaderboardDto(campaignId, DateTime.UtcNow, entries, quizMode);
     }
 
     public async Task<int?> GetPositionAsync(int campaignId, int participantId, CancellationToken ct = default) =>

@@ -5,9 +5,6 @@ import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import GameShowShell from '../components/home/GameShowShell'
 import { useGame } from '../game/GameContext'
 
-/** GameContext's message for a plain 404; the new title already says this, so only other reasons are shown. */
-const GENERIC_EXPIRED_MESSAGE = 'Oyun sessiyasının vaxtı bitib.'
-
 /** Shown inside /game when the backend no longer knows the stored session. */
 export default function SessionExpired() {
   const navigate = useNavigate()
@@ -15,7 +12,12 @@ export default function SessionExpired() {
   const starting = state.status === 'starting'
   const navigationLocked = useRef(false)
   const [navigating, setNavigating] = useState(false)
-  const reason = state.expiredMessage && state.expiredMessage !== GENERIC_EXPIRED_MESSAGE ? state.expiredMessage : null
+  // The UI branches on the stable reason code, never on the (Azerbaijani, wording-subject-to-change) message text.
+  // A plain "session not found" is already explained by the title below, so only the other reasons add detail.
+  const reason = state.expiredReason && state.expiredReason !== 'SESSION_NOT_FOUND' ? state.expiredMessage : null
+  // Kept only when the expired session safely carried its category; never invented.
+  const campaignId = state.campaignId
+  const quizModeTitle = state.quizMode?.title ?? null
 
   function go(path: string) {
     if (navigationLocked.current) return
@@ -35,7 +37,12 @@ export default function SessionExpired() {
         className="home-stage rise flex min-h-[clamp(20rem,50vh,34rem)] flex-col items-center justify-center rounded-[clamp(1.2rem,1.6vw,2rem)] px-[clamp(1.5rem,4vw,5rem)] py-[clamp(1.5rem,4vh,3.5rem)] text-center max-sm:min-h-[22rem] max-sm:rounded-2xl max-sm:px-5 max-sm:py-7"
       >
         <HourglassMark className="size-[clamp(5rem,min(8vw,12vh),8.5rem)] max-sm:size-20" />
-        <h1 id="expired-title" className="mt-[clamp(0.8rem,2vh,1.4rem)] font-display text-[clamp(2.6rem,min(4.6vw,8vh),5.4rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2.1rem]">
+        {quizModeTitle && (
+          <p className="mt-3 font-display text-[clamp(0.85rem,1vw,1.1rem)] font-semibold uppercase tracking-[0.14em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]" data-testid="expired-quiz-mode">
+            {quizModeTitle}
+          </p>
+        )}
+        <h1 id="expired-title" className="mt-[clamp(0.4rem,1vh,0.7rem)] font-display text-[clamp(2.6rem,min(4.6vw,8vh),5.4rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[2.1rem]">
           Sessiyanın vaxtı bitdi
         </h1>
         {reason && <p className="mt-2 text-[clamp(1.05rem,1.35vw,1.5rem)] font-semibold text-[var(--p-gold-light)] max-sm:text-[0.98rem]">{reason}</p>}
@@ -52,7 +59,7 @@ export default function SessionExpired() {
       <nav aria-label="Sessiya seçimləri" className="rise flex w-full max-w-[78rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.5rem)] self-center [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
         <button
           type="button"
-          onClick={() => go('/register')}
+          onClick={() => go(campaignId ? `/register/${campaignId}` : '/')}
           disabled={starting || navigating}
           aria-busy={starting}
           className={`${PRIMARY_CTA} flex-[1.5] text-[clamp(1.6rem,2.5vw,3rem)]! disabled:opacity-60 max-sm:text-[1.35rem]!`}

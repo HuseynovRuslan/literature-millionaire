@@ -60,8 +60,11 @@ export default function LeaderboardPage() {
         className="home-stage rise flex min-h-0 flex-col rounded-[clamp(1.2rem,1.6vw,2rem)] px-[clamp(1.2rem,2.8vw,3.6rem)] py-[clamp(0.9rem,2.2vh,2rem)] max-sm:rounded-2xl max-sm:px-3 max-sm:py-4"
       >
         <header className="px-[clamp(0rem,0.6vw,0.8rem)]">
-          <p className="text-[clamp(0.85rem,1vw,1.15rem)] font-semibold uppercase tracking-[0.16em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]">KAMPANİYA NƏTİCƏLƏRİ</p>
+          <p className="text-[clamp(0.85rem,1vw,1.15rem)] font-semibold uppercase tracking-[0.16em] text-[var(--p-gold-light)] max-sm:text-[0.75rem]">
+            {!invalidRoute && load.kind === 'ready' ? load.data.quizMode.title : 'KAMPANİYA NƏTİCƏLƏRİ'}
+          </p>
           <h1 id="leaderboard-title" className="font-display text-[clamp(2.2rem,min(3.6vw,6.2vh),4.4rem)] font-bold leading-tight text-[#fbf6ec] max-sm:text-[1.9rem]">Lider cədvəli</h1>
+          <p className="text-[clamp(0.85rem,1vw,1.1rem)] font-semibold text-[#c9d3e6] max-sm:text-[0.78rem]">Top 10</p>
         </header>
 
         <div className="mt-[clamp(0.4rem,1.2vh,1rem)]">
@@ -137,7 +140,7 @@ export default function LeaderboardPage() {
       </section>
 
       <nav aria-label="Lider cədvəli seçimləri" data-testid="leaderboard-actions" className="rise flex w-full max-w-[78rem] items-stretch justify-center gap-[clamp(0.8rem,1.4vw,1.5rem)] self-center [animation-delay:90ms] max-sm:flex-col max-sm:gap-3">
-        <button type="button" onClick={() => go('/register', true)} disabled={navigating} className={`${PRIMARY_CTA} min-h-[clamp(4.5rem,9.5vh,6.5rem)]! flex-[1.5] text-[clamp(1.5rem,2.3vw,2.8rem)]! disabled:opacity-60 max-sm:min-h-[3.75rem]! max-sm:text-[1.35rem]!`} data-testid="leaderboard-next">NÖVBƏTİ İŞTİRAKÇI</button>
+        <button type="button" onClick={() => campaignId && go(`/register/${campaignId}`, true)} disabled={navigating || invalidRoute} className={`${PRIMARY_CTA} min-h-[clamp(4.5rem,9.5vh,6.5rem)]! flex-[1.5] text-[clamp(1.5rem,2.3vw,2.8rem)]! disabled:opacity-60 max-sm:min-h-[3.75rem]! max-sm:text-[1.35rem]!`} data-testid="leaderboard-next">NÖVBƏTİ İŞTİRAKÇI</button>
         <button type="button" onClick={() => go('/', false)} disabled={navigating} className={`${SECONDARY_CTA} min-h-[clamp(4.5rem,9.5vh,6.5rem)]! flex-1 disabled:opacity-60 max-sm:min-h-[3.25rem]!`} data-testid="leaderboard-home">ANA SƏHİFƏ</button>
       </nav>
     </GameShowShell>

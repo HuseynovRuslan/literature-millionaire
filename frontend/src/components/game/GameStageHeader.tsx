@@ -13,6 +13,7 @@ export default function GameStageHeader({
   fraction,
   urgent,
   expired,
+  quizModeTitle,
 }: {
   questionNumber: number
   totalQuestions: number
@@ -20,6 +21,8 @@ export default function GameStageHeader({
   fraction: number
   urgent: boolean
   expired: boolean
+  /** Category the session is playing, from the server's start/session data. Empty string renders nothing. */
+  quizModeTitle: string
 }) {
   return (
     <header
@@ -28,13 +31,26 @@ export default function GameStageHeader({
     >
       <div data-testid="kiosk-brand" className="flex min-w-0 items-center gap-[clamp(0.6rem,0.9vw,1rem)] [grid-area:brand]">
         <BrandMark size="sm" className="max-sm:min-w-0 max-sm:shrink" />
-        <p
-          lang="az"
-          data-testid="product-name"
-          className="whitespace-nowrap font-display text-[clamp(1.3rem,1.7vw,2rem)] font-bold uppercase leading-none tracking-[0.07em] text-[#fbf6ec] max-sm:text-[1rem] max-sm:tracking-[0.05em]"
-        >
-          {PRODUCT_NAME}
-        </p>
+        {/* Same single line as before the category label was added (Task 15B): the category name sits
+            inline after the product name and truncates on its own, so the header never grows taller. */}
+        <div className="flex min-w-0 items-baseline gap-x-[clamp(0.4rem,0.6vw,0.6rem)]">
+          <p
+            lang="az"
+            data-testid="product-name"
+            className="shrink-0 whitespace-nowrap font-display text-[clamp(1.3rem,1.7vw,2rem)] font-bold uppercase leading-none tracking-[0.07em] text-[#fbf6ec] max-sm:text-[1rem] max-sm:tracking-[0.05em]"
+          >
+            {PRODUCT_NAME}
+          </p>
+          {quizModeTitle && (
+            <p
+              lang="az"
+              data-testid="game-quiz-mode"
+              className="min-w-0 truncate text-[clamp(0.62rem,0.78vw,0.85rem)] font-semibold uppercase leading-none tracking-[0.06em] text-[var(--p-gold-light)] max-sm:text-[0.58rem]"
+            >
+              · {quizModeTitle}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="min-w-0 [grid-area:progress]">

@@ -150,6 +150,7 @@ export default function GamePage() {
           fraction={Math.min(1, remainingMs / (total * 1000))}
           urgent={urgent}
           expired={remainingMs <= 0}
+          quizModeTitle={state.quizMode?.title ?? ''}
         />
 
         <div
