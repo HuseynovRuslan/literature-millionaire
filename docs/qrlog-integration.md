@@ -3,6 +3,9 @@
 Kitabxana 2.0 (`book.qrlog.az`) lets an employee who is already in QRLog start a quiz by scanning a QR
 with the QRLog app, instead of typing their name and phone at the kiosk.
 
+**Both halves are live.** Kitabxana `2af1869`, QRLog `46d9d53`, the shared secret is set on the
+server and the exchange was verified end to end against the live site.
+
 **Both halves are built and pushed.** Kitabxana: `506422b` here. QRLog: `afad9c0` in the AttendanceQR
 repository — `KitabxanaController`, an `HttpClient` registration and a branch at the top of
 ScanPage's `onDecoded`. Neither is deployed, and **neither does anything until the shared secret is
@@ -114,9 +117,10 @@ public class KitabxanaController : ControllerBase
         var secret = _config["Kitabxana:VouchSecret"];
         var baseUrl = _config["Kitabxana:BaseUrl"] ?? "https://book.qrlog.az";
         var allowedTenants = _config.GetSection("Kitabxana:TenantIds").Get<Guid[]>() ?? [];
+        var anyTenant = _config.GetValue("Kitabxana:AnyTenant", false);
 
-        // Fail-closed, as everywhere else here: unconfigured means "not for this company", not "for all".
-        if (string.IsNullOrWhiteSpace(secret) || allowedTenants.Length == 0)
+        // Fail-closed, as everywhere else here: unconfigured vouches for nobody.
+        if (string.IsNullOrWhiteSpace(secret) || (!anyTenant && allowedTenants.Length == 0))
         {
             return StatusCode(503, new { error = "NotConfigured" });
         }
@@ -138,8 +142,8 @@ public class KitabxanaController : ControllerBase
             return Unauthorized(new { error = "UnknownEmployee" });
         }
 
-        // The quiz is one company's. Somebody else's employee must not be signed into it by accident.
-        if (!allowedTenants.Contains(employee.TenantId))
+        // Whose employees the quiz is for. With AnyTenant it is everyone on this system.
+        if (!anyTenant && !allowedTenants.Contains(employee.TenantId))
         {
             return StatusCode(403, new { error = "NotEligible" });
         }
@@ -234,7 +238,17 @@ openssl rand -base64 48
 
     Kitabxana__VouchSecret=<the same secret>
     Kitabxana__BaseUrl=https://book.qrlog.az
-    Kitabxana__TenantIds__0=<Bakı Abadlıq Xidməti tenant id>
+    Kitabxana__AnyTenant=true
+
+`AnyTenant` lets every company on the QRLog system use the shortcut, which is what production runs.
+It matches the quiz itself: anyone can play by typing their name and phone at the kiosk, so limiting
+the shortcut to one company protected nothing and only made the two ways in inconsistent. To narrow
+it instead, leave `AnyTenant` unset and list the companies:
+
+    Kitabxana__TenantIds__0=<tenant id>
+
+Either way it is an explicit opt-in. With neither set — or with no secret — the endpoint answers
+`NotConfigured` and vouches for nobody.
 
 Anyone holding that secret can claim to be any employee, so treat it as a password: not in git, not in
 a chat message, rotated if it is ever pasted somewhere it should not be.
@@ -247,7 +261,8 @@ a chat message, rotated if it is ever pasted somewhere it should not be.
 3. The kiosk shows **QRLog: \<name\>** and the quiz starts from the ordinary button.
 4. Scan the same QR again: the app reports an expired code and the kiosk is unaffected.
 5. Wait past two minutes without scanning: the kiosk offers a new QR.
-6. Sign in as an employee of another tenant: refused with `NotEligible`.
+6. Sign in as an employee of another company: allowed while `AnyTenant` is on; with it off and a
+   tenant list instead, refused with `NotEligible`.
 7. Sign in as an employee with no phone number: refused with `NoPhoneNumber`.
 8. Play a quiz through a QRLog sign-in, then try to start a second one for the same campaign: refused
    with `ATTEMPT_LIMIT_REACHED`. Signing in with QRLog is a shortcut past the keyboard, not past the
