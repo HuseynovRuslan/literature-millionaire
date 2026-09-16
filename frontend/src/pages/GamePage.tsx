@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import AnswerButton, { type AnswerVisual } from '../components/AnswerButton'
 import GameStageHeader from '../components/game/GameStageHeader'
+import { FlagStripe, Octagram } from '../components/arena/NationalMotifs'
 import GameResult from './GameResult'
 import SessionExpired from './SessionExpired'
 import { useGame } from '../game/GameContext'
@@ -173,6 +174,7 @@ export default function GamePage() {
 
   return (
     <main className="kiosk arena flex flex-col" data-testid="game-page">
+      <FlagStripe className="relative z-20 shrink-0" />
       <section
         key={q.id}
         className="q-stage relative z-10 mx-auto flex min-h-0 w-full max-w-[120rem] flex-1 flex-col px-[clamp(1.2rem,2.6vw,3.4rem)] pb-[clamp(0.8rem,1.8vh,1.6rem)] pt-[clamp(0.8rem,1.8vh,1.6rem)] max-sm:px-3 max-sm:pb-[calc(0.6rem_+_var(--safe-bottom))] max-sm:pt-[calc(0.6rem_+_var(--safe-top))]"
@@ -197,7 +199,8 @@ export default function GamePage() {
 
         {/* Decorative "Sual N" burst on every new question; the real counter is in the header. */}
         <div className="q-splash" aria-hidden="true">
-          <div className="q-splash-inner">
+          <div className="q-splash-inner relative overflow-hidden">
+            <Octagram className="spin-slow pointer-events-none absolute left-1/2 top-1/2 size-[140%] -translate-x-1/2 -translate-y-1/2 text-white/10" />
             <span className="font-sans text-[clamp(0.8rem,1.1vw,1.1rem)] font-extrabold uppercase tracking-[0.3em] text-white/80 max-sm:text-[0.7rem]">Sual</span>
             <span className="font-display text-[clamp(4rem,9vw,8rem)] font-extrabold leading-none tabular-nums max-sm:text-[3.5rem]">
               {state.questionNumber}<span className="text-[0.4em] text-white/60"> / {state.totalQuestions}</span>

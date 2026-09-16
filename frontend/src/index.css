@@ -578,3 +578,6 @@ body {
 /* A field that fails validation gives a short shake so the eye goes straight to it. */
 .field[aria-invalid="true"] { animation: shake 420ms ease-in-out; }
 @media (prefers-reduced-motion: reduce) { .field[aria-invalid="true"] { animation: none; } }
+
+.spin-slow { animation: spin 18s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .spin-slow { animation: none; } }

@@ -3,6 +3,7 @@ import type { CampaignSummary } from '../../types/campaign'
 import { formatDateRange } from '../../utils/date'
 import { ClockIcon, ListIcon, PlayIcon, RewardMedal, TargetIcon, TrophyIcon } from './GameShowArt'
 import { CARD_PRIMARY_CTA, CARD_SECONDARY_CTA } from './gameShowClasses'
+import { CarpetBand } from '../arena/NationalMotifs'
 import QuizModeIcon from './QuizModeIcon'
 
 /** Each card gets its own accent from the answer palette, in display order, so the grid reads as a game board. */
@@ -50,6 +51,7 @@ export default function CategoryCard({
             {formatDateRange(campaign.startDate, campaign.endDate)}
           </p>
         </div>
+        <CarpetBand className="absolute inset-x-0 bottom-0 text-white/30" />
       </div>
 
       <div className="flex flex-1 flex-col gap-3 px-[clamp(1.1rem,1.6vw,1.6rem)] pb-[clamp(1.1rem,1.6vw,1.5rem)] pt-4">

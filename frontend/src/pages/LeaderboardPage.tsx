@@ -2,8 +2,10 @@ import { startTransition, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PlayIcon, TrophyIcon } from '../components/home/GameShowArt'
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
+import { Octagram } from '../components/arena/NationalMotifs'
 import GameShowShell from '../components/home/GameShowShell'
 import RankMedal from '../components/home/RankMedal'
+import { CarpetBand } from '../components/arena/NationalMotifs'
 import { useGame } from '../game/GameContext'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 import type { LeaderboardEntry } from '../types/leaderboard'
@@ -128,7 +130,12 @@ export default function LeaderboardPage() {
             <p className="text-[clamp(0.82rem,0.95vw,0.92rem)] font-bold text-fg-3">Top 10</p>
           </header>
 
-          {ready && <Podium entries={load.data.entries} />}
+          {ready && (
+            <div>
+              <Podium entries={load.data.entries} />
+              <CarpetBand className="text-sun/50" />
+            </div>
+          )}
         </section>
 
         <section className="card rise flex min-h-0 min-w-0 flex-col justify-center rounded-[2rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 px-[clamp(0.8rem,1.8vw,1.8rem)] py-[clamp(0.8rem,2vh,1.4rem)] [animation-delay:120ms] max-sm:rounded-3xl max-sm:px-2.5">
@@ -141,7 +148,7 @@ export default function LeaderboardPage() {
 
           {!invalidRoute && load.kind === 'loading' && (
             <StageMessage role="status">
-              <span className="spin inline-block size-12 rounded-full border-4 border-white/15 border-t-sun" aria-hidden />
+              <Octagram className="spin size-12 text-sun" />
               <p className={`${MESSAGE_TITLE} mt-5`}>Lider cədvəli yüklənir…</p>
             </StageMessage>
           )}

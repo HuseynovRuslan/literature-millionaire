@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { classifyCampaignError, getAvailableCampaigns, type CampaignErrorKind } from '../api/campaigns'
+import { Octagram } from '../components/arena/NationalMotifs'
 import CategoryCard from '../components/home/CategoryCard'
 import { PlayIcon, QuizEmblem } from '../components/home/GameShowArt'
 import { PRIMARY_CTA as PRIMARY, SECONDARY_CTA as SECONDARY } from '../components/home/gameShowClasses'
@@ -48,7 +49,7 @@ function Hero({ count }: { count: number }) {
     <header className="rise grid grid-cols-[minmax(0,1fr)_auto] items-center gap-[clamp(1.5rem,4vw,4rem)] max-lg:grid-cols-1">
       <div className="min-w-0">
         <p lang="az" className="chip px-4 py-2 text-[clamp(0.75rem,0.9vw,0.9rem)] uppercase tracking-[0.16em] text-brand-soft max-sm:text-[0.7rem]">
-          Oxu • Tanı • Cavablandır
+          Oxu <Octagram className="size-3 text-sun" /> Tanı <Octagram className="size-3 text-sun" /> Cavablandır
         </p>
         <h1 lang="az" className="text-gradient shimmer mt-4 font-display text-[clamp(2.6rem,6vw,5.6rem)] font-extrabold uppercase leading-[0.95] tracking-tight max-sm:text-[2.4rem]">
           Bilik Bağı
@@ -154,7 +155,7 @@ export default function HomePage() {
       <GameShowShell>
         <StatusStage>
           <QuizEmblem className="pop size-32 max-sm:size-24" />
-          <span className="spin mt-7 inline-block size-12 rounded-full border-4 border-white/15 border-t-sun" aria-hidden />
+          <Octagram className="spin mt-7 size-12 text-sun" />
           <p className="mt-5 font-display text-[clamp(1.4rem,2.2vw,2rem)] font-bold max-sm:text-[1.3rem]">Kateqoriyalar yüklənir…</p>
         </StatusStage>
       </GameShowShell>

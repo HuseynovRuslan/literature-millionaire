@@ -4,6 +4,7 @@ import { getAvailableCampaigns } from '../api/campaigns'
 import QuizModeIcon from '../components/home/QuizModeIcon'
 import { ArrowLeftIcon, CheckIcon, ClockIcon, ListIcon, PhoneIcon, PlayIcon, RewardMedal, RuleBadge, TargetIcon, UserIcon } from '../components/home/GameShowArt'
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
+import { Octagram } from '../components/arena/NationalMotifs'
 import GameShowShell from '../components/home/GameShowShell'
 import { useGame } from '../game/GameContext'
 import type { CampaignSummary } from '../types/campaign'
@@ -183,7 +184,7 @@ export default function RegisterPage() {
     return (
       <GameShowShell>
         <section role="status" aria-live="polite" data-testid="register-loading" className={`${CARD} mx-auto flex min-h-[24rem] w-full max-w-[56rem] flex-col items-center justify-center px-8 py-12 text-center max-sm:min-h-[20rem]`}>
-          <span className="spin inline-block size-12 rounded-full border-4 border-white/15 border-t-sun" aria-hidden />
+          <Octagram className="spin size-12 text-sun" />
           <p className="mt-5 font-display text-[clamp(1.4rem,2.2vw,2rem)] font-bold max-sm:text-[1.3rem]">Kateqoriya yoxlanılır…</p>
         </section>
       </GameShowShell>

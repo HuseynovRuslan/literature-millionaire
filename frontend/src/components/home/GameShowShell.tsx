@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react'
 import ArenaBackdrop from '../arena/ArenaBackdrop'
+import { FlagStripe } from '../arena/NationalMotifs'
 import HomeHeader from './HomeHeader'
 
 /** Page frame for every information screen: the arena background, the brand bar and a content column. */
 export default function GameShowShell({ children }: { children: ReactNode }) {
   return (
     <main className="kiosk kiosk-scroll arena flex flex-col">
+      <FlagStripe className="relative z-20 shrink-0" />
       <ArenaBackdrop />
       <HomeHeader />
       {/* safe center: content taller than the space grows downwards instead of sliding under the header */}
