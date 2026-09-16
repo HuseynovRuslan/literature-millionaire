@@ -103,95 +103,111 @@ type CampaignLookup = { kind: 'loading' } | { kind: 'found'; campaign: CampaignS
  * identifier - every quiz rule (passing score, image count, book) still comes from the backend.
  */
 /**
- * "QRLog ilə davam et": most of our colleagues are already registered in QRLog, so rather than typing
- * their name and phone at the kiosk they scan this with the QRLog app they already carry.
+ * The way in. Most people reaching this screen are colleagues already carrying QRLog, so the QR is
+ * the screen rather than something behind a button: it opens by itself and they scan it.
  *
- * Only the code is in the QR. The browser keeps a separate secret and polls with that, so the QR being
- * visible to the room gives nothing away - see the backend's IQrLoginService.
+ * Only the code is in the QR. The browser keeps a separate secret and polls with that, so the QR
+ * being visible to the room gives nothing away - see the backend's IQrLoginService.
  */
-function QrLoginPanel({ state, onStart, onCancel }: {
+function QrLoginPanel({ state, onRetry, onManual }: {
   state: ReturnType<typeof useQrLogin>['state']
-  onStart: () => void
-  onCancel: () => void
+  onRetry: () => void
+  onManual: () => void
 }) {
-  if (state.kind === 'idle' || state.kind === 'confirmed') {
-    return (
-      <button
-        type="button"
-        onClick={onStart}
-        className={`${SECONDARY_CTA} w-full gap-3`}
-        data-testid="qrlog-start"
-      >
-        <QrGlyph className="size-6 shrink-0 max-sm:size-5" />
-        QRLog ilə davam et
-      </button>
-    )
-  }
-
   return (
-    <div
-      className="rounded-2xl bg-white/[0.05] p-4 ring-1 ring-white/10 max-sm:p-3"
-      data-testid="qrlog-panel"
-      aria-live="polite"
-    >
-      {state.kind === 'starting' && (
-        <p className="py-6 text-center font-semibold text-fg-2">QR kod hazırlanır…</p>
-      )}
+    <div className="flex min-w-0 flex-col items-center text-center" data-testid="qrlog-panel" aria-live="polite">
+      {/* The logo and the code share one white card: the QR needs a light background to scan, and on a
+          dark studio screen a floating white square would read as a hole rather than as a sign-in. */}
+      <div className="flex w-full max-w-[22rem] flex-col items-center gap-3 rounded-3xl bg-white p-[clamp(0.9rem,1.6vw,1.4rem)] shadow-[0_1rem_2.4rem_-0.8rem_rgba(0,0,0,0.55)]">
+        <img
+          src="/brand/qrlog-logo.webp"
+          alt="QRLog"
+          width={720}
+          height={265}
+          className="h-[clamp(1.6rem,2.4vw,2.2rem)] w-auto"
+          data-testid="qrlog-logo"
+        />
 
-      {state.kind === 'waiting' && (
-        <div className="flex items-center gap-4 max-sm:flex-col max-sm:text-center">
+        {state.kind === 'waiting' ? (
           <QrCode
             value={state.qrValue}
             title="QRLog tətbiqi ilə oxutmaq üçün QR kod"
-            className="size-[clamp(7rem,11vw,9.5rem)] shrink-0 rounded-xl bg-white p-1.5 max-sm:size-36"
+            className="aspect-square w-full max-w-[16rem]"
           />
-          <div className="min-w-0">
-            <p lang="az" className="font-display text-[clamp(1rem,1.25vw,1.2rem)] font-bold">
-              QRLog tətbiqi ilə oxudun
-            </p>
-            <p lang="az" className="mt-1 text-[clamp(0.85rem,1vw,0.95rem)] font-medium text-fg-2">
-              Telefonunuzda QRLog tətbiqini açın və bu kodu skan edin. Adınız və nömrəniz avtomatik dolacaq.
-            </p>
-            <p className="mt-2 text-[clamp(0.8rem,0.9vw,0.88rem)] font-bold tabular-nums text-fg-3" data-testid="qrlog-countdown">
-              Kodun vaxtı: {state.secondsLeft} saniyə
-            </p>
-            <button type="button" onClick={onCancel} className="tap mt-2 text-[clamp(0.85rem,1vw,0.95rem)] font-bold text-brand-soft underline underline-offset-4" data-testid="qrlog-cancel">
-              Ləğv et və əl ilə yazım
-            </button>
+        ) : (
+          // Same square either way, so the card does not jump while a code is being minted or renewed.
+          <div className="grid aspect-square w-full max-w-[16rem] place-items-center rounded-xl bg-ink-950/5 px-4 text-center">
+            {state.kind === 'starting' || state.kind === 'idle' ? (
+              <p className="font-semibold text-ink-950/60">QR kod hazırlanır…</p>
+            ) : (
+              <div>
+                <p lang="az" className="font-bold text-ink-950/75">
+                  {state.kind === 'expired' ? 'QR kodun vaxtı bitdi' : 'Əlaqə alınmadı'}
+                </p>
+                <button type="button" onClick={onRetry} className="tap mt-3 rounded-xl bg-brand px-5 py-2.5 font-display font-bold text-white" data-testid="qrlog-retry">
+                  Yeni QR kod
+                </button>
+              </div>
+            )}
           </div>
-        </div>
+        )}
+      </div>
+
+      <p lang="az" className="mt-4 font-display text-[clamp(1.1rem,1.5vw,1.4rem)] font-extrabold">
+        QRLog tətbiqi ilə oxudun
+      </p>
+      <p lang="az" className="mt-1 max-w-[34ch] text-[clamp(0.9rem,1.05vw,1rem)] font-medium leading-snug text-fg-2">
+        Telefonunuzda QRLog tətbiqini açın və kodu skan edin — adınız və nömrəniz özü gələcək.
+      </p>
+      {state.kind === 'waiting' && (
+        <p className="mt-2 text-[clamp(0.8rem,0.9vw,0.88rem)] font-bold tabular-nums text-fg-3" data-testid="qrlog-countdown">
+          Kodun vaxtı: {state.secondsLeft} saniyə
+        </p>
       )}
 
-      {(state.kind === 'expired' || state.kind === 'error') && (
-        <div className="text-center" role="alert">
-          <p lang="az" className="font-semibold text-fg-2">
-            {state.kind === 'expired'
-              ? 'QR kodun vaxtı bitdi.'
-              : 'QRLog ilə əlaqə alınmadı. Məlumatlarınızı əl ilə yaza bilərsiniz.'}
-          </p>
-          <div className="mt-3 flex items-center justify-center gap-3 max-sm:flex-col">
-            <button type="button" onClick={onStart} className={`${SECONDARY_CTA} min-h-[3.25rem]! px-6`} data-testid="qrlog-retry">
-              Yeni QR kod
-            </button>
-            <button type="button" onClick={onCancel} className="tap font-bold text-brand-soft underline underline-offset-4" data-testid="qrlog-dismiss">
-              Əl ilə yazım
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Not everyone at the kiosk is a colleague, and not every colleague has the app on them. */}
+      <button type="button" onClick={onManual} className="tap mt-4 text-[clamp(0.9rem,1.05vw,1rem)] font-bold text-brand-soft underline underline-offset-4" data-testid="qrlog-manual">
+        QRLog-um yoxdur — ad və nömrə ilə davam edim
+      </button>
     </div>
   )
 }
 
-/** Minimal QR glyph for the button; the real code is drawn by QrCode. */
-function QrGlyph({ className }: { className?: string }) {
+/** After QRLog has vouched: who arrived, before a quiz starts under their name. */
+function QrLoginWelcome({ fullName, phoneNumber, onManual }: { fullName: string; phoneNumber: string; onManual: () => void }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-      <path d="M14 14h3v3h-3zM19.5 14v0M14 19.5v0M19.5 19.5v0" strokeLinecap="round" />
-    </svg>
+    <div className="pop flex min-w-0 flex-col items-center text-center" data-testid="qrlog-signed-in">
+      <span className="grid size-16 place-items-center rounded-full bg-ok/15 text-ok ring-1 ring-ok/40 max-sm:size-14">
+        <CheckIcon className="size-8 max-sm:size-7" />
+      </span>
+      <p lang="az" className="mt-4 font-display text-[clamp(1.4rem,2.2vw,2rem)] font-extrabold leading-tight">
+        Xoş gəldiniz, dəyərli QRLog üzvü!
+      </p>
+      <p lang="az" className="mt-1 text-[clamp(0.95rem,1.1vw,1.05rem)] font-medium text-fg-2">
+        Məlumatlarınız QRLog-dan gəldi. Yoxlayın və yarışa başlayın.
+      </p>
+
+      <dl className="mt-5 w-full max-w-[24rem] overflow-hidden rounded-2xl bg-white/[0.05] text-left ring-1 ring-white/10">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <UserIcon className="size-5 shrink-0 text-brand-soft" />
+          <div className="min-w-0">
+            <dt className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-fg-3">Ad və soyad</dt>
+            <dd lang="az" className="font-display text-[clamp(1.05rem,1.3vw,1.25rem)] font-bold [overflow-wrap:anywhere]" data-testid="qrlog-name">{fullName}</dd>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 border-t border-white/10 px-4 py-3">
+          <PhoneIcon className="size-5 shrink-0 text-brand-soft" />
+          <div className="min-w-0">
+            <dt className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-fg-3">Telefon nömrəsi</dt>
+            <dd className="font-display text-[clamp(1.05rem,1.3vw,1.25rem)] font-bold tabular-nums" data-testid="qrlog-phone">{phoneNumber}</dd>
+          </div>
+        </div>
+      </dl>
+
+      <button type="button" onClick={onManual} className="tap mt-4 text-[clamp(0.85rem,1vw,0.95rem)] font-bold text-brand-soft underline underline-offset-4" data-testid="qrlog-not-me">
+        Mən deyiləm — özüm yazım
+      </button>
+    </div>
   )
 }
 
@@ -204,7 +220,9 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>(NO_ERRORS)
-  const [signedInAs, setSignedInAs] = useState<string | null>(null)
+  const [signedInAs, setSignedInAs] = useState<{ fullName: string; phoneNumber: string } | null>(null)
+  // The QR is the way in; the name/phone fields are the fallback for a guest or a forgotten phone.
+  const [manual, setManual] = useState(false)
   const [lookup, setLookup] = useState<CampaignLookup>({ kind: 'loading' })
 
   // A confirmed QRLog sign-in fills the form rather than submitting it: on a shared kiosk the player
@@ -213,10 +231,17 @@ export default function RegisterPage() {
     setFullName(name)
     setPhone(phoneNumber)
     setFieldErrors(NO_ERRORS)
-    setSignedInAs(name)
+    setSignedInAs({ fullName: name, phoneNumber })
+    // The player is looking at their phone when this lands. On a laptop window the start button sits
+    // below the fold while the QR is up, so bring it into view rather than leave them to find it.
+    requestAnimationFrame(() => submitRef.current?.scrollIntoView({
+      block: 'nearest',
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    }))
   })
   const nameRef = useRef<HTMLInputElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
+  const submitRef = useRef<HTMLButtonElement>(null)
   // One start per registration. The context only ignores taps while a request is in flight; once it
   // succeeds, the form is briefly interactive again before navigation. With one attempt per campaign
   // a second tap in that window would get a 409 and wipe the quiz that was just started.
@@ -236,6 +261,16 @@ export default function RegisterPage() {
       .catch(() => { if (!cancelled) setLookup({ kind: 'not-found' }) })
     return () => { cancelled = true }
   }, [campaignId])
+
+  // Open the sign-in as soon as there is a category to play: the QR is the screen, not a step behind
+  // a button. Runs once - beginRef keeps a re-render from minting a second code and orphaning the
+  // first, which the player may already be scanning.
+  const beganRef = useRef(false)
+  useEffect(() => {
+    if (lookup.kind !== 'found' || beganRef.current) return
+    beganRef.current = true
+    void qrLogin.begin()
+  }, [lookup.kind, qrLogin])
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -373,64 +408,75 @@ export default function RegisterPage() {
 
           {/* Form */}
           <div className={`${CARD} card-glow flex min-w-0 flex-col justify-center gap-[clamp(1rem,2vh,1.4rem)] px-[clamp(1.2rem,3vw,3rem)] py-[clamp(1.4rem,3vh,2.4rem)] [animation-delay:60ms]`}>
-            <div>
-              <h1 id="register-title" lang="az" className="font-display text-[clamp(1.9rem,3.2vw,3rem)] font-extrabold leading-tight [text-wrap:balance] max-sm:text-[1.6rem]">
-                İştirakçı qeydiyyatı
-              </h1>
-              <p className="mt-2 text-[clamp(1rem,1.25vw,1.2rem)] font-medium text-fg-2 max-sm:text-[0.95rem]">
-                Məlumatlarınızı daxil edin və bilik yarışına başlayın.
-              </p>
-            </div>
-
-            <QrLoginPanel
-              state={qrLogin.state}
-              onStart={() => { setSignedInAs(null); void qrLogin.begin() }}
-              onCancel={() => { qrLogin.cancel(); nameRef.current?.focus() }}
-            />
-
-            {signedInAs && (
-              <p
-                lang="az"
-                data-testid="qrlog-signed-in"
-                className="flex items-center gap-2.5 rounded-2xl bg-ok/12 px-3.5 py-2.5 text-[clamp(0.9rem,1.05vw,1rem)] font-bold text-ok ring-1 ring-ok/35"
-              >
-                <CheckIcon className="size-5 shrink-0" />
-                QRLog: {signedInAs}. Məlumatlar dolduruldu — yoxlayın və başlayın.
-              </p>
+            {/* The heading belongs to the manual form; signing in with QRLog has its own words. */}
+            {manual && !signedInAs && (
+              <div>
+                <h1 id="register-title" lang="az" className="font-display text-[clamp(1.9rem,3.2vw,3rem)] font-extrabold leading-tight [text-wrap:balance] max-sm:text-[1.6rem]">
+                  İştirakçı qeydiyyatı
+                </h1>
+                <p className="mt-2 text-[clamp(1rem,1.25vw,1.2rem)] font-medium text-fg-2 max-sm:text-[0.95rem]">
+                  Məlumatlarınızı daxil edin və bilik yarışına başlayın.
+                </p>
+              </div>
             )}
 
-            <Field
-              id="register-full-name"
-              label="Ad və soyad"
-              icon={<UserIcon className="size-6 max-sm:size-5" />}
-              error={fieldErrors.fullName}
-              inputRef={nameRef}
-              value={fullName}
-              onChange={(e) => { setFullName(e.target.value); if (fieldErrors.fullName) setFieldErrors((f) => ({ ...f, fullName: null })) }}
-              maxLength={120}
-              autoComplete="off"
-              autoCapitalize="words"
-              spellCheck={false}
-              enterKeyHint="next"
-              placeholder="Məsələn: Ayşə Məmmədova"
-              data-testid="fullName"
-            />
-            <Field
-              id="register-phone"
-              label="Telefon nömrəsi"
-              icon={<PhoneIcon className="size-6 max-sm:size-5" />}
-              error={fieldErrors.phone}
-              inputRef={phoneRef}
-              value={phone}
-              onChange={(e) => { setPhone(e.target.value); if (fieldErrors.phone) setFieldErrors((f) => ({ ...f, phone: null })) }}
-              type="tel"
-              inputMode="tel"
-              autoComplete="off"
-              maxLength={20}
-              enterKeyHint="go"
-              placeholder="050 123 45 67"
-              data-testid="phone"
-            />
+            {signedInAs ? (
+              <QrLoginWelcome
+                fullName={signedInAs.fullName}
+                phoneNumber={signedInAs.phoneNumber}
+                onManual={() => {
+                  // Wrong person on a shared kiosk: clear what QRLog filled in rather than start under it.
+                  setSignedInAs(null)
+                  setFullName('')
+                  setPhone('')
+                  setManual(true)
+                  qrLogin.cancel()
+                }}
+              />
+            ) : !manual ? (
+              <QrLoginPanel
+                state={qrLogin.state}
+                onRetry={() => { setSignedInAs(null); void qrLogin.begin() }}
+                onManual={() => { setManual(true); qrLogin.cancel(); nameRef.current?.focus() }}
+              />
+            ) : null}
+
+            {manual && (
+              <>
+              <Field
+                id="register-full-name"
+                label="Ad və soyad"
+                icon={<UserIcon className="size-6 max-sm:size-5" />}
+                error={fieldErrors.fullName}
+                inputRef={nameRef}
+                value={fullName}
+                onChange={(e) => { setFullName(e.target.value); if (fieldErrors.fullName) setFieldErrors((f) => ({ ...f, fullName: null })) }}
+                maxLength={120}
+                autoComplete="off"
+                autoCapitalize="words"
+                spellCheck={false}
+                enterKeyHint="next"
+                placeholder="Məsələn: Ayşə Məmmədova"
+                data-testid="fullName"
+              />
+              <Field
+                id="register-phone"
+                label="Telefon nömrəsi"
+                icon={<PhoneIcon className="size-6 max-sm:size-5" />}
+                error={fieldErrors.phone}
+                inputRef={phoneRef}
+                value={phone}
+                onChange={(e) => { setPhone(e.target.value); if (fieldErrors.phone) setFieldErrors((f) => ({ ...f, phone: null })) }}
+                type="tel"
+                inputMode="tel"
+                autoComplete="off"
+                maxLength={20}
+                enterKeyHint="go"
+                placeholder="050 123 45 67"
+                data-testid="phone"
+              />
+              </>
+            )}
             {error && (
               <p
                 role="alert"
@@ -449,7 +495,14 @@ export default function RegisterPage() {
             <ArrowLeftIcon className="size-[1.1em] shrink-0" />
             Geri qayıt
           </button>
-          <button type="submit" disabled={starting} aria-busy={starting} className={`${PRIMARY_CTA} flex-[2]`} data-testid="register-submit">
+          <button
+            ref={submitRef}
+            type="submit"
+            disabled={starting || (!manual && !signedInAs)}
+            aria-busy={starting}
+            className={`${PRIMARY_CTA} flex-[2] disabled:opacity-55`}
+            data-testid="register-submit"
+          >
             {starting ? 'Quiz hazırlanır…' : 'Yarışa başla'}
             {!starting && <PlayIcon className="size-[0.85em] shrink-0" />}
           </button>
