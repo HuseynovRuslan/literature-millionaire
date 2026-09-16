@@ -1,13 +1,21 @@
 # "QRLog ilə davam et" — the QRLog side
 
 Kitabxana 2.0 (`book.qrlog.az`) lets an employee who is already in QRLog start a quiz by scanning a QR
-with the QRLog app, instead of typing their name and phone at the kiosk. **The Kitabxana half is built
-and merged.** This is the other half, which lives in the AttendanceQR repository.
+with the QRLog app, instead of typing their name and phone at the kiosk.
 
-It is written out here rather than committed there because that working tree currently has 25
-uncommitted changes — eight deleted brand files, a modified landing site, `theme.css` and
-`EquipmentPage.tsx`. That is somebody's rebrand in progress, and adding to it risked sweeping this
-feature into their commit. Apply this once that work is in.
+**Both halves are built and pushed.** Kitabxana: `506422b` here. QRLog: `afad9c0` in the AttendanceQR
+repository — `KitabxanaController`, an `HttpClient` registration and a branch at the top of
+ScanPage's `onDecoded`. Neither is deployed, and **neither does anything until the shared secret is
+configured on both sides** (§3): without it, Kitabxana refuses every confirmation and QRLog answers
+`NotConfigured`.
+
+This page stays as the contract between the two: what is exchanged, how it is signed, what has to be
+configured, and what to check once it is turned on.
+
+A note on that commit: the AttendanceQR working tree had 25 uncommitted changes at the time — a
+rebrand in progress. Only the three files of this feature were staged, the commit was rebased onto
+the remote in a separate worktree, and that checkout was left exactly as it was found, so nothing of
+that work was touched or swept up.
 
 ## How the exchange works
 
@@ -57,9 +65,10 @@ secret:
 `timestamp` is ISO 8601 round-trip UTC (`DateTimeOffset.UtcNow.ToString("O")`). The phone is signed
 as it is sent, byte for byte.
 
-## 1. The endpoint to add
+## 1. The endpoint (applied)
 
-`src/AttendanceQR.Api/Controllers/KitabxanaController.cs`:
+`src/AttendanceQR.Api/Controllers/KitabxanaController.cs`, reproduced here so the contract can be read
+in one place:
 
 ```csharp
 using System.Security.Cryptography;
@@ -191,39 +200,23 @@ Register the client next to the existing one in `Program.cs`:
 builder.Services.AddHttpClient("kitabxana", c => c.Timeout = TimeSpan.FromSeconds(10));
 ```
 
-## 2. The scanner
+## 2. The scanner (applied)
 
-`frontend/src/pages/ScanPage.tsx`, at the very top of `onDecoded` (line ~575) — **before**
-`stopCamera()` and the selfie flow, because this is not a check-in and must not photograph anyone:
+`frontend/src/pages/ScanPage.tsx`. The branch sits at the top of `onDecoded`, **before**
+`looksLikeQrToken()` — which would otherwise write a sign-in URL off as a foreign QR — and returns
+before `proceed()`, so no selfie, location check or attendance record is ever involved. The work
+itself is in `signInToKitabxana`:
 
 ```ts
-async function onDecoded(text: string) {
-  if (busyRef.current) return
-
-  // Kitabxana 2.0 sign-in: the kiosk shows https://book.qrlog.az/qr/<code>. Handled here and
-  // returned, so the check-in flow - selfie, location, attendance record - never starts for it.
-  const kitabxana = /^https?:\/\/book\.qrlog\.az\/qr\/([0-9a-f]{32})$/i.exec(text.trim())
-  if (kitabxana) {
-    busyRef.current = true
-    try {
-      await stopCamera()
-      setPhase('processing')
-      await api.post('/api/kitabxana/sign-in', { code: kitabxana[1] })
-      // Tell them to look back at the kiosk: that is where the quiz continues.
-      showMessage('Kitabxana 2.0-da daxil oldunuz. Ekrana baxın.')
-    } catch {
-      showMessage('Giriş alınmadı. QR kodun vaxtı bitmiş ola bilər — ekrandan yeni kod alın.')
-    } finally {
-      busyRef.current = false
-    }
-    return
-  }
-
-  busyRef.current = true
-  // …the existing check-in flow, unchanged from here…
+const kitabxana = /^https?:\/\/book\.qrlog\.az\/qr\/([0-9a-f]{8,64})$/i.exec(text.trim())
+if (kitabxana) {
+  await signInToKitabxana(kitabxana[1])
+  return
+}
 ```
 
-`showMessage` stands in for whatever ScanPage already uses to show a result; wire it to the same one.
+The pattern is anchored on the host and path, so an attendance token, another page on the site and a
+lookalike host such as `book.qrlog.az.evil.com` are all left to the normal flow.
 
 ## 3. Configuration
 
@@ -246,7 +239,7 @@ openssl rand -base64 48
 Anyone holding that secret can claim to be any employee, so treat it as a password: not in git, not in
 a chat message, rotated if it is ever pasted somewhere it should not be.
 
-## 4. What to check once it is applied
+## 4. What to check once the secret is set
 
 1. Open the kiosk registration screen, press **QRLog ilə davam et**. A QR appears with a countdown.
 2. Scan it with the QRLog app while signed in. The kiosk fills in the name and phone within ~1.5 s,
