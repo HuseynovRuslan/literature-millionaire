@@ -757,6 +757,20 @@ body {
   .hero-spark[data-far] { display: none; }
 }
 
+/* The card's facts ("10 sual · Keçid 8/10 · 1 cəhd") as one line: a quiet dot between items instead of a
+   chip around each, so they read as one statement and never as three things asking to be pressed. */
+.card-facts > li + li::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin: 0 0.65rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+  vertical-align: middle;
+}
+
 /* ---------- Category card art ----------
    The picture on the right of each category card (CategoryArt.tsx). It lives in the card's top zone only -
    header band plus description - and the chips, reward and buttons are a separate zone below it, so the
@@ -857,7 +871,8 @@ body {
   --art-bleed: -4%;
   --art-top: 0%;
   --art-bottom: 2%;
-  --art-band-safe: 18%;
+  /* The planter is tall and its leaves reach the band; the date line also carries the test tag. */
+  --art-band-safe: 31%;
 }
 [data-art="green-garden"] .card-art-img { object-position: center bottom; }
 [data-art="green-garden"] .card-art-glow {
@@ -943,7 +958,9 @@ body {
 @media (min-width: 640px) and (max-width: 1023.98px) {
   .card-top:has(> .card-art) { --art-zone: 11.5rem; }
   .card-top:has(> [data-art="bilik-dunyasi"]) { --art-w: 33%; }
-  .card-top:has(> [data-art="edebiyyat-dunyasi"]) { --art-w: 45%; }
+  /* A two-column tablet card is narrow enough that the date reaches the open book's top; a slightly taller
+     zone seats the book under the band instead of shrinking it. */
+  .card-top:has(> [data-art="edebiyyat-dunyasi"]) { --art-w: 45%; --art-band-safe: 40%; --art-zone: 13rem; --art-top: 30%; }
   .card-top:has(> [data-art="green-garden"]) { --art-w: 35%; }
   .card-top:has(> [data-art="yasil-baki"]) { --art-w: 22%; }
   .card-top:has(> [data-art="ayin-kitabi"]) { --art-w: 27%; --art-zone: 12.5rem; }

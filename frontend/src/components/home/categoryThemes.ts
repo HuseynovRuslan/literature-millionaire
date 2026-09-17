@@ -67,6 +67,16 @@ export const categoryArt: Record<string, CategoryArt> = {
 }
 
 /**
+ * Categories played from one specific book, whose card names that book.
+ *
+ * Every campaign carries a `book`, but for most modes it is only the container their questions are stored
+ * under - "Bilik yarışı — Bakı Abadlıq Xidməti MMC" is not a book, and printing it as "Kitab:" told players
+ * something untrue. The backend draws the same line (QuizModeSlugs.RequiresBook); this mirrors it. The
+ * title and author shown are still the campaign's own data, never text written here.
+ */
+export const bookCategories: ReadonlySet<string> = new Set(['ayin-kitabi'])
+
+/**
  * Categories whose bank is still being worked on, marked on the card as a test version.
  *
  * A player who meets a half-finished bank with no warning reads it as a broken product rather than an
