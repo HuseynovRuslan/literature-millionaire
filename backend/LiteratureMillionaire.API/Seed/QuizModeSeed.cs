@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace LiteratureMillionaire.API.Seed;
 
 /// <summary>
-/// The four quiz modes. A mode is created when its slug is missing; existing rows are never updated, so an
+/// The quiz modes. A mode is created when its slug is missing; existing rows are never updated, so an
 /// administrator's changes to titles, order or IsActive survive restarts. The AddQuizModes migration inserts the
 /// same rows on databases upgraded from the single-campaign schema.
 /// </summary>
@@ -23,6 +23,8 @@ public static class QuizModeSeed
             "Azərbaycan və dünya ədəbiyyatı üzrə bilik yarışı.", "feather", 3),
         new Definition(QuizModeSlugs.YasilBaki, "Yaşıl Bakı",
             "Bakının bitkiləri, parkları və yaşıllıqları üzrə bilik yarışı.", "leaf", 4),
+        new Definition(QuizModeSlugs.GreenGarden, "Green Garden Kolleksiyası",
+            "Green Garden kataloqundakı bəzək bitkiləri: ağac, kol, sarmaşıq və onların sortları.", "sprout", 5),
     };
 
     public static async Task SeedAsync(ApplicationDbContext db, CancellationToken ct = default)

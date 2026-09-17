@@ -18,7 +18,7 @@ public class QuizModeCampaignTests
     // --- seed and bank assignment ---------------------------------------------------
 
     [Fact]
-    public async Task Seed_creates_the_four_modes_and_assigns_banks_and_campaigns_idempotently()
+    public async Task Seed_creates_the_modes_and_assigns_banks_and_campaigns_idempotently()
     {
         await using var factory = new LeaderboardApiFactory();
         await factory.CreateDatabaseAsync();
@@ -33,7 +33,12 @@ public class QuizModeCampaignTests
         var db = verify.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var modes = await db.QuizModes.AsNoTracking().OrderBy(m => m.DisplayOrder).ToListAsync();
         Assert.Equal(
-            new[] { ("bilik-dunyasi", "Bilik Dünyası", 1), ("ayin-kitabi", "Ayın Kitabı", 2), ("edebiyyat-dunyasi", "Ədəbiyyat Dünyası", 3), ("yasil-baki", "Yaşıl Bakı", 4) },
+            new[]
+            {
+                ("bilik-dunyasi", "Bilik Dünyası", 1), ("ayin-kitabi", "Ayın Kitabı", 2),
+                ("edebiyyat-dunyasi", "Ədəbiyyat Dünyası", 3), ("yasil-baki", "Yaşıl Bakı", 4),
+                ("green-garden", "Green Garden Kolleksiyası", 5),
+            },
             modes.Select(m => (m.Slug, m.Title, m.DisplayOrder)));
         Assert.All(modes, m => Assert.True(m.IsActive));
 
@@ -49,15 +54,18 @@ public class QuizModeCampaignTests
         Assert.All(questions.Where(q => q.BookId == null), q => Assert.Null(q.QuizModeId));
 
         var campaigns = await db.MonthlyCampaigns.AsNoTracking().Include(c => c.Book).ToListAsync();
-        Assert.Equal(3, campaigns.Count);
+        Assert.Equal(4, campaigns.Count);
         Assert.Equal(bilikMode, campaigns.Single(c => c.Book!.Title == BilikYarisiSeed.BookTitle).QuizModeId);
         Assert.Equal(ayinMode, campaigns.Single(c => c.Book!.Title == OlulerQuestionSeed.BookTitle).QuizModeId);
         Assert.Equal(modes[3].Id, campaigns.Single(c => c.Book!.Title == YasilBakiSeed.BookTitle).QuizModeId);
-        // The mixed banks ask for two pictures in a round; every Yaşıl Bakı question is a photograph, so
-        // its round is ten of them.
-        Assert.All(campaigns.Where(c => c.Book!.Title != YasilBakiSeed.BookTitle),
+        Assert.Equal(modes[4].Id, campaigns.Single(c => c.Book!.Title == GreenGardenSeed.BookTitle).QuizModeId);
+        // The mixed banks ask for two pictures in a round; every question of the two plant banks is a
+        // photograph, so their rounds are ten of them.
+        string[] allPictures = [YasilBakiSeed.BookTitle, GreenGardenSeed.BookTitle];
+        Assert.All(campaigns.Where(c => !allPictures.Contains(c.Book!.Title)),
             c => Assert.Equal(2, c.ImageQuestionsPerQuiz));
-        Assert.Equal(10, campaigns.Single(c => c.Book!.Title == YasilBakiSeed.BookTitle).ImageQuestionsPerQuiz);
+        Assert.All(campaigns.Where(c => allPictures.Contains(c.Book!.Title)),
+            c => Assert.Equal(10, c.ImageQuestionsPerQuiz));
     }
 
     [Theory]

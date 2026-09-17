@@ -45,6 +45,9 @@ public static class DbSeeder
 
         // Generated "Yaşıl Bakı" bank: photographs of plants, one question each (own book + quiz mode).
         await YasilBakiSeed.SeedAsync(db, ct);
+
+        // Generated "Green Garden Kolleksiyası" bank: the nursery catalogue, one question per entry.
+        await GreenGardenSeed.SeedAsync(db, ct);
     }
 
     /// <summary>

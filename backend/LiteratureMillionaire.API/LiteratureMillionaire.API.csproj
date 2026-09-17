@@ -35,6 +35,10 @@
     <!-- Generated "Yaşıl Bakı" bank: photographs from NC State Extension's Plant Toolbox, names confirmed
          against Wikidata. Compiled into the assembly; the sources are never read at runtime. -->
     <EmbeddedResource Include="Seed/Data/yasil-baki-questions.json" LogicalName="LiteratureMillionaire.API.Seed.Data.yasil-baki-questions.json" />
+
+    <!-- Generated "Green Garden Kolleksiyası" bank: the nursery catalogue in docs/greegardenbitkiler-import,
+         its Azerbaijani names checked against Wikidata. Compiled in; the catalogue is never read at runtime. -->
+    <EmbeddedResource Include="Seed/Data/green-garden-questions.json" LogicalName="LiteratureMillionaire.API.Seed.Data.green-garden-questions.json" />
   </ItemGroup>
 
 </Project>

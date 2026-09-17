@@ -34,6 +34,9 @@ export const categoryThemes: Record<string, CategoryTheme> = {
   'edebiyyat-dunyasi': { accent: '#0d7b8c', note: 'firuzəyi' },
   // Yaşıl Bakı - the city's plants. Emerald, the obvious one, and the only green on the board. Leaf.
   'yasil-baki': { accent: '#1b9560', note: 'zümrüd / yaşıl' },
+  // Green Garden - a nursery catalogue. Terracotta, for the pots the whole catalogue is photographed in,
+  // and because a second green beside Yaşıl Bakı would make the two plant categories one blur. Sprout.
+  'green-garden': { accent: '#b4551f', note: 'terrakota / saxsı' },
 }
 
 /**

@@ -43,12 +43,23 @@ const Fallback: IconRenderer = (props) => (
   </svg>
 )
 
+const Sprout: IconRenderer = (props) => (
+  <svg viewBox="0 0 24 24" {...STROKE} {...props}>
+    {/* A seedling in its pot: the nursery, as against the single leaf that stands for the city's trees. */}
+    <path d="M12 13.5V9" />
+    <path d="M12 9C12 6.5 10 4.5 7 4.5c0 3 2 4.5 5 4.5Z" />
+    <path d="M12 10.5c0-2.2 1.8-4 4.5-4 0 2.7-1.8 4-4.5 4Z" />
+    <path d="M5.5 13.5h13l-1.2 5.3a1.6 1.6 0 0 1-1.6 1.2H8.3a1.6 1.6 0 0 1-1.6-1.2L5.5 13.5Z" />
+  </svg>
+)
+
 /** Fixed allowlist: every QuizMode.iconKey the backend can send. Never resolves to a URL, raw HTML or a dynamic import. */
 const ICONS: Record<string, IconRenderer> = {
   globe: Globe,
   book: Book,
   feather: Feather,
   leaf: Leaf,
+  sprout: Sprout,
 }
 
 /** Renders a QuizMode.iconKey as a local SVG glyph; an unknown key falls back to a generic icon, never an error. */
