@@ -1,15 +1,14 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using LiteratureMillionaire.API.Data;
 using LiteratureMillionaire.API.Entities;
 using LiteratureMillionaire.API.Seed;
 using LiteratureMillionaire.API.Services;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+using static LiteratureMillionaire.Tests.AdminTestClient;
 
 namespace LiteratureMillionaire.Tests;
 
@@ -19,9 +18,6 @@ namespace LiteratureMillionaire.Tests;
 /// </summary>
 public class AdminCampaignsTests
 {
-    private const string Secret = "test-shared-secret-value";
-    private const string AdminPhone = "+994505551234";
-
     private static readonly DateOnly Today = CampaignCalendar.Today();
 
     [Fact]
@@ -242,11 +238,6 @@ public class AdminCampaignsTests
 
     // --- helpers ---------------------------------------------------------------
 
-    private static LeaderboardApiFactory NewFactory() => new(qrLogSecret: Secret, adminPhones: AdminPhone);
-
-    private static HttpClient Https(LeaderboardApiFactory factory) =>
-        factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
-
     private static object Input(int modeId, int? bookId, DateOnly start, DateOnly end, string reward = "Hədiyyə",
         int passingScore = 8, bool enabled = true, int images = 0) => new
     {
@@ -259,13 +250,6 @@ public class AdminCampaignsTests
         imageQuestionsPerQuiz = images,
         isEnabled = enabled,
     };
-
-    private static Task<HttpResponseMessage> SendAsync(HttpClient client, HttpMethod method, string url, object body)
-    {
-        var request = new HttpRequestMessage(method, url) { Content = JsonContent.Create(body) };
-        request.Headers.Add(AdminAuth.CsrfHeader, "1");
-        return client.SendAsync(request);
-    }
 
     private static async Task<List<JsonElement>> ListAsync(HttpClient admin) =>
         (await admin.GetFromJsonAsync<JsonElement>("/api/admin/campaigns")).EnumerateArray().ToList();
@@ -295,28 +279,5 @@ public class AdminCampaignsTests
         await using var scope = factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         return await db.AdminAuditEntries.AsNoTracking().OrderByDescending(e => e.Id).FirstAsync();
-    }
-
-    /// <summary>A client holding an admin session, signed in the real way: QRLog confirmation, ticket, session.</summary>
-    private static async Task<HttpClient> SignedInAsync(LeaderboardApiFactory factory)
-    {
-        var client = Https(factory);
-        using var start = await client.PostAsync("/api/qrlog-login/start", null);
-        var started = await start.Content.ReadFromJsonAsync<JsonElement>();
-        var code = started.GetProperty("code").GetString()!;
-        var pollSecret = started.GetProperty("pollSecret").GetString()!;
-
-        var timestamp = DateTimeOffset.UtcNow.ToString("O");
-        var signature = Convert.ToHexString(HMACSHA256.HashData(
-            Encoding.UTF8.GetBytes(Secret), Encoding.UTF8.GetBytes($"{code}\n{AdminPhone}\n{timestamp}")));
-        using var confirm = await client.PostAsJsonAsync("/api/qrlog-login/confirm",
-            new { code, fullName = "Admin İşçi", phoneNumber = AdminPhone, timestamp, signature });
-        Assert.Equal(HttpStatusCode.NoContent, confirm.StatusCode);
-
-        using var poll = await client.GetAsync($"/api/qrlog-login/{code}?secret={pollSecret}");
-        var ticket = (await poll.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("signInTicket").GetString()!;
-        using var session = await SendAsync(client, HttpMethod.Post, "/api/admin/session", new { signInTicket = ticket });
-        Assert.Equal(HttpStatusCode.OK, session.StatusCode);
-        return client;
     }
 }

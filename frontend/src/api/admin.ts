@@ -28,14 +28,16 @@ export interface AuditEntry {
 }
 
 /** Why a sign-in or a request did not get through, in the terms the screen acts on. */
-export type AdminFailure = 'signed-out' | 'not-an-admin' | 'expired' | 'network'
+export type AdminFailure = 'signed-out' | 'not-an-admin' | 'expired' | 'refused' | 'network'
 
 export function adminFailure(err: unknown): AdminFailure {
   if (!isAxiosError(err) || !err.response) return 'network'
   const code = (err.response.data as { code?: string } | undefined)?.code
   if (err.response.status === 403) return 'not-an-admin'
   if (code === 'SIGN_IN_EXPIRED' || code === 'LINK_INVALID') return 'expired'
-  return 'signed-out'
+  if (err.response.status === 401) return 'signed-out'
+  // Anything else (400, 404, 409, 500) is the server declining this one request: the session is still good.
+  return 'refused'
 }
 
 /** The current session, or null when nobody is signed in (or the session no longer qualifies). */
@@ -153,4 +155,71 @@ export function campaignInput(campaign: AdminCampaign): CampaignInput {
     imageQuestionsPerQuiz: campaign.imageQuestionsPerQuiz,
     isEnabled: campaign.isEnabled,
   }
+}
+
+// --- results and participants -------------------------------------------------------------------------------
+
+export interface AttemptRow {
+  attemptId: number
+  participantId: number
+  /** Null for an unfinished attempt. */
+  rank: number | null
+  fullName: string
+  /** Masked by the server; full numbers are only in the Excel export. */
+  phone: string
+  startedAtUtc: string
+  completedAtUtc: string | null
+  correctAnswers: number | null
+  totalQuestions: number
+  pointsEarned: number | null
+  maxPoints: number
+  durationSeconds: number | null
+  passed: boolean | null
+  /** This participant's attempts in every campaign: what removing them deletes. */
+  participantAttempts: number
+}
+
+export interface CampaignResults {
+  campaign: {
+    id: number
+    quizModeTitle: string
+    bookTitle: string | null
+    startDate: string
+    endDate: string
+    passingScore: number
+    rewardTitle: string
+  }
+  started: number
+  completed: number
+  passed: number
+  unfinished: number
+  attempts: AttemptRow[]
+}
+
+export async function getCampaignResults(campaignId: number, search: string, signal?: AbortSignal): Promise<CampaignResults> {
+  const { data } = await api.get<CampaignResults>(`/api/admin/campaigns/${campaignId}/results`, {
+    params: search ? { search } : undefined,
+    signal,
+  })
+  return data
+}
+
+/** A plain link: the browser downloads it with the session cookie. The server records the export. */
+export function resultsExportUrl(campaignId: number): string {
+  return `${api.defaults.baseURL ?? ''}/api/admin/campaigns/${campaignId}/results.xlsx`
+}
+
+export async function resetAttempt(attemptId: number, reason: string): Promise<void> {
+  await api.post(`/api/admin/attempts/${attemptId}/reset`, { reason }, { headers: ADMIN_HEADERS })
+}
+
+export async function removeParticipant(participantId: number, reason: string): Promise<void> {
+  await api.post(`/api/admin/participants/${participantId}/remove`, { reason }, { headers: ADMIN_HEADERS })
+}
+
+/** The server's own explanation of a refused correction (REASON_REQUIRED, ATTEMPT_IN_PLAY, ...), when there is one. */
+export function refusalMessage(err: unknown): string | null {
+  if (!isAxiosError(err) || !err.response || err.response.status === 401 || err.response.status === 403) return null
+  const detail = (err.response.data as { detail?: string } | undefined)?.detail
+  return typeof detail === 'string' && detail.length > 0 ? detail : null
 }

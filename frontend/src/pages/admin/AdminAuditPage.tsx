@@ -11,10 +11,14 @@ const ACTION_LABELS: Record<string, string> = {
   'sign-out': 'Çıxış etdi',
   'campaign-created': 'Kampaniya yaratdı',
   'campaign-updated': 'Kampaniyanı dəyişdi',
+  'results-exported': 'Nəticələri ixrac etdi',
+  'attempt-reset': 'Cəhdi sıfırladı',
+  'participant-removed': 'İştirakçını sildi',
 }
 
 const ENTITY_LABELS: Record<string, string> = {
   campaign: 'Kampaniya',
+  participant: 'İştirakçı',
 }
 
 const TIME =new Intl.DateTimeFormat('az-Latn-AZ', {

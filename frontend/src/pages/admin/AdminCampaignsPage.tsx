@@ -130,6 +130,7 @@ export default function AdminCampaignsPage() {
 
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link to={`/admin/campaigns/${c.id}`} className="btn btn-secondary min-h-10 px-4 text-sm">Düzəlt</Link>
+                <Link to={`/admin/results/${c.id}`} className="btn btn-secondary min-h-10 px-4 text-sm">Nəticələr</Link>
                 <Link to={`/admin/campaigns/new?from=${c.id}`} className="btn btn-secondary min-h-10 px-4 text-sm">Növbəti dövr</Link>
                 {c.status !== 'ended' && (
                   <button type="button" onClick={() => void toggle(c)} disabled={busyId !== null} className="btn btn-secondary min-h-10 px-4 text-sm">

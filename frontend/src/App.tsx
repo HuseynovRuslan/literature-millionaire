@@ -11,6 +11,7 @@ import AdminAuditPage from './pages/admin/AdminAuditPage'
 import AdminCampaignEditorPage from './pages/admin/AdminCampaignEditorPage'
 import AdminCampaignsPage from './pages/admin/AdminCampaignsPage'
 import AdminHomePage from './pages/admin/AdminHomePage'
+import AdminResultsPage from './pages/admin/AdminResultsPage'
 import AdminLinkPage from './pages/admin/AdminLinkPage'
 
 export default function App() {
@@ -35,6 +36,8 @@ export default function App() {
           <Route path="campaigns" element={<AdminCampaignsPage />} />
           <Route path="campaigns/new" element={<AdminCampaignEditorPage />} />
           <Route path="campaigns/:id" element={<AdminCampaignEditorPage />} />
+          <Route path="results" element={<AdminResultsPage />} />
+          <Route path="results/:campaignId" element={<AdminResultsPage />} />
           <Route path="audit" element={<AdminAuditPage />} />
           {/* The old question form, now behind the sign-in; replaced by the question editor in a later phase. */}
           <Route path="questions" element={<AdminQuestionsPage />} />
