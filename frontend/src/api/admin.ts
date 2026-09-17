@@ -265,3 +265,58 @@ export async function uploadImage(file: File, kind: ImageKind): Promise<Uploaded
   })
   return data
 }
+
+// --- books --------------------------------------------------------------------------------------------------
+
+export interface AdminBook {
+  id: number
+  title: string
+  author: string
+  description: string
+  /** A picture from the library, or "" for none. */
+  coverImageUrl: string
+  isActive: boolean
+  questionCount: number
+  campaignCount: number
+  campaigns: { id: number; quizModeTitle: string; startDate: string; endDate: string; isEnabled: boolean }[]
+}
+
+export interface BookInput {
+  title: string
+  author: string
+  description: string
+  coverImageUrl: string
+  isActive: boolean
+}
+
+/** Field → messages from a refused save (400 BOOK_INVALID), or null when the failure was something else. */
+export function bookErrors(err: unknown): Record<string, string[]> | null {
+  if (!isAxiosError(err) || err.response?.status !== 400) return null
+  const data = err.response.data as { code?: string; errors?: Record<string, string[]> } | undefined
+  return data?.code === 'BOOK_INVALID' && data.errors ? data.errors : null
+}
+
+export async function getBooks(signal?: AbortSignal): Promise<AdminBook[]> {
+  const { data } = await api.get<AdminBook[]>('/api/admin/books', { signal })
+  return data
+}
+
+export async function createBook(input: BookInput): Promise<AdminBook> {
+  const { data } = await api.post<AdminBook>('/api/admin/books', input, { headers: ADMIN_HEADERS })
+  return data
+}
+
+export async function updateBook(id: number, input: BookInput): Promise<AdminBook> {
+  const { data } = await api.put<AdminBook>(`/api/admin/books/${id}`, input, { headers: ADMIN_HEADERS })
+  return data
+}
+
+export function bookInput(book: AdminBook): BookInput {
+  return {
+    title: book.title,
+    author: book.author,
+    description: book.description,
+    coverImageUrl: book.coverImageUrl,
+    isActive: book.isActive,
+  }
+}

@@ -70,6 +70,7 @@ builder.Services.AddScoped<IAdminAuditLog, AdminAuditLog>();
 builder.Services.AddScoped<IAdminLoginLinks, AdminLoginLinks>();
 builder.Services.AddScoped<IAdminCampaignService, AdminCampaignService>();
 builder.Services.AddScoped<IAdminResultsService, AdminResultsService>();
+builder.Services.AddScoped<IAdminBookService, AdminBookService>();
 // Where uploaded pictures are written (Uploads__Root; the "uploads" volume in production).
 builder.Services.AddSingleton<UploadStorage>();
 builder.Services.AddScoped<IImageUploadService, ImageUploadService>();

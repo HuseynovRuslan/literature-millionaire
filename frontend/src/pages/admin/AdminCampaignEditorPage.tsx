@@ -111,10 +111,12 @@ function CampaignForm({ options, editing, initial, onSignedOut }: {
   // Changing the category or book of a campaign that has been played would put results under other questions.
   const locked = (editing?.attemptsStarted ?? 0) > 0
 
-  // Books that have questions in the chosen category, plus the one already chosen (it may have none yet).
+  // A category played per book (Ayın Kitabı) offers every book, because the month's book is added first and
+  // its questions come after. Elsewhere the list is the books that actually have questions in this category,
+  // plus whichever one is already chosen.
   const bookIds = new Set(options.pools.filter((p) => p.quizModeId === form.quizModeId && p.bookId !== null).map((p) => p.bookId))
   if (form.bookId !== null) bookIds.add(form.bookId)
-  const books = options.books.filter((b) => bookIds.has(b.id))
+  const books = mode?.requiresBook ? options.books : options.books.filter((b) => bookIds.has(b.id))
 
   const pools = options.pools.filter((p) => p.quizModeId === form.quizModeId && (form.bookId === null || p.bookId === form.bookId))
   const bank = pools.reduce(

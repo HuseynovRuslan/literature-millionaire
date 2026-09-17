@@ -15,12 +15,15 @@ const ACTION_LABELS: Record<string, string> = {
   'attempt-reset': 'Cəhdi sıfırladı',
   'participant-removed': 'İştirakçını sildi',
   'image-uploaded': 'Şəkil yüklədi',
+  'book-created': 'Kitab əlavə etdi',
+  'book-updated': 'Kitabı dəyişdi',
 }
 
 const ENTITY_LABELS: Record<string, string> = {
   campaign: 'Kampaniya',
   participant: 'İştirakçı',
   image: 'Şəkil',
+  book: 'Kitab',
 }
 
 const TIME =new Intl.DateTimeFormat('az-Latn-AZ', {

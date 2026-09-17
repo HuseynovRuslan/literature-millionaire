@@ -11,6 +11,7 @@ import AdminAuditPage from './pages/admin/AdminAuditPage'
 import AdminCampaignEditorPage from './pages/admin/AdminCampaignEditorPage'
 import AdminCampaignsPage from './pages/admin/AdminCampaignsPage'
 import AdminHomePage from './pages/admin/AdminHomePage'
+import AdminBooksPage from './pages/admin/AdminBooksPage'
 import AdminImagesPage from './pages/admin/AdminImagesPage'
 import AdminResultsPage from './pages/admin/AdminResultsPage'
 import AdminLinkPage from './pages/admin/AdminLinkPage'
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="campaigns" element={<AdminCampaignsPage />} />
           <Route path="campaigns/new" element={<AdminCampaignEditorPage />} />
           <Route path="campaigns/:id" element={<AdminCampaignEditorPage />} />
+          <Route path="books" element={<AdminBooksPage />} />
           <Route path="images" element={<AdminImagesPage />} />
           <Route path="results" element={<AdminResultsPage />} />
           <Route path="results/:campaignId" element={<AdminResultsPage />} />
