@@ -1,0 +1,391 @@
+{
+ "source": "Wikidata P225/P18 + az.wikipedia + Wikimedia Commons",
+ "reviewedBy": "Claude - şəkillərə əl ilə baxılıb, 2026-09-17",
+ "rule": "şəkildə bitkini verən əlamət olmalı, adı xalq işlətməli, bankda oxşarı olmamalı",
+ "plants": [
+  {
+   "catalogId": "PLT-001",
+   "name": "Şərq çinarı",
+   "scientificName": "Platanus orientalis",
+   "difficulty": "asan",
+   "whyItWorks": "çinar - tikanlı yumru meyvələr aydın görünür, Azərbaycanda hamı tanıyır",
+   "nameSource": "az.wikipedia.org/wiki/Şərq çinarı",
+   "wikidata": "Q161105",
+   "image": {
+    "file": "Fruits of Platanus orientalis.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Fruits_of_Platanus_orientalis.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "Public domain",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:CSamulili\" class=\"mw-redirect\" title=\"User:CSamulili\">Samuli Lintula </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Fruits_of_Platanus_orientalis.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-003",
+   "name": "Sivriyarpaq ağcaqayın",
+   "scientificName": "Acer platanoides",
+   "difficulty": "orta",
+   "whyItWorks": "ağcaqayın yarpağı və çiçəyi birlikdə görünür",
+   "nameSource": "az.wikipedia.org/wiki/Sivriyarpaq ağcaqayın",
+   "wikidata": "Q26745",
+   "image": {
+    "file": "Ahornbluete.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Ahornbluete.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 3.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:Rabensteiner\" title=\"User:Rabensteiner\">Rabensteiner </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Ahornbluete.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-011",
+   "name": "Babil söyüdü",
+   "scientificName": "Salix babylonica",
+   "difficulty": "asan",
+   "whyItWorks": "sallaq söyüd formasını başqa ağacla qarışdırmaq olmur",
+   "nameSource": "az.wikipedia.org/wiki/Babil söyüdü",
+   "wikidata": "Q156307",
+   "image": {
+    "file": "(MHNT) Salix babylonica - Les Martels, Giroussens Tarn.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/2b/%28MHNT%29_Salix_babylonica_-_Les_Martels%2C_Giroussens_Tarn.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 4.0",
+    "author": " <div class=\"fn value\">\n <a href=\"//commons.wikimedia.org/wiki/User:Archaeodontosaurus\" title=\"User:Archaeodontosaurus\">Didier Descouens </a> </div>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:(MHNT)_Salix_babylonica_-_Les_Martels,_Giroussens_Tarn.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-014",
+   "name": "Sallaq tozağacı",
+   "scientificName": "Betula pendula",
+   "difficulty": "orta",
+   "whyItWorks": "ağ qabıq tozağacını birmənalı verir",
+   "nameSource": "az.wikipedia.org/wiki/Sallaq tozağacı",
+   "wikidata": "Q156895",
+   "image": {
+    "file": "Betula pendula Finland.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Betula_pendula_Finland.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 2.0",
+    "author": " <a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/photos/dittmars/\">Percita at Flickr </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Betula_pendula_Finland.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-017",
+   "name": "Ağ tut",
+   "scientificName": "Morus alba",
+   "difficulty": "asan",
+   "whyItWorks": "budaqdakı tut meyvəsi - şəkildə əsas əlamət var",
+   "nameSource": "az.wikipedia.org/wiki/Ağ tut",
+   "wikidata": "Q157307",
+   "image": {
+    "file": "Morus-alba.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Morus-alba.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 2.1 es",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:GerardM\" title=\"User:GerardM\">GerardM </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Morus-alba.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-029",
+   "name": "İriçiçək maqnoliya",
+   "scientificName": "Magnolia grandiflora",
+   "difficulty": "orta",
+   "whyItWorks": "iri ağ maqnoliya çiçəyi",
+   "nameSource": "az.wikipedia.org/wiki/İriçiçək maqnoliya",
+   "wikidata": "Q161116",
+   "image": {
+    "file": "Magnolia flower Duke campus.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/78/Magnolia_flower_Duke_campus.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 3.0",
+    "author": "DavetheMage",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Magnolia_flower_Duke_campus.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-036",
+   "name": "Adi əncir",
+   "scientificName": "Ficus carica",
+   "difficulty": "asan",
+   "whyItWorks": "əncir meyvəsi və yarpağı",
+   "nameSource": "az.wikipedia.org/wiki/Adi əncir",
+   "wikidata": "Q36146",
+   "image": {
+    "file": "Smokve na grani.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/69/Smokve_na_grani.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 4.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:Silverije\" title=\"User:Silverije\">Silverije </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Smokve_na_grani.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-037",
+   "name": "Adi nar",
+   "scientificName": "Punica granatum",
+   "difficulty": "asan",
+   "whyItWorks": "nar meyvəsi - ən tanınan",
+   "nameSource": "az.wikipedia.org/wiki/Adi nar",
+   "wikidata": "Q13188",
+   "image": {
+    "file": "Punica granatum 004.JPG",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Punica_granatum_004.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 3.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:Llez\" title=\"User:Llez\">H. Zell </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Punica_granatum_004.JPG"
+   }
+  },
+  {
+   "catalogId": "PLT-078",
+   "name": "Adi yasəmən",
+   "scientificName": "Syringa vulgaris",
+   "difficulty": "asan",
+   "whyItWorks": "yasəmən salxımı ön planda",
+   "nameSource": "az.wikipedia.org/wiki/Adi yasəmən",
+   "wikidata": "Q6565319",
+   "image": {
+    "file": "Syringa vulgaris Bulgaria 6.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Syringa_vulgaris_Bulgaria_6.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 2.5",
+    "author": "Nedelin",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Syringa_vulgaris_Bulgaria_6.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-082",
+   "name": "Suriya hibiskusu",
+   "scientificName": "Hibiscus syriacus",
+   "difficulty": "orta",
+   "whyItWorks": "hibiskus çiçəyi - mərkəzdəki tünd ləkə ilə",
+   "nameSource": "az.wikipedia.org/wiki/Suriya hibiskusu",
+   "wikidata": "Q157756",
+   "image": {
+    "file": "Ruhland, Grenzstr. 3, Straucheibisch, Blüte, Frühling, 05.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Ruhland%2C_Grenzstr._3%2C_Straucheibisch%2C_Bl%C3%BCte%2C_Fr%C3%BChling%2C_05.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 4.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:Wilhelm_Zimmerling_PAR\" title=\"User:Wilhelm Zimmerling PAR\">Wilhelm Zimmerling PAR </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Ruhland,_Grenzstr._3,_Straucheibisch,_Bl%C3%BCte,_Fr%C3%BChling,_05.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-102",
+   "name": "Pontiya rododendronu",
+   "scientificName": "Rhododendron ponticum",
+   "difficulty": "çətin",
+   "whyItWorks": "rododendron - çiçək xarakterik, ad az işlənir",
+   "nameSource": "az.wikipedia.org/wiki/Pontiya rododendronu",
+   "wikidata": "Q557928",
+   "image": {
+    "file": "Странджанска зеленика Rhododendron ponticum.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a9/%D0%A1%D1%82%D1%80%D0%B0%D0%BD%D0%B4%D0%B6%D0%B0%D0%BD%D1%81%D0%BA%D0%B0_%D0%B7%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%BA%D0%B0_Rhododendron_ponticum.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 4.0",
+    "author": " <a href=\"//commons.wikimedia.org/w/index.php?title=User:ABesheva&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:ABesheva (page does not exist)\">ABesheva </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:%D0%A1%D1%82%D1%80%D0%B0%D0%BD%D0%B4%D0%B6%D0%B0%D0%BD%D1%81%D0%BA%D0%B0_%D0%B7%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%BA%D0%B0_Rhododendron_ponticum.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-109",
+   "name": "Maralbuynuz sumaq",
+   "scientificName": "Rhus typhina",
+   "difficulty": "çətin",
+   "whyItWorks": "sumaq - qırmızı meyvə qozası birmənalıdır",
+   "nameSource": "az.wikipedia.org/wiki/Maralbuynuz sumaq",
+   "wikidata": "Q148986",
+   "image": {
+    "file": "Rhty 002 lhp.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Rhty_002_lhp.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "Public domain",
+    "author": "The original uploader was  <a href=\"https://en.wikipedia.org/wiki/User:Muggwort17\" class=\"extiw\" title=\"wikipedia:User:Muggwort17\">Muggwort17 </a> at  <a href=\"https://en.wikipedia",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Rhty_002_lhp.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-112",
+   "name": "Çılpaq buqenvilleya",
+   "scientificName": "Bougainvillea glabra",
+   "difficulty": "çətin",
+   "whyItWorks": "buqenvilleya - rəngi başqa bitkidə yoxdur",
+   "nameSource": "az.wikipedia.org/wiki/Çılpaq bugenvilleya",
+   "wikidata": "Q159984",
+   "image": {
+    "file": "Flor de Santa Rita (Bougainvillea glabra) una especie de planta trepadora de la familia de las Nyctaginaceae (sobre Ruta Provincial 7, municipio de Ruiz de Montoya, Provincia de Misiones, República Argentina).jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d8/Flor_de_Santa_Rita_%28Bougainvillea_glabra%29_una_especie_de_planta_trepadora_de_la_familia_de_las_Nyctaginaceae_%28sobre_Ruta_Provincial_7%2C_municipio_de_Ruiz_de_Montoya%2C_Provincia_de_Misiones%2C_Rep%C3%BAblica_Argentina%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 4.0",
+    "author": "Horacio Cambeiro",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Flor_de_Santa_Rita_(Bougainvillea_glabra)_una_especie_de_planta_trepadora_de_la_familia_de_las_Nyctaginaceae_(sobre_Ruta_Provincial_7,_municipio_de_Ruiz_de_Montoya,_Provincia_de_Misiones,_Rep%C3%BAblica_Argentina).jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-113",
+   "name": "Adi daşsarmaşığı",
+   "scientificName": "Hedera helix",
+   "difficulty": "orta",
+   "whyItWorks": "gövdəyə sarılmış daşsarmaşığı",
+   "nameSource": "az.wikipedia.org/wiki/Adi daşsarmaşığı",
+   "wikidata": "Q26354",
+   "image": {
+    "file": "Hedera helix Dover.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Hedera_helix_Dover.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 4.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:Kallerna\" title=\"User:Kallerna\">kallerna </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Hedera_helix_Dover.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-115",
+   "name": "Kökatan nargülü",
+   "scientificName": "Campsis radicans",
+   "difficulty": "çətin",
+   "whyItWorks": "nargülü - narıncı şeypur çiçək",
+   "nameSource": "az.wikipedia.org/wiki/Kökatan nargülü",
+   "wikidata": "Q468778",
+   "image": {
+    "file": "Campsis-radicans-20080402.JPG",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/69/Campsis-radicans-20080402.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 4.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:Miwasatoshi\" title=\"User:Miwasatoshi\">Miwasatoshi </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Campsis-radicans-20080402.JPG"
+   }
+  },
+  {
+   "catalogId": "PLT-122",
+   "name": "Mavi qonaqotu",
+   "scientificName": "Passiflora caerulea",
+   "difficulty": "çətin",
+   "whyItWorks": "qonaqotu çiçəyi - dünyada bənzəri yoxdur",
+   "nameSource": "az.wikipedia.org/wiki/Mavi qonaqotu",
+   "wikidata": "Q161120",
+   "image": {
+    "file": "Passiflora caerulea (makro close-up).jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/30/Passiflora_caerulea_%28makro_close-up%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 4.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:PetarM\" title=\"User:PetarM\">Petar Milošević </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Passiflora_caerulea_(makro_close-up).jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-134",
+   "name": "Əsl əzvay",
+   "scientificName": "Aloe vera",
+   "difficulty": "asan",
+   "whyItWorks": "əzvay - ətli yarpaqlar, geniş tanınır",
+   "nameSource": "az.wikipedia.org/wiki/Əsl əzvay",
+   "wikidata": "Q80079",
+   "image": {
+    "file": "Starr 011104-0040 Aloe vera.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/56/Starr_011104-0040_Aloe_vera.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 3.0",
+    "author": " <a rel=\"nofollow\" class=\"external text\" href=\"http://www.hear.org/starr/\">Forest &amp; Kim Starr </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Starr_011104-0040_Aloe_vera.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-142",
+   "name": "Çoxillik qızçiçəyi",
+   "scientificName": "Bellis perennis",
+   "difficulty": "orta",
+   "whyItWorks": "qızçiçəyi - sadə, aydın",
+   "nameSource": "az.wikipedia.org/wiki/Çoxillik qızçiçəyi",
+   "wikidata": "Q26158",
+   "image": {
+    "file": "Belis peremnis - panoramio.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/53/Belis_peremnis_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 3.0",
+    "author": " <a rel=\"nofollow\" class=\"external text\" href=\"https://web.archive.org/web/20161023185801/http://www.panoramio.com/user/5028791?with_photo_id=56139765\">m.dolores paderne sa… </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Belis_peremnis_-_panoramio.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-163",
+   "name": "Adi boymadərən",
+   "scientificName": "Achillea millefolium",
+   "difficulty": "çətin",
+   "whyItWorks": "boymadərən - dərman bitkisi kimi tanınır",
+   "nameSource": "az.wikipedia.org/wiki/Adi boymadərən",
+   "wikidata": "Q25408",
+   "image": {
+    "file": "Achillea millefolium vallee-de-grace-amiens 80 22062007 1.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Achillea_millefolium_vallee-de-grace-amiens_80_22062007_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 3.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:Pichard\" title=\"User:Pichard\">O. Pichard </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Achillea_millefolium_vallee-de-grace-amiens_80_22062007_1.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-167",
+   "name": "Şərq sünbülçiçəyi",
+   "scientificName": "Hyacinthus orientalis",
+   "difficulty": "orta",
+   "whyItWorks": "sünbülçiçəyi (sümbül) - salxım forması xarakterik",
+   "nameSource": "az.wikipedia.org/wiki/Şərq sünbülçiçəyi",
+   "wikidata": "Q157428",
+   "image": {
+    "file": "Hyacinth bloem.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/66/Hyacinth_bloem.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 3.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:Rasbak\" title=\"User:Rasbak\">Rasbak </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Hyacinth_bloem.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-168",
+   "name": "Gesner dağlaləsi",
+   "scientificName": "Tulipa gesneriana",
+   "difficulty": "asan",
+   "whyItWorks": "lalə",
+   "nameSource": "az.wikipedia.org/wiki/Gesner dağlaləsi",
+   "wikidata": "Q163060",
+   "image": {
+    "file": "Tulipa gesneriana 001.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Tulipa_gesneriana_001.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "Public domain",
+    "author": " <p> <a href=\"https://ru.wikipedia.org/wiki/%D0%A3%D1%87%D0%B0%D1%81%D1%82%D0%BD%D0%B8%D0%BA:Katalinks\" class=\"extiw\" title=\"ru:Участник:Katalinks\">Katalinks </a> (who is also \"Ека",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Tulipa_gesneriana_001.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-169",
+   "name": "Yalançı nərgizgülü",
+   "scientificName": "Narcissus pseudonarcissus",
+   "difficulty": "asan",
+   "whyItWorks": "nərgiz",
+   "nameSource": "az.wikipedia.org/wiki/Yalançı nərgizgülü",
+   "wikidata": "Q27498",
+   "image": {
+    "file": "Narcissus pseudonarcissus 030405.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f2/Narcissus_pseudonarcissus_030405.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 3.0",
+    "author": "",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Narcissus_pseudonarcissus_030405.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-175",
+   "name": "Birillik günəbaxan",
+   "scientificName": "Helianthus annuus",
+   "difficulty": "asan",
+   "whyItWorks": "günəbaxan",
+   "nameSource": "az.wikipedia.org/wiki/Birillik günəbaxan",
+   "wikidata": "Q171497",
+   "image": {
+    "file": "Helianthus annuus exposed 2004-05-22.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bd/Helianthus_annuus_exposed_2004-05-22.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "Public domain",
+    "author": "Jon Sullivan",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Helianthus_annuus_exposed_2004-05-22.jpg"
+   }
+  },
+  {
+   "catalogId": "PLT-180",
+   "name": "Andre anturiumu",
+   "scientificName": "Anthurium andraeanum",
+   "difficulty": "orta",
+   "whyItWorks": "anturium - qırmızı yelkən yarpağı, ev bitkisi kimi tanınır",
+   "nameSource": "az.wikipedia.org/wiki/Andre anturiumu",
+   "wikidata": "Q2452846",
+   "image": {
+    "file": "Anthurium andraeanum hatem moushir.JPG",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/43/Anthurium_andraeanum_hatem_moushir.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY-SA 3.0",
+    "author": " <a href=\"//commons.wikimedia.org/wiki/User:Hatem_Moushir\" title=\"User:Hatem Moushir\">Hatem Moushir </a>",
+    "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Anthurium_andraeanum_hatem_moushir.JPG"
+   }
+  }
+ ]
+}
