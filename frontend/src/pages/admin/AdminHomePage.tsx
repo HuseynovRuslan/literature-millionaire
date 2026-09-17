@@ -5,7 +5,6 @@ import { useAdmin } from './adminContext'
  * campaign editor that is still being built.
  */
 const COMING = [
-  { title: 'Kampaniyalar', text: 'Yeni kampaniya açmaq, tarixləri və keçid balını dəyişmək, kampaniyanı dayandırmaq.' },
   { title: 'Nəticələr', text: 'İştirakçılar, liderlər cədvəli və mükafat üçün Excel ixracı.' },
   { title: 'Kitablar', text: 'Ayın kitabını əlavə etmək, üz qabığını yükləmək.' },
   { title: 'Suallar', text: 'Sualları axtarmaq, düzəltmək, şəkilli sual əlavə etmək, faylla toplu idxal.' },

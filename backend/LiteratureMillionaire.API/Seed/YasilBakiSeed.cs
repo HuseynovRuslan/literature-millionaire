@@ -35,7 +35,7 @@ namespace LiteratureMillionaire.API.Seed;
 ///
 /// The opening campaign is created here, once, because a category with no campaign is invisible - the
 /// home page lists what can be played, not what exists, so seeding the bank alone left nothing on screen.
-/// It is created only if this book has no campaign starting on CampaignStart, so changing its dates,
+/// It is created only if this book has no campaign at all, so changing its dates,
 /// passing score or IsEnabled afterwards is an administrator's decision and survives every deployment.
 /// Nothing else is switched off: quiz modes run in parallel.
 /// </summary>
@@ -239,7 +239,9 @@ public static class YasilBakiSeed
 
         // Every question here carries a photograph, so a round is ten of them - the quota is not a target
         // to hit out of a mixed bank, it is simply what this bank is.
-        var campaignExists = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id && c.StartDate == CampaignStart, ct);
+        // Any campaign of the book, whatever its dates: once one exists, campaigns are the admin panel's, and a date
+        // changed there must not bring the seeded one back on the next deployment.
+        var campaignExists = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id, ct);
         if (!campaignExists)
         {
             db.MonthlyCampaigns.Add(new MonthlyCampaign

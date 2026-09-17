@@ -248,7 +248,9 @@ public static class GreenGardenSeed
         }
 
         // Every question here carries a picture, so a round is ten of them.
-        var campaignExists = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id && c.StartDate == CampaignStart, ct);
+        // Any campaign of the book, whatever its dates: once one exists, campaigns are the admin panel's, and a date
+        // changed there must not bring the seeded one back on the next deployment.
+        var campaignExists = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id, ct);
         if (!campaignExists)
         {
             db.MonthlyCampaigns.Add(new MonthlyCampaign

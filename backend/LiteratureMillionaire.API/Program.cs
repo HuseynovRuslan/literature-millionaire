@@ -68,6 +68,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<IAdminDirectory, AdminDirectory>();
 builder.Services.AddScoped<IAdminAuditLog, AdminAuditLog>();
 builder.Services.AddScoped<IAdminLoginLinks, AdminLoginLinks>();
+builder.Services.AddScoped<IAdminCampaignService, AdminCampaignService>();
 builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, AdminRequirementHandler>();
 builder.Services
     .AddAuthentication(AdminAuth.Scheme)

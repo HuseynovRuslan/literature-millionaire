@@ -212,7 +212,9 @@ public static class BilikYarisiSeed
             .Where(q => q.BookId == book.Id && q.QuizModeId == null)
             .ExecuteUpdateAsync(set => set.SetProperty(q => q.QuizModeId, (int?)quizModeId), ct);
 
-        var campaignExists = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id && c.StartDate == CampaignStart, ct);
+        // Any campaign of the book, whatever its dates: once one exists, campaigns are the admin panel's, and a date
+        // changed there must not bring the seeded one back on the next deployment.
+        var campaignExists = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id, ct);
         if (!campaignExists)
         {
             await VerifyStoredBankAsync(db, book.Id, seed, ct);

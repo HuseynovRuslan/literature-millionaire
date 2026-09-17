@@ -23,7 +23,7 @@ type SessionState =
 
 const NAV: { to: string; label: string; ready: boolean }[] = [
   { to: '/admin', label: 'Ümumi baxış', ready: true },
-  { to: '/admin/campaigns', label: 'Kampaniyalar', ready: false },
+  { to: '/admin/campaigns', label: 'Kampaniyalar', ready: true },
   { to: '/admin/results', label: 'Nəticələr', ready: false },
   { to: '/admin/books', label: 'Kitablar', ready: false },
   { to: '/admin/questions-editor', label: 'Suallar', ready: false },

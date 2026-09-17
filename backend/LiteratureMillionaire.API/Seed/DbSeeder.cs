@@ -52,7 +52,7 @@ public static class DbSeeder
 
     /// <summary>
     /// Development "Book of the Month" demo: one book and one campaign for September 2026.
-    /// Guarded by book title and campaign start date, so re-running never duplicates rows.
+    /// Guarded by book title and by the book having any campaign, so re-running never duplicates rows.
     /// </summary>
     private static async Task SeedCampaignAsync(ApplicationDbContext db, CancellationToken ct)
     {
@@ -76,7 +76,9 @@ public static class DbSeeder
             await db.SaveChangesAsync(ct);
         }
 
-        var hasCampaign = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id && c.StartDate == campaignStart, ct);
+        // Any campaign of the book, whatever its dates: once one exists, campaigns are the admin panel's, and a date
+        // changed there must not bring the seeded one back on the next deployment.
+        var hasCampaign = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id, ct);
         if (hasCampaign)
         {
             return;

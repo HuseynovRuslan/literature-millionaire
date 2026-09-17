@@ -9,9 +9,15 @@ const ACTION_LABELS: Record<string, string> = {
   'sign-in-denied': 'Giriş rədd edildi',
   'sign-in-link-denied': 'Təcili link rədd edildi',
   'sign-out': 'Çıxış etdi',
+  'campaign-created': 'Kampaniya yaratdı',
+  'campaign-updated': 'Kampaniyanı dəyişdi',
 }
 
-const TIME = new Intl.DateTimeFormat('az-Latn-AZ', {
+const ENTITY_LABELS: Record<string, string> = {
+  campaign: 'Kampaniya',
+}
+
+const TIME =new Intl.DateTimeFormat('az-Latn-AZ', {
   timeZone: 'Asia/Baku',
   day: '2-digit',
   month: '2-digit',
@@ -72,7 +78,7 @@ export default function AdminAuditPage() {
                     {ACTION_LABELS[entry.action] ?? entry.action}
                   </td>
                   <td className="py-2.5 text-fg-2">
-                    {[entry.entityType, entry.entityId].filter(Boolean).join(' #')}
+                    {[entry.entityType && (ENTITY_LABELS[entry.entityType] ?? entry.entityType), entry.entityId].filter(Boolean).join(' #')}
                     {entry.details && <span className="block">{entry.details}</span>}
                   </td>
                 </tr>

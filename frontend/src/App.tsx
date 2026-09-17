@@ -8,6 +8,8 @@ import QrLoginHelpPage from './pages/QrLoginHelpPage'
 import AdminQuestionsPage from './pages/AdminQuestionsPage'
 import AdminApp from './pages/admin/AdminApp'
 import AdminAuditPage from './pages/admin/AdminAuditPage'
+import AdminCampaignEditorPage from './pages/admin/AdminCampaignEditorPage'
+import AdminCampaignsPage from './pages/admin/AdminCampaignsPage'
 import AdminHomePage from './pages/admin/AdminHomePage'
 import AdminLinkPage from './pages/admin/AdminLinkPage'
 
@@ -30,6 +32,9 @@ export default function App() {
         <Route path="admin/link" element={<AdminLinkPage />} />
         <Route path="admin" element={<AdminApp />}>
           <Route index element={<AdminHomePage />} />
+          <Route path="campaigns" element={<AdminCampaignsPage />} />
+          <Route path="campaigns/new" element={<AdminCampaignEditorPage />} />
+          <Route path="campaigns/:id" element={<AdminCampaignEditorPage />} />
           <Route path="audit" element={<AdminAuditPage />} />
           {/* The old question form, now behind the sign-in; replaced by the question editor in a later phase. */}
           <Route path="questions" element={<AdminQuestionsPage />} />

@@ -67,3 +67,90 @@ export async function getAuditLog(signal?: AbortSignal): Promise<AuditEntry[]> {
   const { data } = await api.get<AuditEntry[]>('/api/admin/audit', { params: { take: 200 }, signal })
   return data
 }
+
+// --- campaigns ----------------------------------------------------------------------------------------------
+
+export type CampaignStatus = 'running' | 'scheduled' | 'ended' | 'disabled'
+
+export interface AdminCampaign {
+  id: number
+  quizModeId: number
+  quizModeTitle: string
+  bookId: number | null
+  bookTitle: string | null
+  /** yyyy-MM-dd */
+  startDate: string
+  /** yyyy-MM-dd */
+  endDate: string
+  passingScore: number
+  rewardTitle: string
+  imageQuestionsPerQuiz: number
+  isEnabled: boolean
+  status: CampaignStatus
+  attemptsStarted: number
+  attemptsCompleted: number
+  /** Plain-language problems, already in Azerbaijani. */
+  issues: string[]
+}
+
+export interface CampaignOptions {
+  /** The server's today (yyyy-MM-dd): what "running" is measured against. */
+  today: string
+  quizModes: { id: number; title: string; isActive: boolean; requiresBook: boolean }[]
+  books: { id: number; title: string; author: string; isActive: boolean }[]
+  pools: { quizModeId: number; bookId: number | null; easy: number; medium: number; hard: number; images: number }[]
+  easyPerQuiz: number
+  mediumPerQuiz: number
+  hardPerQuiz: number
+}
+
+export interface CampaignInput {
+  quizModeId: number | null
+  bookId: number | null
+  startDate: string
+  endDate: string
+  passingScore: number
+  rewardTitle: string
+  imageQuestionsPerQuiz: number
+  isEnabled: boolean
+}
+
+/** Field → messages from a refused save (400 CAMPAIGN_INVALID), or null when the failure was something else. */
+export function campaignErrors(err: unknown): Record<string, string[]> | null {
+  if (!isAxiosError(err) || err.response?.status !== 400) return null
+  const data = err.response.data as { code?: string; errors?: Record<string, string[]> } | undefined
+  return data?.code === 'CAMPAIGN_INVALID' && data.errors ? data.errors : null
+}
+
+export async function getCampaigns(signal?: AbortSignal): Promise<AdminCampaign[]> {
+  const { data } = await api.get<AdminCampaign[]>('/api/admin/campaigns', { signal })
+  return data
+}
+
+export async function getCampaignOptions(signal?: AbortSignal): Promise<CampaignOptions> {
+  const { data } = await api.get<CampaignOptions>('/api/admin/campaigns/options', { signal })
+  return data
+}
+
+export async function createCampaign(input: CampaignInput): Promise<AdminCampaign> {
+  const { data } = await api.post<AdminCampaign>('/api/admin/campaigns', input, { headers: ADMIN_HEADERS })
+  return data
+}
+
+export async function updateCampaign(id: number, input: CampaignInput): Promise<AdminCampaign> {
+  const { data } = await api.put<AdminCampaign>(`/api/admin/campaigns/${id}`, input, { headers: ADMIN_HEADERS })
+  return data
+}
+
+export function campaignInput(campaign: AdminCampaign): CampaignInput {
+  return {
+    quizModeId: campaign.quizModeId,
+    bookId: campaign.bookId,
+    startDate: campaign.startDate,
+    endDate: campaign.endDate,
+    passingScore: campaign.passingScore,
+    rewardTitle: campaign.rewardTitle,
+    imageQuestionsPerQuiz: campaign.imageQuestionsPerQuiz,
+    isEnabled: campaign.isEnabled,
+  }
+}

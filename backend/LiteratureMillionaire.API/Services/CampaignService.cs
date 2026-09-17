@@ -113,8 +113,7 @@ public class CampaignService : ICampaignService
 
     // --- queries ----------------------------------------------------------------
 
-    /// <summary>Calendar date of the machine the API runs on (the kiosk environment), not UTC.</summary>
-    private static DateOnly Today() => DateOnly.FromDateTime(DateTime.Now);
+    private static DateOnly Today() => CampaignCalendar.Today();
 
     private IQueryable<MonthlyCampaign> PlayableOn(DateOnly today) =>
         _db.MonthlyCampaigns.Where(c => c.IsEnabled
