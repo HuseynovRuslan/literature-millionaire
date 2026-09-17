@@ -35,7 +35,7 @@ public class QrLoginApiTests
         client.PostAsJsonAsync("/api/qrlog-login/confirm", new { code, fullName = Name, phoneNumber = phone, timestamp, signature });
 
     [Fact]
-    public async Task A_signed_confirmation_hands_the_identity_to_the_kiosk_exactly_once()
+    public async Task A_signed_confirmation_reaches_every_copy_of_the_screen_that_is_waiting()
     {
         await using var factory = new LeaderboardApiFactory(qrLogSecret: Secret);
         using var client = factory.CreateClient();
@@ -55,9 +55,16 @@ public class QrLoginApiTests
         Assert.Equal(Name, confirmed.GetProperty("fullName").GetString());
         Assert.Equal(Phone, confirmed.GetProperty("phoneNumber").GetString());
 
-        // Spent: the identity is delivered once, so a second reader gets nothing.
-        using var again = await client.GetAsync($"/api/qrlog-login/{code}?secret={pollSecret}");
-        Assert.Equal(HttpStatusCode.NotFound, again.StatusCode);
+        // Asked again - by the same screen after a reload, or by the second tab QRLog handed the browser
+        // back to - it answers the same thing, with the same ticket. Delivering it once meant whichever copy
+        // asked first took the sign-in and the other was told its code had expired.
+        var second = await client.GetFromJsonAsync<JsonElement>($"/api/qrlog-login/{code}?secret={pollSecret}");
+        Assert.Equal("confirmed", second.GetProperty("status").GetString());
+        Assert.Equal(confirmed.GetProperty("signInTicket").GetString(), second.GetProperty("signInTicket").GetString());
+
+        // The secret is still what proves it is that browser asking.
+        using var stranger = await client.GetAsync($"/api/qrlog-login/{code}?secret=0123456789abcdef0123456789abcdef");
+        Assert.Equal(HttpStatusCode.NotFound, stranger.StatusCode);
     }
 
     [Fact]

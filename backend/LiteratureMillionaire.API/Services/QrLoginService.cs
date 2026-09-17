@@ -122,6 +122,9 @@ public sealed class QrLoginService : IQrLoginService
         public string? FullName { get; set; }
         public string? PhoneNumber { get; set; }
         public bool Confirmed { get; set; }
+
+        /// <summary>Issued on the first confirmed poll and handed to every later one (see Poll).</summary>
+        public string? SignInTicket { get; set; }
     }
 
     public QrLoginStartedDto Start()
@@ -193,12 +196,26 @@ public sealed class QrLoginService : IQrLoginService
             return new QrLoginStatusDto("pending", null, null);
         }
 
-        // Delivered once: the kiosk has the identity now, so the code is spent - and what it carries away
-        // is a ticket for that identity, which is the only thing a quiz can be started with.
-        _cache.Remove(CacheKey(code));
+        // The answer stays the same for as long as the code lives, and the ticket it carries is minted once.
+        //
+        // It used to be delivered exactly once, and that broke the phone route: QRLog hands the browser back
+        // to a page that is often a SECOND copy of the screen that started the sign-in (a tab opened from
+        // ours inherits its session storage, and a redirect back lands in whichever tab QRLog was opened in),
+        // so two copies polled the same code. Whichever asked first took the identity and the other was told
+        // its code had expired - which is why the name never arrived on the game screen and why the panel
+        // only worked on the second try. Nothing is given away by answering twice: the poll secret is the
+        // proof, it never leaves the browser that started the sign-in, and the code still dies with its five
+        // minutes. What is single-use is the ticket's effect - an admin session consumes it (ConsumeTicket).
+        pending.SignInTicket ??= IssueTicket(pending);
+        return new QrLoginStatusDto("confirmed", pending.FullName, pending.PhoneNumber, pending.SignInTicket);
+    }
+
+    /// <summary>Mints the ticket a confirmed sign-in carries, and remembers who it stands for.</summary>
+    private string IssueTicket(PendingLogin pending)
+    {
         var ticket = Convert.ToHexString(RandomNumberGenerator.GetBytes(TicketBytes)).ToLowerInvariant();
         _cache.Set(TicketKey(ticket), new SignedInIdentity(pending.FullName!, pending.PhoneNumber!), TicketLifetime);
-        return new QrLoginStatusDto("confirmed", pending.FullName, pending.PhoneNumber, ticket);
+        return ticket;
     }
 
     public bool IsSignatureValid(string code, string phoneNumber, string timestamp, string signature)

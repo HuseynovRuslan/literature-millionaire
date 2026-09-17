@@ -106,6 +106,18 @@ function AdminSignIn({ notice, onSignedIn }: { notice?: string; onSignedIn: (ses
       onSignedIn(await signInWithTicket(identity.signInTicket))
     } catch (err) {
       const failure = adminFailure(err)
+      // A spent ticket can mean the sign-in already worked: the same approval can reach two copies of this
+      // screen (QRLog hands the browser back to one tab while another is still waiting), and whichever got
+      // there first spent the ticket on a session - which is a cookie, so it belongs to this browser too.
+      // Telling the second copy "your sign-in expired" while the panel is open next door is the worst of
+      // both: it is wrong, and it sends somebody who is signed in back to scanning.
+      if (failure === 'expired') {
+        const existing = await getAdminSession().catch(() => null)
+        if (existing) {
+          onSignedIn(existing)
+          return
+        }
+      }
       setMessage(
         failure === 'not-an-admin'
           ? 'Bu nömrə idarəetmə panelinə giriş siyahısında deyil.'
