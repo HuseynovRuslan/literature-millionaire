@@ -2,6 +2,16 @@ import QrCode from './QrCode'
 import type { QrLoginState } from '../hooks/useQrLogin'
 
 /**
+ * Where QRLog should send the person back to once they have approved: the very screen they left.
+ * Without it they land on the site's front door - the admin who started in the panel ends up in the game.
+ * QRLog only accepts a return address on this site, so this is a hint, not a redirect anyone can dictate.
+ */
+function withReturnAddress(appConfirmUrl: string): string {
+  const separator = appConfirmUrl.includes('?') ? '&' : '?'
+  return `${appConfirmUrl}${separator}return=${encodeURIComponent(window.location.href)}`
+}
+
+/**
  * The QRLog sign-in QR: the way in for players on the registration screen and for administrators on the
  * admin panel's sign-in screen. Most people reaching either are colleagues already carrying QRLog, so the QR
  * is the screen rather than something behind a button.
@@ -72,7 +82,7 @@ export default function QrLoginPanel({ state, onRetry, hint = 'Telefonunuzda QRL
       {state.kind === 'waiting' && state.appConfirmUrl && (
         <div className="mt-5 w-full max-w-[22rem] border-t border-white/10 pt-4">
           <a
-            href={state.appConfirmUrl}
+            href={withReturnAddress(state.appConfirmUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary min-h-12 w-full px-5"
