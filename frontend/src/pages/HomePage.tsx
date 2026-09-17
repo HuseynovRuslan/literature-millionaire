@@ -142,7 +142,7 @@ export default function HomePage() {
   if (activeGame) {
     const progress = Math.round(((activeGame.questionNumber - 1) / activeGame.totalQuestions) * 100)
     return (
-      <GameShowShell>
+      <GameShowShell atmosphere>
         <StatusStage labelledBy="resume-title">
           <QuizEmblem className="pop size-28 max-sm:size-24" />
           <p className="chip mt-5 px-4 py-1.5 text-[clamp(0.75rem,0.9vw,0.88rem)] uppercase tracking-[0.14em] text-sun">Davam edən sessiya</p>
@@ -171,7 +171,7 @@ export default function HomePage() {
 
   if (categories.kind === 'loading') {
     return (
-      <GameShowShell>
+      <GameShowShell atmosphere>
         <StatusStage>
           <QuizEmblem className="pop size-32 max-sm:size-24" />
           <Octagram className="spin mt-7 size-12 text-sun" />
@@ -184,7 +184,7 @@ export default function HomePage() {
   if (categories.kind === 'error') {
     const copy = ERROR_COPY[categories.error]
     return (
-      <GameShowShell>
+      <GameShowShell atmosphere>
         <StatusStage alert>
           <QuizEmblem className="size-28 max-sm:size-24" />
           <h1 className="mt-6 max-w-[24ch] font-display text-[clamp(1.9rem,3.6vw,3.2rem)] font-bold leading-tight max-sm:text-[1.6rem]">{copy.title}</h1>
@@ -201,7 +201,7 @@ export default function HomePage() {
 
   if (categories.kind === 'empty') {
     return (
-      <GameShowShell>
+      <GameShowShell atmosphere>
         <StatusStage>
           <QuizEmblem className="size-28 max-sm:size-24" />
           <h1 className="mt-6 max-w-[24ch] font-display text-[clamp(1.8rem,3.2vw,2.8rem)] font-bold leading-tight max-sm:text-[1.5rem]">Hazırda heç bir kateqoriya yoxdur</h1>
@@ -220,7 +220,7 @@ export default function HomePage() {
   const isLastOdd = data.length % 2 === 1
 
   return (
-    <GameShowShell>
+    <GameShowShell atmosphere>
       <Hero count={data.length} />
       <ul
         data-testid="category-grid"

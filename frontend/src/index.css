@@ -434,6 +434,127 @@ body {
   .card-lift:hover { transform: translateY(-6px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2.4rem 3.6rem -1.6rem rgba(4, 2, 18, 0.9); }
   .card-lift:hover .wiggle { animation: wiggle 600ms ease-in-out; }
 }
+/* ---------- Home page atmosphere ----------
+   The home page's background, as layers rather than one flat gradient (HomeAtmosphere.tsx, switched on by
+   GameShowShell's `atmosphere`; every other screen keeps the plain arena).
+
+     0  base      deep navy into violet
+     1  pattern   the national star, buta and carpet diamond, barely there
+     2  light     three soft pools: violet top-left, magenta top-right by the hero, a breath of cyan low
+     3  stars     eighteen still points and five that twinkle
+     -  the existing drifting quiz shapes (ArenaBackdrop) and all content sit above these
+
+   The rule for every number here: it should be felt before it is noticed. Fixed to the viewport, so a long
+   page scrolls over it instead of repainting a page-tall gradient; no filters, no canvas, nine elements. */
+.arena.arena-atmosphere {
+  background-color: #0e0922;
+  background-image: none; /* the atmosphere's base covers it; painting both is wasted work */
+}
+
+.atmo {
+  position: fixed;
+  inset: 0;
+  z-index: -30;
+  overflow: hidden;
+  pointer-events: none;
+  /* Layer 0. Navy and violet rather than black, kept close to the arena's ink tokens. */
+  background: linear-gradient(135deg, #0c0b27 0%, #16123b 35%, #1b1036 65%, #0e0922 100%);
+}
+.atmo > * { position: absolute; pointer-events: none; }
+
+/* Layer 1. Monochrome, one light stroke, and masked into two loose regions so it never lies over the page
+   like a carpet: a presence at the top corners, gone under the cards. */
+.atmo-pattern {
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27240%27 height=%27240%27 viewBox=%270 0 240 240%27%3E%3Cg fill=%27none%27 stroke=%27%23d4c8ff%27 stroke-width=%271%27 stroke-linejoin=%27round%27%3E%3Crect x=%2752%27 y=%2752%27 width=%2716%27 height=%2716%27/%3E%3Crect x=%2752%27 y=%2752%27 width=%2716%27 height=%2716%27 transform=%27rotate%2845 60 60%29%27/%3E%3Cpath transform=%27translate%28158 132%29 scale%280.2%29%27 stroke-width=%275%27 d=%27M50 135C18 135 5 105 12 78c6-26 26-40 36-56 6-10 14-18 26-16 12 2 14 16 6 20 12 22 16 52 8 76-6 20-20 33-38 33Z%27/%3E%3Cpath d=%27M180 44 186 50 180 56 174 50Z%27/%3E%3Cpath d=%27M44 182 48 186 44 190 40 186ZM60 182 64 186 60 190 56 186ZM76 182 80 186 76 190 72 186Z%27/%3E%3C/g%3E%3Ccircle cx=%27122%27 cy=%27118%27 r=%271%27 fill=%27%23d4c8ff%27/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  opacity: 0.04;
+  -webkit-mask-image:
+    radial-gradient(ellipse 45% 40% at 12% 12%, #000 0%, transparent 70%),
+    radial-gradient(ellipse 40% 45% at 92% 55%, #000 0%, transparent 70%);
+  mask-image:
+    radial-gradient(ellipse 45% 40% at 12% 12%, #000 0%, transparent 70%),
+    radial-gradient(ellipse 40% 45% at 92% 55%, #000 0%, transparent 70%);
+}
+
+/* Layer 2. Gradients are already soft, so no blur filter - the cheapest way to get this look. */
+.atmo-glow {
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55vw 55vh at 14% 8%, rgba(100, 80, 255, 0.16), transparent 70%),
+    radial-gradient(ellipse 45vw 45vh at 86% 16%, rgba(180, 50, 180, 0.1), transparent 70%),
+    radial-gradient(ellipse 50vw 45vh at 64% 78%, rgba(0, 170, 220, 0.06), transparent 70%);
+}
+
+/* Layer 3. Eighteen still stars are the shadows of one 1px dot - one node, not eighteen. Positions in
+   viewport units so the field keeps its spacing on any screen; a few carry a faint halo. */
+.atmo-stars {
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  border-radius: 50%;
+  box-shadow:
+    8vw 21vh 0 0.5px rgba(255, 255, 255, 0.45),
+    19vw 6vh 0 0 rgba(201, 188, 255, 0.5),
+    24vw 44vh 2px 0.5px rgba(201, 188, 255, 0.35),
+    37vw 31vh 0 0 rgba(255, 255, 255, 0.35),
+    44vw 9vh 0 0.5px rgba(140, 225, 255, 0.4),
+    52vw 62vh 0 0 rgba(255, 255, 255, 0.3),
+    58vw 24vh 3px 1px rgba(201, 188, 255, 0.3),
+    67vw 41vh 0 0 rgba(255, 255, 255, 0.4),
+    73vw 7vh 0 0.5px rgba(255, 255, 255, 0.45),
+    79vw 83vh 0 0.5px rgba(140, 225, 255, 0.35),
+    83vw 36vh 0 0 rgba(201, 188, 255, 0.45),
+    91vw 12vh 2px 0.5px rgba(255, 255, 255, 0.35),
+    96vw 67vh 0 0 rgba(255, 255, 255, 0.35),
+    4vw 78vh 0 0.5px rgba(201, 188, 255, 0.35),
+    15vw 93vh 0 0 rgba(255, 255, 255, 0.3),
+    33vw 86vh 3px 1px rgba(140, 225, 255, 0.25),
+    47vw 97vh 0 0 rgba(255, 255, 255, 0.3),
+    88vw 94vh 0 0.5px rgba(201, 188, 255, 0.35);
+}
+
+.atmo-twinkle {
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px 1px currentColor;
+  opacity: 0.4;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .atmo-twinkle { animation-name: atmo-twinkle; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+}
+@keyframes atmo-twinkle {
+  0%, 100% { opacity: 0.2; scale: 0.8; }
+  50% { opacity: 0.9; scale: 1.3; }
+}
+
+/* Tablet: the light pulls back a little. */
+@media (max-width: 1023.98px) {
+  .atmo-glow { opacity: 0.85; }
+}
+
+/* Phone: content first. The pattern fainter, the light softer, and the field thinned to ten still stars
+   and three that twinkle. */
+@media (max-width: 639.98px) {
+  .atmo-pattern { opacity: 0.028; }
+  .atmo-glow { opacity: 0.75; }
+  .atmo-twinkle:not([data-phone]) { display: none; }
+  .atmo-stars {
+    box-shadow:
+      12vw 14vh 0 0.5px rgba(255, 255, 255, 0.4),
+      31vw 38vh 0 0 rgba(201, 188, 255, 0.4),
+      54vw 9vh 0 0.5px rgba(140, 225, 255, 0.35),
+      71vw 47vh 2px 0.5px rgba(201, 188, 255, 0.3),
+      88vw 22vh 0 0 rgba(255, 255, 255, 0.4),
+      8vw 66vh 0 0 rgba(255, 255, 255, 0.3),
+      42vw 79vh 0 0.5px rgba(201, 188, 255, 0.3),
+      63vw 91vh 0 0 rgba(255, 255, 255, 0.3),
+      92vw 72vh 2px 0.5px rgba(140, 225, 255, 0.25),
+      22vw 96vh 0 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
 /* ---------- Home hero ----------
    "Bilik Bağı" on the left, the book-and-plant artwork on the right (HeroArt.tsx), in a panel that stays
    in the arena's violet rather than introducing a new surface.
@@ -502,6 +623,23 @@ body {
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
+}
+/* A second, wider and much fainter light behind the artwork, cooler than its own glow: the picture then
+   sits in the page's light, not only in the panel's. Behind the stage, inside the artwork column. */
+.hero-art::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: calc(var(--hero-art-right) - var(--hero-art-w) * 0.55);
+  bottom: -18%;
+  width: calc(var(--hero-art-w) * 2.1);
+  height: calc(var(--hero-art-h) * 1.45);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(86, 110, 255, 0.16), rgba(123, 97, 255, 0.07) 55%, transparent 100%);
+  pointer-events: none;
+}
+@media (max-width: 639.98px) {
+  .hero-art::before { left: 0; right: 0; margin-inline: auto; bottom: -10%; }
 }
 
 /* The stage is the artwork's own footprint plus room for its light, so everything on it is positioned
