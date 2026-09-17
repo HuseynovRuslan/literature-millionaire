@@ -52,6 +52,21 @@ ASKED = {
     # two questions worded identically would read as the same question asked twice.
     "digər": "Şəkildəki bitki hansıdır?",
 }
+# An option names the plant the way a label in a botanical garden does: the scientific name, which is the
+# one that was actually verified and is the same in every language, and the Azerbaijani name beside it for
+# the player who has only ever heard that one.
+def label_for(plant):
+    return f"{plant['scientificName']} ({plant['azName']})"
+
+
+PART_PHRASE = {
+    "meyvə": "şəkildə meyvəsi görünür.",
+    "çiçək": "şəkildə çiçəyi görünür.",
+    "yarpaq": "şəkildə yarpaqları görünür.",
+    "bütöv": "şəkildə bitkinin bütöv görünüşüdür.",
+    "digər": "şəkildə bitkinin özü görünür.",
+}
+
 ALT = {
     "meyvə": "Bir bitkinin meyvəsinin yaxın planı.",
     "çiçək": "Bir bitkinin çiçəyinin yaxın planı.",
@@ -84,13 +99,13 @@ for row in PICKED:
         "base": BASE.get(VERDICT.get(row["catalogId"], "ayırd edə bilmirəm"), 2),
     })
 
-# Two plants that happen to share an Azerbaijani name would make an unanswerable question whatever else
-# is done, so the second one is not carried.
+# Two plants that would end up with the same label are one unanswerable question however it is worded,
+# so the second one is not carried.
 seen, unique = set(), []
 for plant in plants:
-    if plant["azName"] in seen:
+    if label_for(plant) in seen:
         continue
-    seen.add(plant["azName"])
+    seen.add(label_for(plant))
     unique.append(plant)
 plants = unique
 
@@ -118,9 +133,10 @@ for plant in plants:
             skipped.append(f"{plant['catalogId']} {plant['azName']}")
             break
 
-        options = [plant["azName"]] + [w["azName"] for w in wrong]
+        answer = label_for(plant)
+        options = [answer] + [label_for(w) for w in wrong]
         rng.shuffle(options)
-        correct = "ABCD"[options.index(plant["azName"])]
+        correct = "ABCD"[options.index(answer)]
 
         level = plant["base"] + (1 if photo["part"] in HARDER_PARTS else 0)
         number = photo["file"].removeprefix("PLT-").removesuffix(".webp")
@@ -134,7 +150,7 @@ for plant in plants:
             "optionA": options[0], "optionB": options[1],
             "optionC": options[2], "optionD": options[3],
             "correctOption": correct,
-            "explanation": f"{plant['azName']} ({plant['scientificName']}).",
+            "explanation": f"{answer} — {PART_PHRASE[photo['part']]}",
             "imageUrl": f"/question-images/plant-{number}.webp",
             "imageAltText": ALT[photo["part"]],
             "imageSource": credit,

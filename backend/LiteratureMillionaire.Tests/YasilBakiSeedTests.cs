@@ -59,24 +59,27 @@ public class YasilBakiSeedTests
     }
 
     [Fact]
+    public void Every_option_is_named_the_way_a_garden_label_names_a_plant()
+    {
+        // "Punica granatum (Adi nar)": the scientific name, which is the one that was actually verified
+        // and reads the same in every language, and the Azerbaijani name for the player who knows only
+        // that one. The review screen already showed both; the options used to show neither.
+        Assert.All(Bank, q => Assert.All(q.Options,
+            o => Assert.Matches(@"^[A-Z][a-z]+ [a-z][a-z\-]+ \(\S.*\)$", o)));
+    }
+
+    [Fact]
     public void No_question_offers_a_plant_that_looks_like_its_own_answer()
     {
         // The whole bank rests on this: a photograph of a cedar is unanswerable when another cedar is on
-        // the list, and that is a fault of the options, not of the picture. Genus is the check available
-        // here - the Azerbaijani names of one genus share their last word ("Livan sidri", "Atlas sidri").
-        var genusOf = Bank
-            .Select(q => q.Explanation!)
-            .Select(e => (Name: e[..e.IndexOf(" (", StringComparison.Ordinal)],
-                          Genus: e[(e.IndexOf(" (", StringComparison.Ordinal) + 2)..].Split(' ')[0]))
-            .DistinctBy(x => x.Name)
-            .ToDictionary(x => x.Name, x => x.Genus, StringComparer.Ordinal);
+        // the list, and that is a fault of the options, not of the picture. Every option opens with its
+        // genus, so the check needs nothing but the option itself.
+        static string Genus(string option) => option.Split(' ')[0];
 
         foreach (var question in Bank)
         {
-            var answerGenus = genusOf[question.Answer];
             var clashes = question.Options
-                .Where(o => o != question.Answer)
-                .Where(o => genusOf.TryGetValue(o, out var g) && g == answerGenus)
+                .Where(o => o != question.Answer && Genus(o) == Genus(question.Answer))
                 .ToList();
 
             Assert.True(clashes.Count == 0,
@@ -89,7 +92,7 @@ public class YasilBakiSeedTests
     {
         // Several questions per plant is the point - fruit, then flower, then leaf. The same wording twice
         // for one plant would mean two pictures of the same thing.
-        foreach (var plant in Bank.GroupBy(q => q.Explanation!, StringComparer.Ordinal))
+        foreach (var plant in Bank.GroupBy(q => q.Answer, StringComparer.Ordinal))
         {
             Assert.Equal(plant.Count(), plant.Select(q => q.Text).Distinct(StringComparer.Ordinal).Count());
         }
