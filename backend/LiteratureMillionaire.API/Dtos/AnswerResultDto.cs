@@ -15,5 +15,7 @@ public record AnswerResultDto(
     int? NextQuestionNumber,
     GameQuestionDto? NextQuestion,
     DateTime? NextQuestionExpiresAtUtc,
+    // The same deadline as a duration from the moment this response was written; see StartGameResponseDto.
+    int? NextQuestionRemainingMs,
     // Set only when IsGameOver.
     QuizResultDto? Result);

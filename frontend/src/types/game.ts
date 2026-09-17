@@ -26,8 +26,13 @@ export interface StartGameResponse {
   totalQuestions: number
   passingScore: number
   secondsPerQuestion: number
-  /** ISO 8601 UTC. The backend judges lateness against this; the client only displays it. */
+  /**
+   * ISO 8601. From the server this is its own UTC deadline; api/game.ts re-anchors it to THIS device's
+   * clock on arrival, so by the time anything reads it, it is safe to compare with Date.now().
+   */
   questionExpiresAtUtc: string
+  /** The deadline as a duration from when the server wrote the response. Absent on an older server. */
+  questionRemainingMs?: number
   question: GameQuestion
   /** This start's attempt number and how many remain for the campaign. */
   attemptNumber: number
@@ -98,6 +103,8 @@ export interface AnswerResult {
   nextQuestionNumber: number | null
   nextQuestion: GameQuestion | null
   nextQuestionExpiresAtUtc: string | null
+  /** The next deadline as a duration from when the server wrote the response. Absent on an older server. */
+  nextQuestionRemainingMs?: number | null
   result: QuizResult | null
 }
 

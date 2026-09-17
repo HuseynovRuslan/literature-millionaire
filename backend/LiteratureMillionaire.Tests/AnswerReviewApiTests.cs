@@ -178,15 +178,71 @@ public class AnswerReviewApiTests
         Assert.False(first.GetProperty("isCorrect").GetBoolean());
     }
 
+    [Fact]
+    public async Task An_answer_that_the_network_delivered_just_after_the_deadline_still_counts()
+    {
+        // What a player on a phone actually lived through: tapped the right answer with time on the
+        // screen, and was told "vaxt bitdiyi üçün sayılmadı". Their countdown starts when the question
+        // reaches them and the answer still has to travel back, so it lands here a round trip after the
+        // moment they tapped. A second past the deadline is the network's doing, not the player's.
+        await using var factory = new LeaderboardApiFactory();
+        using var client = factory.CreateClient();
+        await factory.SeedPlayableCampaignAsync(includeQuestions: true);
+
+        var start = await StartAsync(client, "+994507000005");
+        var sessionId = start.GetProperty("sessionId").GetGuid();
+        var questionId = start.GetProperty("question").GetProperty("id").GetInt32();
+
+        var correctLetter = CurrentCorrectLetter(factory, sessionId);
+        Session(factory, sessionId).QuestionDeadlineUtc = DateTime.UtcNow.AddSeconds(-1);
+        using var answer = await client.PostAsJsonAsync(
+            $"/api/game/{sessionId}/answer", new { questionId, selectedOption = correctLetter.ToString() });
+        Assert.Equal(HttpStatusCode.OK, answer.StatusCode);
+        var after = await answer.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(after.GetProperty("timedOut").GetBoolean());
+        questionId = after.GetProperty("nextQuestion").GetProperty("id").GetInt32();
+
+        var result = await FinishAsync(client, sessionId, questionId, fromQuestion: 2);
+        var first = result.GetProperty("review").EnumerateArray().First();
+        Assert.True(first.GetProperty("isCorrect").GetBoolean());
+        Assert.False(first.GetProperty("timedOut").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Every_deadline_is_also_sent_as_a_duration_a_client_can_count_down_from()
+    {
+        // A phone and this server do not agree on what time it is. An absolute deadline read against a
+        // phone two seconds slow shows two seconds the server has already spent; a duration does not care
+        // what either clock says. The first question gets the question time, every later one the
+        // transition allowance on top - the beat the client holds the closed question on screen.
+        await using var factory = new LeaderboardApiFactory();
+        using var client = factory.CreateClient();
+        await factory.SeedPlayableCampaignAsync(includeQuestions: true);
+
+        var start = await StartAsync(client, "+994507000006");
+        Assert.InRange(start.GetProperty("questionRemainingMs").GetInt32(), 8_000, 10_000);
+
+        var sessionId = start.GetProperty("sessionId").GetGuid();
+        var questionId = start.GetProperty("question").GetProperty("id").GetInt32();
+        using var answer = await client.PostAsJsonAsync(
+            $"/api/game/{sessionId}/answer", new { questionId, selectedOption = "A" });
+        var after = await answer.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.InRange(after.GetProperty("nextQuestionRemainingMs").GetInt32(), 9_500, 11_500);
+    }
+
     // --- helpers ---------------------------------------------------------------
 
     private static GameSession Session(LeaderboardApiFactory factory, Guid sessionId) =>
         factory.Services.GetRequiredService<IMemoryCache>().Get<GameSession>($"game-session:{sessionId}")
         ?? throw new InvalidOperationException($"Session {sessionId} is not cached.");
 
-    /// <summary>Moves the current deadline into the past, so the clock can be tested without waiting for it.</summary>
+    /// <summary>
+    /// Moves the current deadline far enough into the past that no network could explain the delay, so the
+    /// clock can be tested without waiting for it. "A second ago" is not that: a second is what a slow
+    /// mobile round trip costs, and an answer that late was given in time.
+    /// </summary>
     private static void ExpireCurrentQuestion(LeaderboardApiFactory factory, Guid sessionId) =>
-        Session(factory, sessionId).QuestionDeadlineUtc = DateTime.UtcNow.AddSeconds(-1);
+        Session(factory, sessionId).QuestionDeadlineUtc = DateTime.UtcNow.AddSeconds(-10);
 
     private static char CurrentCorrectLetter(LeaderboardApiFactory factory, Guid sessionId) =>
         Session(factory, sessionId).Current.CorrectDisplayOption;

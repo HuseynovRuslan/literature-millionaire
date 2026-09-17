@@ -24,6 +24,16 @@ public class GameService : IGameService
     /// that beat is not taken out of the player's answering time. Keep this at or above the client value.
     /// </summary>
     private static readonly TimeSpan TransitionAllowance = TimeSpan.FromMilliseconds(1500);
+
+    /// <summary>
+    /// How long after the deadline an answer is still taken as given in time. The player's countdown
+    /// starts when the question reaches them and their answer still has to travel back, so a tap made
+    /// with half a second on the clock arrives here a round trip later - on a mobile network, after the
+    /// deadline. Without this the server told players who had answered in time that their time had run
+    /// out. The client locks its buttons at its own zero, so the window buys nobody thinking time; it
+    /// only stops the network's delay being charged to the player.
+    /// </summary>
+    private static readonly TimeSpan AnswerGrace = TimeSpan.FromMilliseconds(1500);
     private const string Letters = "ABCD";
 
     // Unique index names from the migration. A 23505 unique_violation is only ever treated as a
@@ -86,6 +96,7 @@ public class GameService : IGameService
             PassingScore: session.PassingScore,
             SecondsPerQuestion: QuizRules.SecondsPerQuestion,
             QuestionExpiresAtUtc: session.QuestionDeadlineUtc,
+            QuestionRemainingMs: RemainingMs(session),
             Question: first,
             AttemptNumber: attempt.AttemptNumber,
             RemainingAttempts: QuizRules.MaxAttemptsPerCampaign - attempt.AttemptNumber,
@@ -102,8 +113,9 @@ public class GameService : IGameService
         {
             EnsureCurrent(session, dto.QuestionId);
 
-            // The server clock decides. A late answer is never evaluated, even if it would be right.
-            var late = DateTime.UtcNow > session.QuestionDeadlineUtc;
+            // The server clock decides. A late answer is never evaluated, even if it would be right -
+            // but late means later than the network can explain, not later than the deadline itself.
+            var late = DateTime.UtcNow > session.QuestionDeadlineUtc.Add(AnswerGrace);
             var isCorrect = !late && dto.SelectedOption[0] == session.Current.CorrectDisplayOption;
 
             return await CompleteCurrentAsync(session, dto.SelectedOption[0], isCorrect, timedOut: late, ct);
@@ -206,6 +218,7 @@ public class GameService : IGameService
                 NextQuestionNumber: null,
                 NextQuestion: null,
                 NextQuestionExpiresAtUtc: null,
+                NextQuestionRemainingMs: null,
                 Result: new QuizResultDto(
                     CampaignId: session.CampaignId,
                     LeaderboardPosition: leaderboardPosition,
@@ -236,10 +249,16 @@ public class GameService : IGameService
             NextQuestionNumber: session.CurrentQuestionNumber,
             NextQuestion: next,
             NextQuestionExpiresAtUtc: session.QuestionDeadlineUtc,
+            NextQuestionRemainingMs: RemainingMs(session),
             Result: null);
     }
 
     // --- helpers -----------------------------------------------------------
+
+    /// <summary>The current question's deadline as a duration from now, for a client whose clock is not ours.</summary>
+    private static int RemainingMs(GameSession session) =>
+        (int)Math.Max(0, (session.QuestionDeadlineUtc - DateTime.UtcNow).TotalMilliseconds);
+
 
     private GameSession GetSession(Guid sessionId) =>
         _cache.Get<GameSession>(CacheKey(sessionId))
