@@ -74,5 +74,6 @@ Show photo credits (CC licences require attribution): 195 picture questions toda
 | Phase | State |
 |---|---|
 | 1a | **done** — deployed 2026-09-17 (`bdee4eb`). Verified on production: a bare name+phone start returns 401 SIGN_IN_REQUIRED and writes nothing, a forged ticket 401 SIGN_IN_EXPIRED, QR sign-in opening is limited (429 after the burst), and the real player path (QR → server-signed QRLog confirmation → welcome → start → first question) works in a browser. |
-| 1b | next |
-| 2 – 9 | not started |
+| 1b | **done** — deployed 2026-09-17 (`a0d9fdb`). Verified on production with a synthetic admin phone: without a session `/api/admin/session` and `/api/admin/audit` return 401, a non-GET without the header 400, a forged ticket 401, a forged link 401 LINK_INVALID, and `/api/questions` is 404 from outside. In a browser: QR sign-in → panel → Jurnal shows the entry → sign-out; a phone not on the list is refused with a fresh QR; a break-glass link signs in once, leaves the address bar, and is rejected on reuse. Afterwards the verification rows were deleted and `ADMIN_PHONES` was left empty — nobody can sign in until the real admin phones are set in the server's `deploy/.env`. |
+| 2 | next — campaigns (time-critical: the current campaigns end 2026-09-30) |
+| 3 – 9 | not started |
