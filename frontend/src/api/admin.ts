@@ -1,4 +1,4 @@
-import { isAxiosError } from 'axios'
+import axios, { isAxiosError } from 'axios'
 import { api } from './client'
 
 /**
@@ -256,7 +256,12 @@ export async function uploadImage(file: File, kind: ImageKind): Promise<Uploaded
   const form = new FormData()
   form.append('file', file)
   form.append('kind', kind)
-  // No Content-Type of our own: the browser sets the multipart boundary.
-  const { data } = await api.post<UploadedImage>('/api/admin/uploads', form, { headers: ADMIN_HEADERS, timeout: 60_000 })
+  // Deliberately not the shared `api` client: its default Content-Type (application/json) would replace the
+  // multipart content type the browser has to set, boundary and all, and the server would see no file at all.
+  // Same origin, so the admin session cookie rides along by itself.
+  const { data } = await axios.post<UploadedImage>(`${api.defaults.baseURL ?? ''}/api/admin/uploads`, form, {
+    headers: ADMIN_HEADERS,
+    timeout: 60_000,
+  })
   return data
 }
