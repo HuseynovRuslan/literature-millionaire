@@ -190,7 +190,7 @@ function CampaignForm({ options, editing, initial, onSignedOut }: {
           </select>
         </Field>
 
-        <Field label="Kitab / sual bankı" errors={errors.bookId} htmlFor="campaign-book">
+        <Field label="Sual bankı (kitab və ya kolleksiya)" errors={errors.bookId} htmlFor="campaign-book">
           <select id="campaign-book" className="field min-h-12 w-full rounded-xl px-3" value={form.bookId ?? ''}
             disabled={locked || form.quizModeId === null} aria-invalid={Boolean(errors.bookId)}
             onChange={(e) => set('bookId', e.target.value ? Number(e.target.value) : null)}>

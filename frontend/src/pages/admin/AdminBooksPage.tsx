@@ -19,10 +19,12 @@ const EMPTY: BookInput = { title: '', author: '', description: '', coverImageUrl
 type Editing = { kind: 'new' } | { kind: 'existing'; book: AdminBook }
 
 /**
- * /admin/books: the books campaigns are built around. "Ayın Kitabı" is played per book, and every question
- * belongs to one, so this is where a month starts: add the book, then open its campaign.
+ * /admin/books: the question banks campaigns are built around. Only one kind of bank is a book — "Ayın Kitabı"
+ * is played from the month's book, while "Yaşıl Bakı" or "Bilik yarışı" are collections with no author. Every
+ * question belongs to one of them, so this is where a new category or a new month starts: add the bank, then
+ * open its campaign.
  *
- * Nothing is deleted here — a book that should no longer be offered is switched off, and what was played from
+ * Nothing is deleted here — a bank that should no longer be offered is switched off, and what was played from
  * it stays readable.
  */
 export default function AdminBooksPage() {
@@ -59,15 +61,16 @@ export default function AdminBooksPage() {
     <section className="card rounded-3xl px-6 py-6 max-sm:px-3" aria-labelledby="books-title">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 id="books-title" className="font-display text-2xl font-bold">Kitablar</h1>
+          <h1 id="books-title" className="font-display text-2xl font-bold">Sual bankları</h1>
           <p className="mt-1 max-w-[62ch] text-sm text-fg-2">
-            "Ayın Kitabı" kampaniyası kitab üzrə oynanılır və hər sual bir kitaba bağlıdır. Yeni ay üçün əvvəlcə kitabı əlavə edin,
-            sonra Kampaniyalar bölməsindən ona kampaniya açın.
+            Hər sual bir banka bağlıdır, kampaniya da bank üzərində qurulur. Bank həm kitab ola bilər
+            ("Ayın Kitabı" — ad, müəllif, üz qabığı), həm də kolleksiya ("Yaşıl Bakı", "Bilik yarışı" — müəllif olmaya bilər).
+            Yeni ay və ya yeni kateqoriya üçün əvvəlcə bankı əlavə edin, sonra Kampaniyalar bölməsindən ona kampaniya açın.
           </p>
         </div>
         {!editing && (
           <button type="button" onClick={() => { setNotice(null); setEditing({ kind: 'new' }) }} className="btn btn-primary min-h-11 px-5 text-sm">
-            Yeni kitab
+            Yeni bank
           </button>
         )}
       </div>
@@ -89,9 +92,9 @@ export default function AdminBooksPage() {
         />
       )}
 
-      {failed && <p role="alert" className="mt-6 font-semibold text-fg">Kitabları yükləmək alınmadı.</p>}
+      {failed && <p role="alert" className="mt-6 font-semibold text-fg">Sual banklarını yükləmək alınmadı.</p>}
       {!books && !failed && <p role="status" className="mt-6 text-fg-2">Yüklənir…</p>}
-      {books?.length === 0 && !editing && <p className="mt-6 text-fg-2">Hələ kitab yoxdur.</p>}
+      {books?.length === 0 && !editing && <p className="mt-6 text-fg-2">Hələ sual bankı yoxdur.</p>}
 
       {books && books.length > 0 && (
         <ul className="mt-6 flex flex-col gap-3" data-testid="book-list">
@@ -101,7 +104,7 @@ export default function AdminBooksPage() {
               <div className="h-28 w-20 shrink-0 overflow-hidden rounded-xl bg-ink-950 ring-1 ring-white/10">
                 {book.coverImageUrl
                   ? <img src={book.coverImageUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
-                  : <span className="grid h-full w-full place-items-center text-center text-[0.65rem] text-fg-3">Üz qabığı yoxdur</span>}
+                  : <span className="grid h-full w-full place-items-center text-center text-[0.65rem] text-fg-3">Şəkil yoxdur</span>}
               </div>
 
               <div className="min-w-0 flex-1">
@@ -176,7 +179,7 @@ function BookForm({ initial, existing, onCancel, onSaved, onSignedOut }: {
       const fieldErrors = bookErrors(err)
       if (fieldErrors) {
         setErrors(fieldErrors)
-        setFailure('Kitab yadda saxlanmadı. Qırmızı ilə göstərilənləri düzəldin.')
+        setFailure('Yadda saxlanmadı. Qırmızı ilə göstərilənləri düzəldin.')
       } else {
         const kind = adminFailure(err)
         if (kind === 'signed-out' || kind === 'not-an-admin') onSignedOut()
@@ -190,7 +193,7 @@ function BookForm({ initial, existing, onCancel, onSaved, onSignedOut }: {
   return (
     <form onSubmit={(e) => void submit(e)} noValidate data-testid="book-form"
       className="mt-6 flex max-w-[44rem] flex-col gap-5 rounded-2xl bg-white/[0.03] px-5 py-5 ring-1 ring-white/10 max-sm:px-3">
-      <h2 className="font-display text-lg font-bold">{existing ? `Kitab: ${existing.title}` : 'Yeni kitab'}</h2>
+      <h2 className="font-display text-lg font-bold">{existing ? existing.title : 'Yeni sual bankı'}</h2>
 
       {failure && (
         <p role="alert" data-testid="book-form-failure" className="rounded-2xl bg-bad/10 px-4 py-3 text-sm font-semibold text-fg ring-1 ring-bad/40">
@@ -198,12 +201,13 @@ function BookForm({ initial, existing, onCancel, onSaved, onSignedOut }: {
         </p>
       )}
 
-      <Field label="Ad" htmlFor="book-title" errors={errors.title}>
+      <Field label="Ad" htmlFor="book-title" errors={errors.title} hint="Kitabın adı və ya kolleksiyanın adı.">
         <input id="book-title" type="text" maxLength={200} className="field min-h-12 w-full rounded-xl px-3" value={form.title}
           aria-invalid={Boolean(errors.title)} onChange={(e) => set('title', e.target.value)} />
       </Field>
 
-      <Field label="Müəllif" htmlFor="book-author" errors={errors.author}>
+      <Field label="Müəllif / mənbə" htmlFor="book-author" errors={errors.author}
+        hint="Kitab üçün müəllif; kolleksiya üçün mənbə və ya boş buraxın.">
         <input id="book-author" type="text" maxLength={200} className="field min-h-12 w-full rounded-xl px-3" value={form.author}
           aria-invalid={Boolean(errors.author)} onChange={(e) => set('author', e.target.value)} />
       </Field>
@@ -215,7 +219,7 @@ function BookForm({ initial, existing, onCancel, onSaved, onSignedOut }: {
       </Field>
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-bold text-fg-2">Üz qabığı</span>
+        <span className="text-sm font-bold text-fg-2">Üz qabığı / şəkil</span>
         <CoverPicker value={form.coverImageUrl} onChange={(url) => set('coverImageUrl', url)} onSignedOut={onSignedOut}
           invalid={Boolean(errors.coverImageUrl)} />
         {errors.coverImageUrl?.map((message) => (
@@ -227,7 +231,7 @@ function BookForm({ initial, existing, onCancel, onSaved, onSignedOut }: {
         <input type="checkbox" className="mt-1 size-5 accent-brand" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} />
         <span>
           <span className="block font-bold text-fg">Aktiv</span>
-          <span className="block text-sm text-fg-2">Deaktiv kitabın kampaniyaları oyunçulara görünmür.</span>
+          <span className="block text-sm text-fg-2">Deaktiv bankın kampaniyaları oyunçulara görünmür.</span>
         </span>
       </label>
       {errors.isActive?.map((message) => (

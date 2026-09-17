@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { adminFailure, getUploads, refusalMessage, uploadImage, UPLOAD_ACCEPT, UPLOAD_MAX_BYTES, type UploadedImage } from '../../api/admin'
 
 /**
- * Choosing a book cover: the pictures already uploaded, plus a way to add one without leaving the form.
+ * Choosing the picture a bank is shown with - a book's cover, or a collection's image: the pictures already
+ * uploaded, plus a way to add one without leaving the form.
  *
  * A cover is a picture from this site and nothing else — the server refuses any other address — so this is
  * deliberately a picker rather than a text field where an address could be pasted.
@@ -58,7 +59,7 @@ export default function CoverPicker({ value, onChange, onSignedOut, invalid }: {
       <div className="flex flex-wrap items-center gap-3">
         <div className="h-28 w-20 shrink-0 overflow-hidden rounded-xl bg-ink-950 ring-1 ring-white/10">
           {value
-            ? <img src={value} alt="Seçilmiş üz qabığı" className="h-full w-full object-cover" data-testid="cover-chosen" />
+            ? <img src={value} alt="Seçilmiş şəkil" className="h-full w-full object-cover" data-testid="cover-chosen" />
             : <span className="grid h-full w-full place-items-center text-xs text-fg-3">Yoxdur</span>}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -68,7 +69,7 @@ export default function CoverPicker({ value, onChange, onSignedOut, invalid }: {
           </label>
           {value && (
             <button type="button" onClick={() => onChange('')} className="btn btn-secondary min-h-10 px-4 text-sm">
-              Üz qabığını sil
+              Şəkli sil
             </button>
           )}
         </div>
@@ -93,7 +94,7 @@ export default function CoverPicker({ value, onChange, onSignedOut, invalid }: {
           ))}
         </ul>
       )}
-      {covers?.length === 0 && <p className="mt-3 text-sm text-fg-3">Hələ üz qabığı yüklənməyib.</p>}
+      {covers?.length === 0 && <p className="mt-3 text-sm text-fg-3">Hələ şəkil yüklənməyib.</p>}
     </div>
   )
 }

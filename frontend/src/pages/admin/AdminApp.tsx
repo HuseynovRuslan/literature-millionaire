@@ -26,7 +26,7 @@ const NAV: { to: string; label: string; ready: boolean }[] = [
   { to: '/admin/campaigns', label: 'Kampaniyalar', ready: true },
   { to: '/admin/results', label: 'Nəticələr', ready: true },
   { to: '/admin/images', label: 'Şəkillər', ready: true },
-  { to: '/admin/books', label: 'Kitablar', ready: true },
+  { to: '/admin/books', label: 'Sual bankları', ready: true },
   { to: '/admin/questions-editor', label: 'Suallar', ready: false },
   { to: '/admin/categories', label: 'Kateqoriyalar', ready: false },
   { to: '/admin/audit', label: 'Jurnal', ready: true },

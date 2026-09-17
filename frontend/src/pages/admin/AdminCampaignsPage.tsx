@@ -110,7 +110,7 @@ export default function AdminCampaignsPage() {
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ring-1 ${STATUS[c.status].className}`}>{STATUS[c.status].label}</span>
                     <span className="text-xs font-semibold text-fg-3">#{c.id}</span>
                   </p>
-                  {c.bookTitle && c.bookTitle !== c.quizModeTitle && <p className="text-sm text-fg-2">Kitab: {c.bookTitle}</p>}
+                  {c.bookTitle && c.bookTitle !== c.quizModeTitle && <p className="text-sm text-fg-2">Bank: {c.bookTitle}</p>}
                 </div>
                 <p className="font-semibold tabular-nums text-fg">{formatDay(c.startDate)} – {formatDay(c.endDate)}</p>
               </div>

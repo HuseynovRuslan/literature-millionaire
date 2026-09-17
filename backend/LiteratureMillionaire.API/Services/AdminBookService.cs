@@ -7,9 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace LiteratureMillionaire.API.Services;
 
 /// <summary>
-/// Books in the admin panel (docs/admin-panel-plan.md, phase 5): the month's book, its cover, and what is
-/// played from it. "Ayın Kitabı" campaigns are per book, and every question belongs to one, so a book is the
-/// thing a campaign is built around rather than a label on it.
+/// Question banks in the admin panel (docs/admin-panel-plan.md, phase 5) - the table is called Books for
+/// historical reasons, but only one kind of row in it is a book.
+///
+/// Every question belongs to one of these, and a campaign is built around one: "Ayın Kitabı" is played from
+/// the month's book (title, author, cover), while "Yaşıl Bakı", "Bilik yarışı" and the rest are collections
+/// with no author at all. The panel calls them banks for that reason, and only the title is required.
 ///
 /// Nothing is deleted here. A book carries questions and campaigns, and past results are read through them;
 /// a book that should no longer be offered is switched off instead, which takes its campaigns out of play
@@ -116,9 +119,11 @@ public sealed class AdminBookService : IAdminBookService
             Add(errors, "title", "Bu adla kitab artıq var.");
         }
 
+        // Optional on purpose: only one of these banks is a book. "Yaşıl Bakı" is a collection of
+        // photographs and has no author, and demanding one would have people typing a company name in
+        // to get past the form - which is exactly what the seeded rows already show.
         var author = input.Author?.Trim() ?? string.Empty;
-        if (author.Length == 0) Add(errors, "author", "Müəllifi yazın.");
-        else if (author.Length > AuthorMaxLength) Add(errors, "author", $"Müəllif ən çox {AuthorMaxLength} simvol ola bilər.");
+        if (author.Length > AuthorMaxLength) Add(errors, "author", $"Müəllif ən çox {AuthorMaxLength} simvol ola bilər.");
 
         var description = input.Description?.Trim() ?? string.Empty;
         if (description.Length > DescriptionMaxLength)
@@ -177,7 +182,7 @@ public sealed class AdminBookService : IAdminBookService
     private static void Apply(Book book, AdminBookInput input)
     {
         book.Title = input.Title!.Trim();
-        book.Author = input.Author!.Trim();
+        book.Author = input.Author?.Trim() ?? string.Empty;
         book.Description = input.Description?.Trim() ?? string.Empty;
         book.CoverImageUrl = input.CoverImageUrl?.Trim() ?? string.Empty;
         book.IsActive = input.IsActive;
