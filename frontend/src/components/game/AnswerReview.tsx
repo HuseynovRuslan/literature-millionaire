@@ -55,6 +55,21 @@ export default function AnswerReview({ items }: { items: QuizAnswerReview[] }) {
                   {item.text}
                 </p>
 
+                {/*
+                  The picture the question was asked with. During the round it is the question; here it is
+                  the answer, and it is the only way a player learns what the plant they just missed
+                  actually looks like. object-contain, never cropped: some of these photographs are
+                  published under licences that forbid derivative works.
+                */}
+                {item.imageUrl && (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.imageAltText ?? ''}
+                    loading="lazy"
+                    className="mt-2 h-[clamp(7rem,13vh,10rem)] w-auto max-w-full rounded-xl bg-white/5 object-contain"
+                  />
+                )}
+
                 <p className="mt-1.5 text-[clamp(0.9rem,1vw,0.96rem)] leading-snug text-fg-2 max-sm:text-[0.88rem]">
                   <span className="font-bold text-ok">Düzgün cavab:</span>{' '}
                   <span lang="az" className="font-semibold text-fg [overflow-wrap:anywhere]">{item.correctOption}) {item.correctAnswer}</span>
