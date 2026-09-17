@@ -1,4 +1,4 @@
-"""Prepares the category card artwork from docs/cards-image.
+"""Prepares the category card artwork and the home hero artwork from docs/cards-image.
 
 The source PNGs are mostly empty canvas - between 64% and 84% of every pixel is fully transparent, and
 the cypress is a small object in the corner of a 1660px sheet. CSS sizes an image by its box, not by what
@@ -27,6 +27,9 @@ ASSETS = {
     "yasil-baki-cupressus-overlay.png": (os.path.join(ART, "yasil-baki.webp"), 900),
     "green-garden-premium-3d.png": (os.path.join(ART, "green-garden.webp"), 900),
     "oluler.jpg": (os.path.join(COVERS, "oluler.webp"), 900),
+    # The home page hero, and the first large thing a visitor waits for. It is shown at most 24rem (384px)
+    # tall, so 820px covers a 2x screen; more only slows the page's largest paint.
+    "bilik-bagi-hero-3d.png": (os.path.join(ART, "bilik-bagi-hero.webp"), 820),
 }
 
 ALPHA_FLOOR = 8   # below this an edge pixel is anti-aliasing dust, not artwork

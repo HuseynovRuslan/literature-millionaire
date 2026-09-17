@@ -434,6 +434,191 @@ body {
   .card-lift:hover { transform: translateY(-6px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2.4rem 3.6rem -1.6rem rgba(4, 2, 18, 0.9); }
   .card-lift:hover .wiggle { animation: wiggle 600ms ease-in-out; }
 }
+/* ---------- Home hero ----------
+   "Bilik Bağı" on the left, the book-and-plant artwork on the right (HeroArt.tsx), in a panel that stays
+   in the arena's violet rather than introducing a new surface.
+
+   Sized by the window's HEIGHT as much as its width. This page exists to get a player into a category,
+   and on a 1366x768 laptop the first "Oyna" button already sat only 57px above the bottom edge: an
+   artwork sized by width alone was dominant and pushed every button off the first screen. So the artwork
+   takes the vertical room the window actually has - generous on a tall monitor, modest on a laptop - and
+   the numbers below were measured against that button, not picked by eye. */
+.hero {
+  --hero-art-h: clamp(11.5rem, calc(100svh - 36rem), 28rem);
+  --hero-art-w: calc(var(--hero-art-h) * 0.8524); /* the artwork's own proportion, 699 x 820 */
+  /* Held in from the edge as the screen widens: pinned to the far right on a wide monitor, the artwork left
+     a gap of some 400px between itself and the title and the hero read as two things, not one. */
+  --hero-art-right: clamp(0.5rem, 8vw, 11rem);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+  align-items: center;
+  column-gap: clamp(1rem, 3vw, 3rem);
+  padding-inline: clamp(1.25rem, 3vw, 3rem);
+  border-radius: 2rem;
+  /* The book may rise a little past the panel's top edge; sideways nothing may leave it (no page scroll). */
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* Depth, not decoration: a violet pool behind the artwork, a faint warm one behind the title, and the
+   national star as a lattice so quiet it reads as texture - masked so it only exists around the picture. */
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  border: 1px solid rgba(179, 163, 255, 0.14);
+  background:
+    radial-gradient(ellipse 42% 95% at 78% 60%, rgba(123, 97, 255, 0.32), transparent 72%),
+    radial-gradient(ellipse 38% 80% at 8% 10%, rgba(196, 47, 102, 0.1), transparent 70%),
+    linear-gradient(112deg, rgba(40, 31, 92, 0.6) 0%, rgba(22, 16, 56, 0.35) 52%, rgba(44, 34, 104, 0.55) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1.5rem 3rem -2rem rgba(4, 2, 18, 0.7);
+}
+.hero-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23c9bcff' stroke-width='1' stroke-linejoin='round'%3E%3Crect x='22' y='22' width='20' height='20'/%3E%3Crect x='22' y='22' width='20' height='20' transform='rotate(45 32 32)'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 64px 64px;
+  opacity: 0.07;
+  -webkit-mask-image: radial-gradient(ellipse 50% 90% at 76% 55%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(ellipse 50% 90% at 76% 55%, #000 0%, transparent 72%);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  padding-block: clamp(1rem, 2.6vh, 2rem);
+}
+
+.hero-art {
+  position: relative;
+  z-index: 1;
+  height: var(--hero-art-h);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* The stage is the artwork's own footprint plus room for its light, so everything on it is positioned
+   against the picture rather than against however wide the column happens to be. */
+.hero-art-stage {
+  position: absolute;
+  bottom: 0;
+  right: calc(var(--hero-art-right) - var(--hero-art-w) * 0.22);
+  width: calc(var(--hero-art-w) * 1.48);
+  height: calc(var(--hero-art-h) * 1.05);
+}
+
+.hero-art-img {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: calc(var(--hero-art-w) * 1.05);
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 26px rgba(8, 4, 30, 0.55));
+  -webkit-user-drag: none;
+}
+
+.hero-art-glow {
+  position: absolute;
+  inset: -4% -6% -6%;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side at 50% 52%, rgba(139, 112, 255, 0.55), transparent 72%),
+    radial-gradient(closest-side at 50% 88%, rgba(255, 201, 61, 0.14), transparent 70%);
+  filter: blur(14px);
+  opacity: 0.85;
+}
+
+/* A soft shadow on the floor under the book, so it stands somewhere instead of hanging in the air. */
+.hero-art-floor {
+  position: absolute;
+  bottom: 0.5%;
+  left: 24%;
+  right: 24%;
+  height: 9%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(4, 2, 18, 0.6), transparent);
+  filter: blur(6px);
+}
+
+.hero-spark {
+  position: absolute;
+  z-index: 2;
+  opacity: 0.7;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+/* Motion only for those who have not asked for less: the book floats on a long, slow breath, its floor
+   shadow tightens as it rises, the light behind it swells with it, and each spark drifts on its own
+   period so nothing moves in step. No bouncing, no spinning. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-art-img { animation: hero-float 6.5s ease-in-out infinite; }
+  .hero-art-floor { animation: hero-floor 6.5s ease-in-out infinite; }
+  .hero-art-glow { animation: hero-glow 6.5s ease-in-out infinite; }
+  /* Each spark's own period and offset are set on the element (HeroArt.tsx), so no two move in step. */
+  .hero-spark { animation-name: hero-drift; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+}
+@keyframes hero-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -10px; }
+}
+@keyframes hero-floor {
+  0%, 100% { scale: 1; opacity: 1; }
+  50% { scale: 0.86; opacity: 0.7; }
+}
+@keyframes hero-glow {
+  0%, 100% { opacity: 0.78; }
+  50% { opacity: 0.95; }
+}
+@keyframes hero-drift {
+  0%, 100% { translate: 0 0; opacity: 0.55; }
+  50% { translate: 3px -7px; opacity: 0.95; }
+}
+
+/* Tablet: still side by side, an even split, and a smaller artwork. */
+@media (max-width: 1023.98px) {
+  .hero {
+    --hero-art-h: clamp(10rem, calc(100svh - 38rem), 17rem);
+    --hero-art-right: clamp(0.25rem, 3vw, 2rem);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+/* Phone: text first, artwork under it, centred and never wider than the screen. The two outermost
+   sparks go - on a narrow column they only crowd the picture. */
+@media (max-width: 639.98px) {
+  .hero {
+    --hero-art-h: 11rem;
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 1.1rem;
+    border-radius: 1.5rem;
+  }
+  .hero-copy { padding-block: 1.1rem 0; }
+  /* The book rises a little above its own box; on a stacked layout that would be into the subtitle. */
+  .hero-art { margin-top: 1rem; }
+  .hero-art-stage { left: 0; right: 0; margin-inline: auto; max-width: 100%; }
+  .hero-backdrop::before {
+    -webkit-mask-image: radial-gradient(ellipse 80% 45% at 50% 78%, #000 0%, transparent 72%);
+    mask-image: radial-gradient(ellipse 80% 45% at 50% 78%, #000 0%, transparent 72%);
+  }
+  .hero-backdrop {
+    background:
+      radial-gradient(ellipse 80% 45% at 50% 80%, rgba(123, 97, 255, 0.32), transparent 72%),
+      radial-gradient(ellipse 70% 40% at 10% 5%, rgba(196, 47, 102, 0.1), transparent 70%),
+      linear-gradient(180deg, rgba(40, 31, 92, 0.55) 0%, rgba(22, 16, 56, 0.4) 100%);
+  }
+  .hero-spark[data-far] { display: none; }
+}
+
 /* ---------- Category card art ----------
    The picture on the right of each category card (CategoryArt.tsx). It lives in the card's top zone only -
    header band plus description - and the chips, reward and buttons are a separate zone below it, so the

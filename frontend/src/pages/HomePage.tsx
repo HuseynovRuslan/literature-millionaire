@@ -6,6 +6,7 @@ import CategoryCard from '../components/home/CategoryCard'
 import { PlayIcon, QuizEmblem } from '../components/home/GameShowArt'
 import { PRIMARY_CTA as PRIMARY, SECONDARY_CTA as SECONDARY } from '../components/home/gameShowClasses'
 import GameShowShell from '../components/home/GameShowShell'
+import HeroArt from '../components/home/HeroArt'
 import { useGame } from '../game/GameContext'
 import type { CampaignSummary } from '../types/campaign'
 
@@ -43,11 +44,20 @@ function StatusStage({ children, alert = false, labelledBy }: { children: ReactN
   )
 }
 
-/** Hero: the "Bilik Bağı" show title and the instruction. No category data here. */
+/**
+ * Hero: the "Bilik Bağı" show title and the instruction on the left, the artwork on the right. No category
+ * data here. Layout, backdrop and motion live in index.css (.hero), beside the rest of the design system.
+ *
+ * Its height is tied to the window's height, not only its width, on purpose: on a 1366x768 laptop the
+ * first "Oyna" button sat 57px above the bottom edge before this hero existed, and a hero sized by width
+ * alone pushed it off the first screen. The artwork is dominant where there is room and gives way where
+ * there is not.
+ */
 function Hero({ count }: { count: number }) {
   return (
-    <header className="rise grid grid-cols-[minmax(0,1fr)_auto] items-center gap-[clamp(1.5rem,4vw,4rem)] max-lg:grid-cols-1">
-      <div className="min-w-0">
+    <header className="hero rise">
+      <div aria-hidden="true" className="hero-backdrop" />
+      <div className="hero-copy">
         <p lang="az" className="chip px-4 py-2 text-[clamp(0.75rem,0.9vw,0.9rem)] uppercase tracking-[0.16em] text-brand-soft max-sm:text-[0.7rem]">
           Oxu <Octagram className="size-3 text-sun" /> Tanı <Octagram className="size-3 text-sun" /> Cavablandır
         </p>
@@ -57,11 +67,8 @@ function Hero({ count }: { count: number }) {
         <p lang="az" className="mt-2 text-[clamp(1.05rem,1.4vw,1.35rem)] font-semibold text-fg-2 max-sm:text-base">
           Kateqoriyanı seçin{count > 0 ? ` — ${count} yarış sizi gözləyir` : ''}
         </p>
-
       </div>
-      {/* Decorative, and it was setting the hero's height: at 15vw it stood 205px tall on a laptop and
-          pushed the category buttons off the first screen. Sized to the text beside it instead. */}
-      <div className="pop max-lg:hidden [animation-delay:200ms]"><QuizEmblem className="bob size-[clamp(7rem,10.5vw,11rem)]" /></div>
+      <HeroArt />
     </header>
   )
 }
