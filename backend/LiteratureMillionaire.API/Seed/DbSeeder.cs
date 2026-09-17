@@ -42,6 +42,9 @@ public static class DbSeeder
 
         // Approved "Ədəbiyyat Dünyası" bank (own book + quiz mode, no campaign of its own).
         await EdebiyyatDunyasiSeed.SeedAsync(db, ct);
+
+        // Generated "Yaşıl Bakı" bank: photographs of plants, one question each (own book + quiz mode).
+        await YasilBakiSeed.SeedAsync(db, ct);
     }
 
     /// <summary>
