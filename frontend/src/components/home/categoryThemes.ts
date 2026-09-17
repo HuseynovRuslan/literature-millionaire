@@ -40,6 +40,19 @@ export const categoryThemes: Record<string, CategoryTheme> = {
 }
 
 /**
+ * Categories whose bank is still being worked on, marked on the card as a test version.
+ *
+ * A player who meets a half-finished bank with no warning reads it as a broken product rather than an
+ * unfinished one, and says so to everyone else. Saying it first costs a line on the card and buys the
+ * freedom to publish early. Remove the slug when the bank is finished - that is the whole mechanism.
+ */
+export const previewCategories: ReadonlySet<string> = new Set([
+  // Green Garden: the catalogue's own names are trade names, and half of them carry no sourced
+  // Azerbaijani name yet. Playable, not finished.
+  'green-garden',
+])
+
+/**
  * For a category this build has never heard of. The backend can add a quiz mode without a frontend
  * release, and an unthemed card must still look deliberate - so it takes a colour from the answer
  * palette by position, which is what every card did before themes existed.

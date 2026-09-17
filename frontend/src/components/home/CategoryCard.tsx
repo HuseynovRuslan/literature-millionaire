@@ -5,7 +5,7 @@ import { ClockIcon, ListIcon, PlayIcon, RewardMedal, TargetIcon, TrophyIcon } fr
 import { CARD_PRIMARY_CTA, CARD_SECONDARY_CTA } from './gameShowClasses'
 import { CarpetBand } from '../arena/NationalMotifs'
 import QuizModeIcon from './QuizModeIcon'
-import { accentFor } from './categoryThemes'
+import { accentFor, previewCategories } from './categoryThemes'
 
 /**
  * One playable category/campaign. Every displayed value comes from the `available` API response;
@@ -58,6 +58,21 @@ export default function CategoryCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-2.5 px-[clamp(1.1rem,1.6vw,1.6rem)] pb-[clamp(0.9rem,1.3vw,1.2rem)] pt-3">
+        {/* Said before the player commits, not after: the bank is playable but not finished. Deliberately
+            not the reward strip's gold - two gold rows on one card read as one thing said twice. */}
+        {previewCategories.has(quizMode.slug) && (
+          <p
+            lang="az"
+            data-testid="category-preview"
+            className="flex flex-wrap items-center gap-2 rounded-2xl bg-white/[0.06] px-3 py-1.5 text-[clamp(0.85rem,0.9vw,0.9rem)] font-medium leading-snug text-fg-2 ring-1 ring-white/20"
+          >
+            <span className="rounded-full bg-white px-2 py-0.5 font-display text-[0.72em] font-extrabold uppercase tracking-[0.12em] text-ink-950">
+              Test versiya
+            </span>
+            Bu kateqoriya hazırlanır — suallar və adlar dəyişə bilər.
+          </p>
+        )}
+
         {/* Clamped so cards sitting side by side stay level. On a phone they are a single column, so
             nothing is being kept level and the clamp only cut a sentence in half: the longest
             description needs a fourth line at 360px. */}
