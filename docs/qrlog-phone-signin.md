@@ -1,4 +1,8 @@
-# Signing in to Kitabxana from the same phone — what QRLog has to add
+# Signing in to Kitabxana from the same phone
+
+**Done on both sides, 2026-09-17.** QRLog's approval page is live (AttendanceQR PR #3, merged as
+`fc749b1`) and Kitabxana points at it: `QRLOG_APP_CONFIRM_URL=https://app.qrlog.az/kitabxana?code={code}`.
+What follows is the contract the two sides now keep - read it before changing either half.
 
 Written for: whoever works on the QRLog (AttendanceQR) side.
 
@@ -32,9 +36,9 @@ a player opening the game — is stuck looking at a QR nobody can scan.
 - The Kitabxana page keeps its pending sign-in while it is in the background or reloaded, and asks the server
   again the moment it is looked at, so an approval given elsewhere is picked up and never lost.
 
-## What QRLog has to add
+## What QRLog added (frontend/src/pages/KitabxanaSignInPage.tsx)
 
-**A page at the agreed address**, e.g. `GET https://app.qrlog.az/kitabxana?code=<code>`:
+**A page at the agreed address**, `GET https://app.qrlog.az/kitabxana?code=<code>`:
 
 - Requires the employee to be signed in to QRLog (the normal QRLog sign-in if they are not).
 - Shows what they are approving: that this is a Kitabxana 2.0 sign-in, with their own name — so approving is a
@@ -68,13 +72,14 @@ Content-Type: application/json
 - Approval must be an explicit tap. A page that confirms on load would let any link someone is sent sign them
   in to Kitabxana without their noticing.
 
-## Turning it on
+## Turning it on (already done)
 
-Once the QRLog page is live, set on the Kitabxana server (`deploy/.env`) and recreate the api container:
+On the Kitabxana server (`deploy/.env`), then recreate the api container:
 
 ```
 QRLOG_APP_CONFIRM_URL=https://app.qrlog.az/kitabxana?code={code}
 ```
 
-The button then appears on phones and desktops alike; the QR stays for the case where the QRLog app is on a
-different device.
+The button appears on phones and desktops alike; the QR stays for the case where the QRLog app is on a
+different device. Clearing the setting removes the button again, which is the way to switch the phone
+route off without deploying anything.
