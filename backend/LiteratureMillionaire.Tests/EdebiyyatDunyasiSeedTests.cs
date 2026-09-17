@@ -119,7 +119,7 @@ public class EdebiyyatDunyasiSeedTests
         Assert.Equal(441, await db.Questions.CountAsync(q => q.Book!.Title == BilikYarisiSeed.BookTitle));
         Assert.Equal(30, await db.Questions.CountAsync(q => q.Book!.Title == OlulerQuestionSeed.BookTitle));
         // This bank brings no campaign of its own; an administrator opens one when the category goes live.
-        Assert.Equal(2, await db.MonthlyCampaigns.CountAsync());
+        Assert.Equal(0, await db.MonthlyCampaigns.CountAsync(c => c.Book!.Title == EdebiyyatDunyasiSeed.BookTitle));
     }
 
     /// <summary>

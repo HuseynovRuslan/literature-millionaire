@@ -49,10 +49,15 @@ public class QuizModeCampaignTests
         Assert.All(questions.Where(q => q.BookId == null), q => Assert.Null(q.QuizModeId));
 
         var campaigns = await db.MonthlyCampaigns.AsNoTracking().Include(c => c.Book).ToListAsync();
-        Assert.Equal(2, campaigns.Count);
+        Assert.Equal(3, campaigns.Count);
         Assert.Equal(bilikMode, campaigns.Single(c => c.Book!.Title == BilikYarisiSeed.BookTitle).QuizModeId);
         Assert.Equal(ayinMode, campaigns.Single(c => c.Book!.Title == OlulerQuestionSeed.BookTitle).QuizModeId);
-        Assert.All(campaigns, c => Assert.Equal(2, c.ImageQuestionsPerQuiz));
+        Assert.Equal(modes[3].Id, campaigns.Single(c => c.Book!.Title == YasilBakiSeed.BookTitle).QuizModeId);
+        // The mixed banks ask for two pictures in a round; every Yaşıl Bakı question is a photograph, so
+        // its round is ten of them.
+        Assert.All(campaigns.Where(c => c.Book!.Title != YasilBakiSeed.BookTitle),
+            c => Assert.Equal(2, c.ImageQuestionsPerQuiz));
+        Assert.Equal(10, campaigns.Single(c => c.Book!.Title == YasilBakiSeed.BookTitle).ImageQuestionsPerQuiz);
     }
 
     [Theory]

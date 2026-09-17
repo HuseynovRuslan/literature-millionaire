@@ -33,8 +33,11 @@ namespace LiteratureMillionaire.API.Seed;
 /// in one transaction, and only if the result is exactly ExpectedQuestionCount rows. The generated bank
 /// wins: an edit made directly in the database to a question of THIS book does not survive a deployment.
 ///
-/// No campaign is created here: when the category goes live an administrator opens one for the
-/// "yasil-baki" quiz mode with the dates and passing score they want.
+/// The opening campaign is created here, once, because a category with no campaign is invisible - the
+/// home page lists what can be played, not what exists, so seeding the bank alone left nothing on screen.
+/// It is created only if this book has no campaign starting on CampaignStart, so changing its dates,
+/// passing score or IsEnabled afterwards is an administrator's decision and survives every deployment.
+/// Nothing else is switched off: quiz modes run in parallel.
 /// </summary>
 public static class YasilBakiSeed
 {
@@ -43,6 +46,11 @@ public static class YasilBakiSeed
     public const string BookDescription = "Bakının ağacları, kolları və çiçəkləri: şəkildən bitkini tanımaq yarışı.";
 
     public const int ExpectedQuestionCount = 192;
+
+    private static readonly DateOnly CampaignStart = new(2026, 9, 17);
+    private static readonly DateOnly CampaignEnd = new(2026, 9, 30);
+    private const int PassingScore = 8;
+    private const string RewardTitle = "Bakı Abadlıq Xidməti MMC-dən hədiyyə";
 
     private const string ImagePrefix = "/question-images/plant-";
     private const string ResourceName = "LiteratureMillionaire.API.Seed.Data.yasil-baki-questions.json";
@@ -227,6 +235,25 @@ public static class YasilBakiSeed
             // Rolls the whole reconciliation back rather than leave the bank in a state nobody reviewed.
             throw new InvalidOperationException(
                 $"After reconciling, '{BookTitle}' holds {total} questions, expected {ExpectedQuestionCount}.");
+        }
+
+        // Every question here carries a photograph, so a round is ten of them - the quota is not a target
+        // to hit out of a mixed bank, it is simply what this bank is.
+        var campaignExists = await db.MonthlyCampaigns.AnyAsync(c => c.BookId == book.Id && c.StartDate == CampaignStart, ct);
+        if (!campaignExists)
+        {
+            db.MonthlyCampaigns.Add(new MonthlyCampaign
+            {
+                QuizModeId = quizModeId,
+                BookId = book.Id,
+                ImageQuestionsPerQuiz = QuizRules.QuestionsPerQuiz,
+                StartDate = CampaignStart,
+                EndDate = CampaignEnd,
+                PassingScore = PassingScore,
+                RewardTitle = RewardTitle,
+                IsEnabled = true,
+            });
+            await db.SaveChangesAsync(ct);
         }
 
         await transaction.CommitAsync(ct);
