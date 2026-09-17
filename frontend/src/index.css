@@ -434,6 +434,219 @@ body {
   .card-lift:hover { transform: translateY(-6px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2.4rem 3.6rem -1.6rem rgba(4, 2, 18, 0.9); }
   .card-lift:hover .wiggle { animation: wiggle 600ms ease-in-out; }
 }
+/* ---------- Category card art ----------
+   The picture on the right of each category card (CategoryArt.tsx). It lives in the card's top zone only -
+   header band plus description - and the chips, reward and buttons are a separate zone below it, so the
+   picture cannot reach anything a player reads or presses however it is tuned.
+
+   Tuned per category on purpose: a square globe, a wide open book, a tall thin cypress and a portrait book
+   cover do not balance at one size. Each category sets, on its top zone:
+     --art-w       width of the picture's column, as a share of the card
+     --art-bleed   where that column's right edge sits; negative runs past the card edge, which clips it
+     --art-top / --art-bottom   breathing room inside the zone
+     --art-zone    a minimum height for the zone, so a short description does not shrink the picture
+   Text in the zone keeps clear by --art-safe, which is DERIVED from the column's width and bleed rather
+   than set beside it: two numbers tuned separately drift apart, and one pixel of drift puts a picture
+   over a sentence. Everything applies only when a picture is actually there (:has), so a card whose
+   picture failed to load gets its full width back instead of an empty gutter. */
+.card-top:has(> .card-art) {
+  --art-w: 38%;
+  --art-bleed: -3%;
+  --art-top: 3%;
+  --art-bottom: 3%;
+  --art-zone: 12.5rem;
+  --art-glow: var(--accent);
+  --art-safe: calc(var(--art-w) + var(--art-bleed) + 2%);
+  min-height: var(--art-zone);
+}
+.card-top:has(> .card-art) .card-art-safe {
+  padding-right: max(clamp(1.1rem, 1.6vw, 1.6rem), var(--art-safe));
+}
+/* The band's title keeps its own, smaller clearance. The pictures sit at the BOTTOM of the zone and only
+   their tops rise into the band, so asking the title for the full body clearance wrapped "Bilik Dünyası"
+   onto two lines and a date's year onto a third - for pixels that were not there. Each category measures
+   what actually reaches the band; the default is the full clearance, the safe answer for a new one. */
+.card-top:has(> .card-art) .card-band .card-art-safe {
+  padding-right: max(clamp(1.1rem, 1.6vw, 1.6rem), var(--art-band-safe, var(--art-safe)));
+}
+
+.card-art {
+  position: absolute;
+  top: var(--art-top);
+  bottom: var(--art-bottom);
+  right: var(--art-bleed);
+  z-index: 1;
+  width: var(--art-w);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.card-art-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  /* A drop shadow follows the drawn shape, not the box, so a transparent render sits ON the card. */
+  filter: drop-shadow(0 14px 18px rgba(6, 3, 24, 0.55));
+  -webkit-user-drag: none;
+}
+.card-art-glow {
+  position: absolute;
+  inset: 6% -4% 2% 2%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--art-glow) 62%, transparent), transparent 74%);
+  opacity: 0.55;
+  filter: blur(10px);
+}
+
+/* Bilik Dünyası - the globe. Square, so it takes a wide column; blue pulled into the violet glow so the
+   globe's own blues read as lit rather than pasted on. */
+.card-top:has(> [data-art="bilik-dunyasi"]) {
+  --art-w: 38%;
+  --art-top: 1%;
+  --art-band-safe: 22%;
+  --art-glow: color-mix(in srgb, #4f7dff 50%, var(--accent));
+}
+[data-art="bilik-dunyasi"] .card-art-img { object-position: center bottom; }
+[data-art="bilik-dunyasi"] .card-art-glow { inset: 22% -4% 2% 2%; }
+
+/* Ədəbiyyat Dünyası - open book, pen and ink. Wide and short, so it is limited by width, not height: at
+   the column the others use it shrank to a postage stamp. Its description is one short sentence, so it
+   can give up half the card's width without a paragraph getting cramped. Sat low, so the book rests across
+   the seam between the band and the body. */
+.card-top:has(> [data-art="edebiyyat-dunyasi"]) {
+  --art-w: 50%;
+  --art-bleed: 1%;
+  --art-top: 14%;
+  --art-bottom: 2%;
+  --art-band-safe: 32%;
+  --art-glow: color-mix(in srgb, #3fd6e0 45%, var(--accent));
+}
+[data-art="edebiyyat-dunyasi"] .card-art-img { object-position: center bottom; }
+[data-art="edebiyyat-dunyasi"] .card-art-glow { inset: 30% -4% 0 4%; }
+
+/* Green Garden - the 3D planter. Curated and sculptural: a dominant column and a two-tone glow, orange
+   from the pot and emerald from the leaves, so it never reads as Yaşıl Bakı's plain green. */
+.card-top:has(> [data-art="green-garden"]) {
+  --art-w: 40%;
+  --art-bleed: -4%;
+  --art-top: 0%;
+  --art-bottom: 2%;
+  --art-band-safe: 18%;
+}
+[data-art="green-garden"] .card-art-img { object-position: center bottom; }
+[data-art="green-garden"] .card-art-glow {
+  inset: auto -4% 0 2%;
+  height: min(100%, 15rem);
+  background:
+    radial-gradient(closest-side at 62% 38%, color-mix(in srgb, #2fb67a 55%, transparent), transparent 70%),
+    radial-gradient(closest-side at 50% 72%, color-mix(in srgb, #ff8a3d 55%, transparent), transparent 72%);
+}
+
+/* Yaşıl Bakı - a real cypress, cut out of a photograph. It must stay photographic: a soft contact shadow
+   rather than a 3D render's floating one, a faint natural glow, and its base fading into the card so the
+   tree grows out of it. Tall and narrow: a slim column and the whole height of the zone. */
+.card-top:has(> [data-art="yasil-baki"]) {
+  --art-w: 25%;
+  --art-bleed: 1%;
+  --art-top: 0%;
+  --art-bottom: 0%;
+}
+[data-art="yasil-baki"] .card-art-img {
+  object-position: center bottom;
+  filter: drop-shadow(0 6px 8px rgba(4, 12, 8, 0.45)) saturate(1.05);
+  -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
+}
+[data-art="yasil-baki"] .card-art-glow { inset: 18% 8% 6% 8%; opacity: 0.35; }
+
+/* Ayın Kitabı - the month's actual book, presented as a book rather than a thumbnail: a slight tilt, page
+   edges along the fore-edge, a crease of light at the spine and a warm shadow beneath. The image itself is
+   untouched so the cover stays recognisable. Sized by height, so the box IS the cover and the shadow falls
+   from the book, not from an invisible letterbox; a taller zone gives it the presence the others have. */
+.card-top:has(> [data-art="ayin-kitabi"]) {
+  --art-w: 30%;
+  --art-bleed: 5%;
+  --art-top: 5%;
+  --art-bottom: 6%;
+  --art-zone: 13.5rem;
+  --art-glow: color-mix(in srgb, #ff7a4d 40%, var(--accent));
+}
+[data-art="ayin-kitabi"] .card-art-img {
+  inset: 0 0 0 auto;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px 5px 5px 3px;
+  rotate: -3deg;
+  filter: none;
+  box-shadow:
+    inset 6px 0 8px -4px rgba(0, 0, 0, 0.35),
+    2px 1px 0 #efe8d6,
+    4px 2px 0 #d9d0bb,
+    6px 3px 0 #c4baa2,
+    0 18px 28px -8px rgba(40, 6, 16, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+[data-art="ayin-kitabi"] .card-art-glow { inset: 4% -6% 0 10%; opacity: 0.6; }
+
+/* Hover, pointer devices only: the card already lifts; the picture follows a touch further and the light
+   behind it strengthens. Individual transform properties, so the cover keeps its tilt while it moves. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .card-art-img { transition: translate 320ms var(--ease-out-soft), scale 320ms var(--ease-out-soft); }
+  .card-art-glow { transition: opacity 320ms var(--ease-out-soft); }
+  .card-lift:hover .card-art-img { translate: 0 -4px; scale: 1.04; }
+  .card-lift:hover .card-art-glow { opacity: 0.85; }
+}
+
+/* Three narrow columns (a laptop window): "Ədəbiyyat Dünyası" wraps onto a second line, the band grows and
+   the date drops to where the open book's top would be. A taller zone lets the book sit below the band
+   instead of shrinking it back to a stamp. It costs that row about 20px of height, measured at 1280 and
+   1366 - cheaper than a literature card with a picture too small to read. */
+@media (min-width: 1280px) and (max-width: 1535.98px) {
+  .card-top:has(> [data-art="edebiyyat-dunyasi"]) { --art-zone: 15.5rem; --art-top: 30%; }
+}
+
+/* Two columns just past tablet width: the card is wide enough for the title on one line but not for a
+   half-width book beside its date. A slightly narrower column clears the date without adding height. */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .card-top:has(> [data-art="edebiyyat-dunyasi"]) { --art-w: 40%; }
+}
+
+/* Tablet: two columns of narrower cards. Every picture gives some width back to the title. */
+@media (min-width: 640px) and (max-width: 1023.98px) {
+  .card-top:has(> .card-art) { --art-zone: 11.5rem; }
+  .card-top:has(> [data-art="bilik-dunyasi"]) { --art-w: 33%; }
+  .card-top:has(> [data-art="edebiyyat-dunyasi"]) { --art-w: 45%; }
+  .card-top:has(> [data-art="green-garden"]) { --art-w: 35%; }
+  .card-top:has(> [data-art="yasil-baki"]) { --art-w: 22%; }
+  .card-top:has(> [data-art="ayin-kitabi"]) { --art-w: 27%; --art-zone: 12.5rem; }
+}
+
+/* Phone: readability first. The description gets the whole width back and the picture shrinks into the
+   header band's right-hand corner - still there, still the category's, but never beside a paragraph and
+   never making the card taller. The band keeps a minimum height so the picture always fits inside it.
+   The clearance is held to about a quarter of the card: measured at 360px, anything wider pushed the
+   date's year onto a line of its own, and a taller band is exactly what this breakpoint must not buy. */
+@media (max-width: 639.98px) {
+  .card-top:has(> .card-art) { --art-zone: 0; --art-top: 0.3rem; --art-bleed: -1%; --art-w: 24%; }
+  .card-top:has(> .card-art) .card-top-body { padding-right: 1rem; }
+  .card-top:has(> .card-art) .card-band { min-height: 5.75rem; }
+  .card-art { bottom: auto; height: 5.2rem; }
+  .card-top:has(> [data-art="edebiyyat-dunyasi"]) { --art-w: 27%; --art-top: 0.9rem; --art-bleed: -3%; }
+  .card-top:has(> [data-art="yasil-baki"]) { --art-w: 18%; --art-top: 0; --art-bleed: 1%; }
+  [data-art="yasil-baki"] { height: 5.75rem; }
+  .card-top:has(> [data-art="ayin-kitabi"]) { --art-w: 18%; --art-top: 0.45rem; --art-bleed: 5%; }
+  [data-art="ayin-kitabi"] { height: 4.9rem; }
+  .card-art-glow { filter: blur(6px); }
+  /* The picture lives entirely in the band here, so the band's title needs the full clearance. Restated
+     last, after the per-category rules that set their own band clearance for wider screens. */
+  .card-top:has(> [data-art]) { --art-band-safe: var(--art-safe); }
+}
+
 @keyframes wiggle {
   0%, 100% { transform: rotate(0deg); }
   25% { transform: rotate(-10deg) scale(1.08); }

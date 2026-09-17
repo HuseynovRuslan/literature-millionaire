@@ -40,6 +40,33 @@ export const categoryThemes: Record<string, CategoryTheme> = {
 }
 
 /**
+ * The picture each category card carries on its right-hand side.
+ *
+ * Colour and glyph tell the categories apart; the picture tells a player what the category is ABOUT
+ * before they have read a word. Three kinds, because they are three different things and one CSS rule
+ * could not present all of them well:
+ *
+ *   object - a transparent 3D render (globe, book and pen, potted plants). Stands directly on the card,
+ *            glow behind it, allowed to break out of the header band.
+ *   photo  - a real plant cut out of a photograph. Kept looking photographic: no 3D-style glow, and its
+ *            base fades into the card so the tree grows out of it instead of floating.
+ *   cover  - the month's book. Not a fixed file at all: it is the campaign's own book.coverImageUrl, so
+ *            when "Ayın Kitabı" moves to next month's book the card follows without a release.
+ *
+ * Files live in public/images and are cropped to what is actually painted
+ * (tools/import/prepare_category_art.py), so the sizes in index.css mean what they say.
+ */
+export type CategoryArt = { kind: 'object' | 'photo'; src: string } | { kind: 'cover' }
+
+export const categoryArt: Record<string, CategoryArt> = {
+  'bilik-dunyasi': { kind: 'object', src: '/images/bilik-dunyasi.webp' },
+  'ayin-kitabi': { kind: 'cover' },
+  'edebiyyat-dunyasi': { kind: 'object', src: '/images/edebiyyat-dunyasi.webp' },
+  'yasil-baki': { kind: 'photo', src: '/images/yasil-baki.webp' },
+  'green-garden': { kind: 'object', src: '/images/green-garden.webp' },
+}
+
+/**
  * Categories whose bank is still being worked on, marked on the card as a test version.
  *
  * A player who meets a half-finished bank with no warning reads it as a broken product rather than an

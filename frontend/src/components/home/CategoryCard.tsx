@@ -5,6 +5,7 @@ import { ClockIcon, ListIcon, PlayIcon, RewardMedal, TargetIcon, TrophyIcon } fr
 import { CARD_PRIMARY_CTA, CARD_SECONDARY_CTA } from './gameShowClasses'
 import { CarpetBand } from '../arena/NationalMotifs'
 import QuizModeIcon from './QuizModeIcon'
+import CategoryArt from './CategoryArt'
 import { accentFor, previewCategories } from './categoryThemes'
 
 /**
@@ -34,16 +35,27 @@ export default function CategoryCard({
       data-testid="category-card"
       data-campaign-id={campaign.campaignId}
       style={{ '--accent': accent, animationDelay: `${80 + index * 70}ms` } as CSSProperties}
-      className="card card-lift rise relative flex h-full min-w-0 flex-col overflow-hidden rounded-[1.75rem] shadow-[0_1.5rem_3rem_-1.5rem_rgba(4,2,18,0.8),0_0_0_1px_color-mix(in_srgb,var(--accent)_28%,transparent),0_1.2rem_2.6rem_-1.6rem_color-mix(in_srgb,var(--accent)_45%,transparent)] max-sm:rounded-3xl"
+      className="card card-lift rise relative isolate flex h-full min-w-0 flex-col overflow-hidden rounded-[1.75rem] shadow-[0_1.5rem_3rem_-1.5rem_rgba(4,2,18,0.8),0_0_0_1px_color-mix(in_srgb,var(--accent)_28%,transparent),0_1.2rem_2.6rem_-1.6rem_color-mix(in_srgb,var(--accent)_45%,transparent)] max-sm:rounded-3xl"
     >
       {/* The category's colour as a hairline along the top edge: present at a glance, quiet up close. */}
       <span aria-hidden="true" className="absolute inset-x-0 top-0 z-10 h-[3px] bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--accent)_85%,#ffffff),transparent)]" />
-      {/* Coloured header band with the category icon. */}
-      <div className="relative flex items-center gap-4 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_92%,#ffffff),color-mix(in_srgb,var(--accent)_72%,#110c2c))] px-[clamp(1.1rem,1.6vw,1.6rem)] py-[clamp(1rem,1.6vh,1.3rem)]">
-        <span aria-hidden="true" className="wiggle grid size-[clamp(3.2rem,4.2vw,4rem)] shrink-0 place-items-center rounded-2xl bg-[color-mix(in_srgb,var(--accent)_45%,#ffffff_28%)] text-white ring-1 ring-white/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] max-sm:size-12">
+      {/*
+        Top zone: the header band and the description, and the only place the category picture can be.
+        Everything below it (chips, reward, buttons) is a separate zone the picture cannot reach, so no
+        tuning of sizes can ever put it over something a player has to read or press. Text in this zone
+        keeps clear of the right-hand side with card-art-safe.
+      */}
+      <div className="card-top relative">
+        <CategoryArt slug={quizMode.slug} book={book} />
+
+      {/* Coloured header band with the category icon. The colour is its own layer (z-0) so the picture
+          (z-1) passes over the band and under the title (z-10) - breaking out of the band, never over text. */}
+      <div className="card-band relative flex items-center gap-4 px-[clamp(1.1rem,1.6vw,1.6rem)] py-[clamp(1rem,1.6vh,1.3rem)]">
+        <span aria-hidden="true" className="absolute inset-0 z-0 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_92%,#ffffff),color-mix(in_srgb,var(--accent)_72%,#110c2c))]" />
+        <span aria-hidden="true" className="wiggle relative z-10 grid size-[clamp(3.2rem,4.2vw,4rem)] shrink-0 place-items-center rounded-2xl bg-[color-mix(in_srgb,var(--accent)_45%,#ffffff_28%)] text-white ring-1 ring-white/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] max-sm:size-12">
           <QuizModeIcon iconKey={quizMode.iconKey} className="size-[58%]" />
         </span>
-        <div className="min-w-0">
+        <div className="card-art-safe relative z-10 min-w-0 flex-1">
           <h2 id={titleId} lang="az" className="font-display text-[clamp(1.1rem,1.5vw,1.5rem)] font-bold leading-tight text-white [text-wrap:balance]">
             {quizMode.title}
           </h2>
@@ -52,12 +64,12 @@ export default function CategoryCard({
             {formatDateRange(campaign.startDate, campaign.endDate)}
           </p>
         </div>
-        <CarpetBand className="absolute inset-x-0 bottom-0 text-white/30" />
+        <CarpetBand className="absolute inset-x-0 bottom-0 z-0 text-white/30" />
         {/* Where the coloured header meets the dark body: the seam is lit in the category's own colour. */}
-        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-[color-mix(in_srgb,var(--accent)_40%,#ffffff)] opacity-60" />
+        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 z-0 h-px bg-[color-mix(in_srgb,var(--accent)_40%,#ffffff)] opacity-60" />
       </div>
 
-      <div className="flex flex-1 flex-col gap-2.5 px-[clamp(1.1rem,1.6vw,1.6rem)] pb-[clamp(0.9rem,1.3vw,1.2rem)] pt-3">
+      <div className="card-art-safe card-top-body relative z-10 flex flex-col gap-2.5 px-[clamp(1.1rem,1.6vw,1.6rem)] pt-3">
         {/* Said before the player commits, not after: the bank is playable but not finished. Deliberately
             not the reward strip's gold - two gold rows on one card read as one thing said twice. */}
         {previewCategories.has(quizMode.slug) && (
@@ -87,7 +99,11 @@ export default function CategoryCard({
             {book.author.trim() ? ` — ${book.author.trim()}` : ''}
           </p>
         )}
+      </div>
+      </div>
 
+      {/* Bottom zone: full width, and out of the picture's reach by construction. */}
+      <div className="relative z-10 flex flex-1 flex-col gap-2.5 px-[clamp(1.1rem,1.6vw,1.6rem)] pb-[clamp(0.9rem,1.3vw,1.2rem)] pt-2.5">
         <ul className="flex flex-wrap gap-2 text-[clamp(0.8rem,0.86vw,0.86rem)]" data-testid="category-rules">
           <li className="chip px-3 py-1.5"><ListIcon className="size-[1.1em]" />{campaign.questionCount} sual</li>
           <li className="chip px-3 py-1.5"><TargetIcon className="size-[1.1em]" />Keçid: {campaign.passingScore}/{campaign.questionCount}</li>
