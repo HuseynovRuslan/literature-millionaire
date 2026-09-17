@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<QuizMode> QuizModes => Set<QuizMode>();
     public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
     public DbSet<AdminLoginLink> AdminLoginLinks => Set<AdminLoginLink>();
+    public DbSet<UploadedImage> UploadedImages => Set<UploadedImage>();
 
     // Schema-level ceiling for AttemptNumber, baked into the InitialPostgreSql migration's CHECK
     // constraint. Deliberately NOT QuizRules.MaxAttemptsPerCampaign: the product rule can be
@@ -191,6 +192,24 @@ public class ApplicationDbContext : DbContext
             entity.Property(l => l.UsedAtUtc).HasConversion(
                 v => v, v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
             entity.HasIndex(l => l.TokenHash).IsUnique();
+        });
+
+        modelBuilder.Entity<UploadedImage>(entity =>
+        {
+            entity.ToTable("UploadedImages", t =>
+            {
+                t.HasCheckConstraint("CK_UploadedImages_Kind", "\"Kind\" IN ('question', 'cover')");
+            });
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.Kind).IsRequired().HasMaxLength(16).IsUnicode(false);
+            entity.Property(i => i.Hash).IsRequired().HasMaxLength(32).IsUnicode(false);
+            entity.Property(i => i.Url).IsRequired().HasMaxLength(128).IsUnicode(false);
+            entity.Property(i => i.OriginalFileName).IsRequired().HasMaxLength(200);
+            entity.Property(i => i.UploadedBy).IsRequired().HasMaxLength(120);
+            entity.Property(i => i.UploadedAtUtc).IsRequired().HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            // One row per picture: the same file uploaded twice is found, not stored again.
+            entity.HasIndex(i => new { i.Kind, i.Hash }).IsUnique();
+            entity.HasIndex(i => i.UploadedAtUtc);
         });
 
         modelBuilder.Entity<Participant>(entity =>

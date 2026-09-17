@@ -70,6 +70,9 @@ builder.Services.AddScoped<IAdminAuditLog, AdminAuditLog>();
 builder.Services.AddScoped<IAdminLoginLinks, AdminLoginLinks>();
 builder.Services.AddScoped<IAdminCampaignService, AdminCampaignService>();
 builder.Services.AddScoped<IAdminResultsService, AdminResultsService>();
+// Where uploaded pictures are written (Uploads__Root; the "uploads" volume in production).
+builder.Services.AddSingleton<UploadStorage>();
+builder.Services.AddScoped<IImageUploadService, ImageUploadService>();
 builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, AdminRequirementHandler>();
 builder.Services
     .AddAuthentication(AdminAuth.Scheme)
@@ -173,6 +176,21 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors(FrontendCorsPolicy);
+
+// In development the API also serves the uploads folder at /uploads, because there is no Nginx in front of it
+// (the Vite dev server proxies /uploads here). In production Nginx serves the same volume, read-only, and this
+// never runs: the API's job is to write those files, not to hand them out.
+if (app.Environment.IsDevelopment())
+{
+    var uploads = app.Services.GetRequiredService<UploadStorage>();
+    Directory.CreateDirectory(uploads.Root);
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploads.Root),
+        RequestPath = "/uploads",
+        ServeUnknownFileTypes = false,
+    });
+}
 
 // Every state-changing admin request must carry the admin header (see AdminAuth.CsrfHeader). Checked before
 // authentication, so a forged cross-site request is turned away without ever reaching a controller.

@@ -223,3 +223,40 @@ export function refusalMessage(err: unknown): string | null {
   const detail = (err.response.data as { detail?: string } | undefined)?.detail
   return typeof detail === 'string' && detail.length > 0 ? detail : null
 }
+
+// --- uploaded pictures --------------------------------------------------------------------------------------
+
+export type ImageKind = 'question' | 'cover'
+
+export interface UploadedImage {
+  id: number
+  kind: ImageKind
+  /** Site path, e.g. "/uploads/questions/0123….webp". */
+  url: string
+  width: number
+  height: number
+  bytes: number
+  originalFileName: string
+  uploadedAtUtc: string
+  uploadedBy: string
+  /** True when this exact picture was already on the server: nothing new was stored. */
+  alreadyExisted: boolean
+}
+
+/** What the server accepts. It re-encodes everything to WebP itself. */
+export const UPLOAD_ACCEPT = 'image/jpeg,image/png,image/webp'
+export const UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+
+export async function getUploads(kind: ImageKind, signal?: AbortSignal): Promise<UploadedImage[]> {
+  const { data } = await api.get<UploadedImage[]>('/api/admin/uploads', { params: { kind, take: 60 }, signal })
+  return data
+}
+
+export async function uploadImage(file: File, kind: ImageKind): Promise<UploadedImage> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('kind', kind)
+  // No Content-Type of our own: the browser sets the multipart boundary.
+  const { data } = await api.post<UploadedImage>('/api/admin/uploads', form, { headers: ADMIN_HEADERS, timeout: 60_000 })
+  return data
+}

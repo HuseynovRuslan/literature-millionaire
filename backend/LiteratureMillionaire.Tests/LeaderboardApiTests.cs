@@ -184,6 +184,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     private readonly string? _qrLogSecret;
     private readonly bool? _requireQrLogin;
     private readonly string? _adminPhones;
+    private readonly string? _uploadsRoot;
 
     /// <summary>Every log line written by the API during the test (for PII checks).</summary>
     public ConcurrentQueue<string> Logs { get; } = new();
@@ -191,10 +192,12 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     /// <param name="qrLogSecret">The secret QRLog signs sign-in confirmations with; null leaves it unconfigured.</param>
     /// <param name="requireQrLogin">Game:RequireQrLogin; null keeps the Testing default (not required).</param>
     /// <param name="adminPhones">Admin:Phones; null leaves the admin list empty (nobody is an admin).</param>
+    /// <param name="uploadsRoot">Uploads:Root; null leaves the default (a folder under the content root).</param>
     public LeaderboardApiFactory(bool failPositionLookup = false, string? qrLogSecret = null, bool? requireQrLogin = null,
-        string? adminPhones = null)
+        string? adminPhones = null, string? uploadsRoot = null)
     {
         _adminPhones = adminPhones;
+        _uploadsRoot = uploadsRoot;
         _failPositionLookup = failPositionLookup;
         _qrLogSecret = qrLogSecret;
         _requireQrLogin = requireQrLogin;
@@ -210,6 +213,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
         if (_qrLogSecret is not null) settings["QrLog:VouchSecret"] = _qrLogSecret;
         if (_requireQrLogin is not null) settings["Game:RequireQrLogin"] = _requireQrLogin.Value ? "true" : "false";
         if (_adminPhones is not null) settings["Admin:Phones"] = _adminPhones;
+        if (_uploadsRoot is not null) settings["Uploads:Root"] = _uploadsRoot;
         if (settings.Count > 0)
         {
             builder.ConfigureAppConfiguration(config => config.AddInMemoryCollection(settings));

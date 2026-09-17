@@ -27,6 +27,9 @@ networks:
 
 volumes:
   postgres-data:
+  # Pictures uploaded in the admin panel. The API writes here, Nginx serves it read-only,
+  # and it must outlive every deployment - the questions point at these files.
+  uploads:
 
 x-logging: &default-logging
   driver: json-file
@@ -101,6 +104,10 @@ services:
       Admin__Phones: ${ADMIN_PHONES:-}
       # Used only to print a full break-glass link (--admin-link).
       Admin__PublicBaseUrl: ${ADMIN_PUBLIC_BASE_URL:-https://book.qrlog.az}
+      # Where uploaded pictures are written (the "uploads" volume below).
+      Uploads__Root: /app/uploads
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -126,6 +133,9 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
     image: literature-millionaire-web:${IMAGE_TAG:-local}
+    volumes:
+      # Read-only on purpose: Nginx serves uploaded pictures, only the API writes them.
+      - uploads:/usr/share/nginx/uploads:ro
     depends_on:
       api:
         condition: service_healthy
