@@ -66,6 +66,26 @@ export default function QrLoginPanel({ state, onRetry, hint = 'Telefonunuzda QRL
         </p>
       )}
 
+      {/* Already on the phone the QRLog app is on? Then there is nothing to scan - a phone cannot photograph
+          its own screen - so QRLog is opened to approve this same code instead. It opens in its own tab so this
+          one keeps waiting, and the sign-in finishes here by itself the moment QRLog confirms. */}
+      {state.kind === 'waiting' && state.appConfirmUrl && (
+        <div className="mt-5 w-full max-w-[22rem] border-t border-white/10 pt-4">
+          <a
+            href={state.appConfirmUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary min-h-12 w-full px-5"
+            data-testid="qrlog-app-confirm"
+          >
+            QRLog tətbiqi ilə təsdiqlə
+          </a>
+          <p lang="az" className="mt-2 text-[clamp(0.8rem,0.95vw,0.9rem)] font-medium leading-snug text-fg-3">
+            Telefondan girirsinizsə, bu düyməni basın: QRLog açılacaq, təsdiqləyəcəksiniz və bu səhifə özü davam edəcək.
+          </p>
+        </div>
+      )}
+
     </div>
   )
 }

@@ -71,8 +71,12 @@ public sealed class QrLoginService : IQrLoginService
     /// <summary>Long enough that a kiosk QR cannot be guessed, short enough to scan reliably.</summary>
     private const int CodeBytes = 16;
 
-    /// <summary>A login is meant to be scanned now, not carried away.</summary>
-    public static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(2);
+    /// <summary>
+    /// A login is meant to be used now, not carried away. Five minutes rather than two because of the phone
+    /// route: there, the employee leaves this page for the QRLog app, approves the sign-in and comes back, and
+    /// a code that ran out while they were away would send them round again for nothing.
+    /// </summary>
+    public static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(5);
 
     /// <summary>
     /// How long a sign-in ticket lasts: long enough to read the welcome screen and press start, short
@@ -90,10 +94,19 @@ public sealed class QrLoginService : IQrLoginService
     private readonly ILogger<QrLoginService> _logger;
     private readonly byte[]? _secret;
 
+    /// <summary>
+    /// Where QRLog approves a sign-in when the person is already on their phone (QrLog:AppConfirmUrl, with
+    /// {code} in it). There is no QR to scan on a phone - it would be scanning its own screen - so instead the
+    /// screen offers a button that opens QRLog, which confirms the code the same way the app does after a scan.
+    /// Null until it is configured, and then the button is simply not shown.
+    /// </summary>
+    private readonly string? _appConfirmUrlTemplate;
+
     public QrLoginService(IMemoryCache cache, IConfiguration configuration, ILogger<QrLoginService> logger)
     {
         _cache = cache;
         _logger = logger;
+        _appConfirmUrlTemplate = ReadAppConfirmUrl(configuration["QrLog:AppConfirmUrl"], logger);
         var configured = configuration["QrLog:VouchSecret"];
         _secret = string.IsNullOrWhiteSpace(configured) ? null : Encoding.UTF8.GetBytes(configured);
         if (_secret is null)
@@ -116,7 +129,33 @@ public sealed class QrLoginService : IQrLoginService
         var code = NewToken();
         var pollSecret = NewToken();
         _cache.Set(CacheKey(code), new PendingLogin { PollSecret = pollSecret }, Lifetime);
-        return new QrLoginStartedDto(code, pollSecret, DateTime.UtcNow.Add(Lifetime), (int)Lifetime.TotalSeconds);
+        return new QrLoginStartedDto(code, pollSecret, DateTime.UtcNow.Add(Lifetime), (int)Lifetime.TotalSeconds,
+            _appConfirmUrlTemplate?.Replace("{code}", Uri.EscapeDataString(code), StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Accepts the configured address only if it is an https URL on qrlog.az carrying {code}. The code is what
+    /// a sign-in turns on, so a typo here must not be able to send it to another host.
+    /// </summary>
+    private static string? ReadAppConfirmUrl(string? configured, ILogger logger)
+    {
+        if (string.IsNullOrWhiteSpace(configured))
+        {
+            return null;
+        }
+
+        var value = configured.Trim();
+        var wellFormed = Uri.TryCreate(value.Replace("{code}", "x", StringComparison.Ordinal), UriKind.Absolute, out var uri)
+                         && uri.Scheme == Uri.UriSchemeHttps
+                         && (uri.Host == "qrlog.az" || uri.Host.EndsWith(".qrlog.az", StringComparison.OrdinalIgnoreCase))
+                         && value.Contains("{code}", StringComparison.Ordinal);
+        if (!wellFormed)
+        {
+            logger.LogError("QrLog:AppConfirmUrl is ignored: it must be an https address on qrlog.az containing {{code}}.");
+            return null;
+        }
+
+        return value;
     }
 
     public bool TryNormalizePhone(string phoneNumber, out string normalized) =>

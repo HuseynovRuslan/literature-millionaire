@@ -14,6 +14,11 @@ export interface QrLoginStarted {
   pollSecret: string
   expiresAtUtc: string
   secondsToLive: number
+  /**
+   * Where QRLog approves this code without a QR, for someone who is already on their phone: the phone cannot
+   * scan its own screen. Null when the server has no QRLog app address configured.
+   */
+  appConfirmUrl?: string | null
 }
 
 /**

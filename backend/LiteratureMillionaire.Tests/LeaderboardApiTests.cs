@@ -185,6 +185,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     private readonly bool? _requireQrLogin;
     private readonly string? _adminPhones;
     private readonly string? _uploadsRoot;
+    private readonly string? _qrLogAppConfirmUrl;
 
     /// <summary>Every log line written by the API during the test (for PII checks).</summary>
     public ConcurrentQueue<string> Logs { get; } = new();
@@ -193,9 +194,11 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     /// <param name="requireQrLogin">Game:RequireQrLogin; null keeps the Testing default (not required).</param>
     /// <param name="adminPhones">Admin:Phones; null leaves the admin list empty (nobody is an admin).</param>
     /// <param name="uploadsRoot">Uploads:Root; null leaves the default (a folder under the content root).</param>
+    /// <param name="qrLogAppConfirmUrl">QrLog:AppConfirmUrl; null leaves the phone button unconfigured.</param>
     public LeaderboardApiFactory(bool failPositionLookup = false, string? qrLogSecret = null, bool? requireQrLogin = null,
-        string? adminPhones = null, string? uploadsRoot = null)
+        string? adminPhones = null, string? uploadsRoot = null, string? qrLogAppConfirmUrl = null)
     {
+        _qrLogAppConfirmUrl = qrLogAppConfirmUrl;
         _adminPhones = adminPhones;
         _uploadsRoot = uploadsRoot;
         _failPositionLookup = failPositionLookup;
@@ -214,6 +217,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
         if (_requireQrLogin is not null) settings["Game:RequireQrLogin"] = _requireQrLogin.Value ? "true" : "false";
         if (_adminPhones is not null) settings["Admin:Phones"] = _adminPhones;
         if (_uploadsRoot is not null) settings["Uploads:Root"] = _uploadsRoot;
+        if (_qrLogAppConfirmUrl is not null) settings["QrLog:AppConfirmUrl"] = _qrLogAppConfirmUrl;
         if (settings.Count > 0)
         {
             builder.ConfigureAppConfiguration(config => config.AddInMemoryCollection(settings));

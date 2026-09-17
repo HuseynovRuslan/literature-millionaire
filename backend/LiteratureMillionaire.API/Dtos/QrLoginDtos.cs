@@ -7,7 +7,12 @@ namespace LiteratureMillionaire.API.Dtos;
 /// <see cref="PollSecret"/> must not - it is what proves this browser is the one that asked, so that
 /// someone who photographed the QR cannot collect the identity that lands on it.
 /// </summary>
-public record QrLoginStartedDto(string Code, string PollSecret, DateTime ExpiresAtUtc, int SecondsToLive);
+/// <param name="AppConfirmUrl">
+/// Where to send someone who is already on their phone, so QRLog can approve this very code without a QR
+/// (there is nothing to scan when the screen and the camera are the same device). Null when not configured.
+/// </param>
+public record QrLoginStartedDto(string Code, string PollSecret, DateTime ExpiresAtUtc, int SecondsToLive,
+    string? AppConfirmUrl = null);
 
 /// <summary>
 /// Where a login stands. "pending" until QRLog confirms it, then "confirmed" with the employee's name

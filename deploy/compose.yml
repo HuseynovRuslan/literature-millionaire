@@ -96,6 +96,10 @@ services:
       # empty, the button is still shown but every confirmation is refused, so set it before
       # announcing the feature. Must be the same value on both sides.
       QrLog__VouchSecret: ${QRLOG_VOUCH_SECRET:-}
+      # Where QRLog approves a sign-in for someone already on their phone (a phone cannot scan its own
+      # screen). Must contain {code}; see docs/qrlog-phone-signin.md. Empty until QRLog has that page:
+      # the button is then simply not shown and only the QR is.
+      QrLog__AppConfirmUrl: ${QRLOG_APP_CONFIRM_URL:-}
       # A quiz starts only with a QRLog sign-in ticket. Already the default outside Development; stated so
       # nobody reading this file has to know that.
       Game__RequireQrLogin: "true"
