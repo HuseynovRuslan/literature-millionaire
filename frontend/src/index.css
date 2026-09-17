@@ -566,7 +566,7 @@ body {
    the numbers below were measured against that button, not picked by eye. */
 .hero {
   --hero-art-h: clamp(11.5rem, calc(100svh - 36rem), 28rem);
-  --hero-art-w: calc(var(--hero-art-h) * 0.8524); /* the artwork's own proportion, 699 x 820 */
+  --hero-art-w: calc(var(--hero-art-h) * 1.4865); /* the artwork's own proportion, 1100 x 740 */
   /* Held in from the edge as the screen widens: pinned to the far right on a wide monitor, the artwork left
      a gap of some 400px between itself and the title and the hero read as two things, not one. */
   --hero-art-right: clamp(0.5rem, 8vw, 11rem);
@@ -620,6 +620,9 @@ body {
   position: relative;
   z-index: 1;
   height: var(--hero-art-h);
+  /* The artwork is wide, so on a narrow column its height alone would make it wider than the column and
+     push it under the title. Sizes below are capped by the column's own width (cqw) as well. */
+  container-type: inline-size;
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
@@ -630,9 +633,9 @@ body {
   content: "";
   position: absolute;
   z-index: -1;
-  right: calc(var(--hero-art-right) - var(--hero-art-w) * 0.55);
+  right: max(0px, calc(var(--hero-art-right) - var(--hero-art-w) * 0.12));
   bottom: -18%;
-  width: calc(var(--hero-art-w) * 2.1);
+  width: min(calc(var(--hero-art-w) * 1.35), 120cqw);
   height: calc(var(--hero-art-h) * 1.45);
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(86, 110, 255, 0.16), rgba(123, 97, 255, 0.07) 55%, transparent 100%);
@@ -647,8 +650,8 @@ body {
 .hero-art-stage {
   position: absolute;
   bottom: 0;
-  right: calc(var(--hero-art-right) - var(--hero-art-w) * 0.22);
-  width: calc(var(--hero-art-w) * 1.48);
+  right: var(--hero-art-right);
+  width: min(calc(var(--hero-art-w) * 1.12), calc(100cqw - var(--hero-art-right)));
   height: calc(var(--hero-art-h) * 1.05);
 }
 
@@ -658,9 +661,10 @@ body {
   left: 0;
   right: 0;
   margin-inline: auto;
-  width: calc(var(--hero-art-w) * 1.05);
+  width: min(calc(var(--hero-art-w) * 1.05), 100%);
   height: 100%;
   object-fit: contain;
+  object-position: center bottom;
   filter: drop-shadow(0 22px 26px rgba(8, 4, 30, 0.55));
   -webkit-user-drag: none;
 }
@@ -680,30 +684,20 @@ body {
 .hero-art-floor {
   position: absolute;
   bottom: 0.5%;
-  left: 24%;
-  right: 24%;
-  height: 9%;
+  left: 17%;
+  right: 17%;
+  height: 8%;
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(4, 2, 18, 0.6), transparent);
   filter: blur(6px);
 }
 
-.hero-spark {
-  position: absolute;
-  z-index: 2;
-  opacity: 0.7;
-  filter: drop-shadow(0 0 6px currentColor);
-}
-
 /* Motion only for those who have not asked for less: the book floats on a long, slow breath, its floor
-   shadow tightens as it rises, the light behind it swells with it, and each spark drifts on its own
-   period so nothing moves in step. No bouncing, no spinning. */
+   shadow tightens as it rises and the light behind it swells with it. No bouncing, no spinning. */
 @media (prefers-reduced-motion: no-preference) {
   .hero-art-img { animation: hero-float 6.5s ease-in-out infinite; }
   .hero-art-floor { animation: hero-floor 6.5s ease-in-out infinite; }
   .hero-art-glow { animation: hero-glow 6.5s ease-in-out infinite; }
-  /* Each spark's own period and offset are set on the element (HeroArt.tsx), so no two move in step. */
-  .hero-spark { animation-name: hero-drift; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
 }
 @keyframes hero-float {
   0%, 100% { translate: 0 0; }
@@ -717,10 +711,6 @@ body {
   0%, 100% { opacity: 0.78; }
   50% { opacity: 0.95; }
 }
-@keyframes hero-drift {
-  0%, 100% { translate: 0 0; opacity: 0.55; }
-  50% { translate: 3px -7px; opacity: 0.95; }
-}
 
 /* Tablet: still side by side, an even split, and a smaller artwork. */
 @media (max-width: 1023.98px) {
@@ -731,11 +721,11 @@ body {
   }
 }
 
-/* Phone: text first, artwork under it, centred and never wider than the screen. The two outermost
-   sparks go - on a narrow column they only crowd the picture. */
+/* Phone: text first, artwork under it, centred and never wider than the screen. */
 @media (max-width: 639.98px) {
   .hero {
     --hero-art-h: 11rem;
+    --hero-art-right: 0px;
     grid-template-columns: minmax(0, 1fr);
     padding-inline: 1.1rem;
     border-radius: 1.5rem;
@@ -754,7 +744,6 @@ body {
       radial-gradient(ellipse 70% 40% at 10% 5%, rgba(196, 47, 102, 0.1), transparent 70%),
       linear-gradient(180deg, rgba(40, 31, 92, 0.55) 0%, rgba(22, 16, 56, 0.4) 100%);
   }
-  .hero-spark[data-far] { display: none; }
 }
 
 /* The card's facts ("10 sual · Keçid 8/10 · 1 cəhd") as one line: a quiet dot between items instead of a
@@ -960,7 +949,7 @@ body {
   .card-top:has(> [data-art="bilik-dunyasi"]) { --art-w: 33%; }
   /* A two-column tablet card is narrow enough that the date reaches the open book's top; a slightly taller
      zone seats the book under the band instead of shrinking it. */
-  .card-top:has(> [data-art="edebiyyat-dunyasi"]) { --art-w: 45%; --art-band-safe: 40%; --art-zone: 13rem; --art-top: 30%; }
+  .card-top:has(> [data-art="edebiyyat-dunyasi"]) { --art-w: 45%; --art-band-safe: 40%; --art-zone: 14rem; --art-top: 34%; }
   .card-top:has(> [data-art="green-garden"]) { --art-w: 35%; }
   .card-top:has(> [data-art="yasil-baki"]) { --art-w: 22%; }
   .card-top:has(> [data-art="ayin-kitabi"]) { --art-w: 27%; --art-zone: 12.5rem; }

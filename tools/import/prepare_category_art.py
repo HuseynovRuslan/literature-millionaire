@@ -22,14 +22,14 @@ COVERS = os.path.join("frontend", "public", "covers")
 
 # source file -> (destination, longest edge). Matched by looking at the pictures, not by their names.
 ASSETS = {
-    "bilik-dunyasi-3d-globe.png": (os.path.join(ART, "bilik-dunyasi.webp"), 900),
-    "edebiyyat-dunyasi-3d-book.png": (os.path.join(ART, "edebiyyat-dunyasi.webp"), 900),
+    "bilik-dunyasi-globe-premium.png": (os.path.join(ART, "bilik-dunyasi.webp"), 900),
+    "edebiyyat-dunyasi-premium.png": (os.path.join(ART, "edebiyyat-dunyasi.webp"), 900),
     "yasil-baki-cupressus-overlay.png": (os.path.join(ART, "yasil-baki.webp"), 900),
     "green-garden-premium-3d.png": (os.path.join(ART, "green-garden.webp"), 900),
     "oluler.jpg": (os.path.join(COVERS, "oluler.webp"), 900),
-    # The home page hero, and the first large thing a visitor waits for. It is shown at most 24rem (384px)
-    # tall, so 820px covers a 2x screen; more only slows the page's largest paint.
-    "bilik-bagi-hero-3d.png": (os.path.join(ART, "bilik-bagi-hero.webp"), 820),
+    # The home page hero, and the first large thing a visitor waits for. The premium render is wide, shown up
+    # to about 650px across on a large screen, so its long edge keeps enough for a 2x display and no more.
+    "bilik-bagi-hero-premium.png": (os.path.join(ART, "bilik-bagi-hero.webp"), 1100),
 }
 
 ALPHA_FLOOR = 8   # below this an edge pixel is anti-aliasing dust, not artwork
