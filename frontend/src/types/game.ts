@@ -44,8 +44,11 @@ export interface StartGameResponse {
 
 /** Registration data sent with the start request. Never persisted in the browser. */
 export interface StartGameInput {
-  fullName: string
-  phoneNumber: string
+  /** From a confirmed QRLog sign-in; production refuses a start without one. When sent, it alone says who plays. */
+  signInTicket?: string
+  /** Only read by a server that allows starting without QRLog (development and tests). */
+  fullName?: string
+  phoneNumber?: string
   /** Campaign selected on the category screen. Omitted only by legacy callers; the server owns every rule. */
   campaignId?: number
 }

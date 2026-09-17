@@ -16,9 +16,13 @@ export interface QrLoginStarted {
   secondsToLive: number
 }
 
+/**
+ * `signInTicket` is what the quiz is started with. The name and phone are only for the welcome screen: the
+ * server takes who is playing from the ticket and ignores anything the browser says about itself.
+ */
 export type QrLoginStatus =
   | { status: 'pending' }
-  | { status: 'confirmed'; fullName: string; phoneNumber: string }
+  | { status: 'confirmed'; fullName: string; phoneNumber: string; signInTicket: string }
 
 export async function startQrLogin(signal?: AbortSignal): Promise<QrLoginStarted> {
   const { data } = await api.post<QrLoginStarted>('/api/qrlog-login/start', null, { signal })
@@ -36,12 +40,12 @@ export async function pollQrLogin(
   signal?: AbortSignal,
 ): Promise<QrLoginStatus | 'expired'> {
   try {
-    const { data } = await api.get<{ status: string; fullName: string | null; phoneNumber: string | null }>(
+    const { data } = await api.get<{ status: string; fullName: string | null; phoneNumber: string | null; signInTicket?: string | null }>(
       `/api/qrlog-login/${encodeURIComponent(code)}`,
       { params: { secret: pollSecret }, signal },
     )
-    if (data.status === 'confirmed' && data.fullName && data.phoneNumber) {
-      return { status: 'confirmed', fullName: data.fullName, phoneNumber: data.phoneNumber }
+    if (data.status === 'confirmed' && data.fullName && data.phoneNumber && data.signInTicket) {
+      return { status: 'confirmed', fullName: data.fullName, phoneNumber: data.phoneNumber, signInTicket: data.signInTicket }
     }
     return { status: 'pending' }
   } catch (err) {

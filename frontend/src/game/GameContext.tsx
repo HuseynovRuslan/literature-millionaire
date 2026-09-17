@@ -131,7 +131,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const code = data?.code ?? (status === 400 ? 'VALIDATION' : null)
       setErrorCode(code)
       setError(
-        status === 404 && code === 'NO_ACTIVE_CAMPAIGN'
+        code === 'SIGN_IN_EXPIRED'
+          ? 'QRLog girişinin vaxtı bitib. Yeni QR kodu oxudun.'
+          : code === 'SIGN_IN_REQUIRED'
+            ? 'Yarışa yalnız QRLog ilə daxil olmaq olar. QR kodu oxudun.'
+            : status === 404 && code === 'NO_ACTIVE_CAMPAIGN'
           ? 'Bu kateqoriya artıq mövcud deyil.'
           : status === 404 && code === 'CAMPAIGN_NOT_FOUND'
             ? 'Bu kateqoriya artıq mövcud deyil.'

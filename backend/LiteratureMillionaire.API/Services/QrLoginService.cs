@@ -17,7 +17,12 @@ namespace LiteratureMillionaire.API.Services;
 /// 2. The employee scans the QR with the QRLog app, which is already signed in as them.
 /// 3. <b>QRLog's server</b> - not the phone - confirms the code to us, signed with a secret the two
 ///    services share. The phone never holds that secret, and nobody else can vouch for anyone.
-/// 4. The kiosk polls with its secret, gets the name and phone, and starts the quiz with them.
+/// 4. The kiosk polls with its secret and gets the name and phone to show, plus a <b>sign-in ticket</b>.
+/// 5. The quiz is started with the ticket, and the server takes the name and phone from the ticket.
+///
+/// Step 5 is the one that makes the sign-in mean something. It used to be "start the quiz with the name
+/// and phone the poll returned" - which the server could not tell apart from a name and phone typed into
+/// a script, so anyone could play as anyone, or as fifty phone numbers, with one HTTP request each.
 ///
 /// A code is single use and short-lived, and the identity is delivered exactly once. The phone number
 /// is the identity the quiz already runs on, so a QRLog sign-in lands on the same participant as
@@ -45,6 +50,14 @@ public interface IQrLoginService
 
     /// <summary>Verifies the signature QRLog sends with a confirmation.</summary>
     bool IsSignatureValid(string code, string phoneNumber, string timestamp, string signature);
+
+    /// <summary>
+    /// The employee a sign-in ticket stands for, or null when the ticket is unknown or has expired.
+    /// Not consumed: within its lifetime a ticket can start a quiz more than once, which is harmless
+    /// because it can only ever act as the one person QRLog vouched for, and the one-attempt rule still
+    /// applies to them.
+    /// </summary>
+    SignedInIdentity? ResolveTicket(string ticket);
 }
 
 public sealed class QrLoginService : IQrLoginService
@@ -54,6 +67,15 @@ public sealed class QrLoginService : IQrLoginService
 
     /// <summary>A login is meant to be scanned now, not carried away.</summary>
     public static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// How long a sign-in ticket lasts: long enough to read the welcome screen and press start, short
+    /// enough that a ticket left in a kiosk browser is useless to the next person.
+    /// </summary>
+    public static readonly TimeSpan TicketLifetime = TimeSpan.FromMinutes(10);
+
+    /// <summary>A ticket is a bearer credential, so it gets the full strength of a session key.</summary>
+    private const int TicketBytes = 32;
 
     /// <summary>How far QRLog's clock may be from ours before a confirmation is refused as a replay.</summary>
     private static readonly TimeSpan SignatureWindow = TimeSpan.FromMinutes(5);
@@ -126,9 +148,12 @@ public sealed class QrLoginService : IQrLoginService
             return new QrLoginStatusDto("pending", null, null);
         }
 
-        // Delivered once: the kiosk has the identity now, so the code is spent.
+        // Delivered once: the kiosk has the identity now, so the code is spent - and what it carries away
+        // is a ticket for that identity, which is the only thing a quiz can be started with.
         _cache.Remove(CacheKey(code));
-        return new QrLoginStatusDto("confirmed", pending.FullName, pending.PhoneNumber);
+        var ticket = Convert.ToHexString(RandomNumberGenerator.GetBytes(TicketBytes)).ToLowerInvariant();
+        _cache.Set(TicketKey(ticket), new SignedInIdentity(pending.FullName!, pending.PhoneNumber!), TicketLifetime);
+        return new QrLoginStatusDto("confirmed", pending.FullName, pending.PhoneNumber, ticket);
     }
 
     public bool IsSignatureValid(string code, string phoneNumber, string timestamp, string signature)
@@ -151,7 +176,12 @@ public sealed class QrLoginService : IQrLoginService
             && CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(expected), Encoding.UTF8.GetBytes(given.ToUpperInvariant()));
     }
 
+    public SignedInIdentity? ResolveTicket(string ticket) =>
+        string.IsNullOrWhiteSpace(ticket) ? null : _cache.Get<SignedInIdentity>(TicketKey(ticket.Trim().ToLowerInvariant()));
+
     private static string NewToken() => Convert.ToHexString(RandomNumberGenerator.GetBytes(CodeBytes)).ToLowerInvariant();
+
+    private static string TicketKey(string ticket) => $"qrlog-ticket:{ticket}";
 
     private static string CacheKey(string code) => $"qrlog-login:{code}";
 }

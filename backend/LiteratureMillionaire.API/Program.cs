@@ -44,6 +44,19 @@ builder.Services.AddScoped<IBookService, BookService>();
 // their own; the shared signing secret comes from configuration (QrLog__VouchSecret in production).
 builder.Services.AddSingleton<IQrLoginService, QrLoginService>();
 
+// Whether a quiz may only be started with a QRLog sign-in ticket. Fail-closed: it is required everywhere
+// except Development and Testing unless configuration says otherwise, so a production deployment that
+// forgets the setting still refuses a bare name and phone rather than accepting them.
+// Read when first needed rather than while the builder runs, so configuration layered on afterwards (a test
+// host, an environment variable provider) is what decides.
+builder.Services.AddSingleton(sp =>
+{
+    var environment = sp.GetRequiredService<IWebHostEnvironment>();
+    return new GameSignInPolicy(sp.GetRequiredService<IConfiguration>().GetValue(
+        "Game:RequireQrLogin",
+        defaultValue: !environment.IsDevelopment() && !environment.IsEnvironment("Testing")));
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

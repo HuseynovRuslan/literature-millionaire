@@ -12,8 +12,14 @@ public record QrLoginStartedDto(string Code, string PollSecret, DateTime Expires
 /// <summary>
 /// Where a login stands. "pending" until QRLog confirms it, then "confirmed" with the employee's name
 /// and phone - once, after which the code is spent.
+///
+/// <see cref="SignInTicket"/> is what the browser starts a quiz with. The name and phone are here only so
+/// the screen can show whose sign-in landed; the server never takes them back from the browser.
 /// </summary>
-public record QrLoginStatusDto(string Status, string? FullName, string? PhoneNumber);
+public record QrLoginStatusDto(string Status, string? FullName, string? PhoneNumber, string? SignInTicket = null);
+
+/// <summary>An employee QRLog has vouched for, as held behind a sign-in ticket.</summary>
+public sealed record SignedInIdentity(string FullName, string PhoneNumber);
 
 /// <summary>
 /// What QRLog's server posts to confirm a code. It is signed, because this endpoint is the one place

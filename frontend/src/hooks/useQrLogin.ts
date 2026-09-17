@@ -21,12 +21,19 @@ export type QrLoginState =
   | { kind: 'expired' }
   | { kind: 'error' }
 
+/** Who QRLog vouched for, and the ticket the quiz must be started with. */
+export interface QrLoginIdentity {
+  fullName: string
+  phoneNumber: string
+  signInTicket: string
+}
+
 /**
  * Drives "QRLog ilə davam et" from the kiosk side: opens a sign-in, counts the QR down, polls until
  * QRLog confirms it, and stops on its own when the code expires. Everything is cancelled when the
  * screen is left, so a forgotten QR is not still being polled in the background.
  */
-export function useQrLogin(onConfirmed: (identity: { fullName: string; phoneNumber: string }) => void) {
+export function useQrLogin(onConfirmed: (identity: QrLoginIdentity) => void) {
   const [state, setState] = useState<QrLoginState>({ kind: 'idle' })
   const timers = useRef<number[]>([])
   const aborter = useRef<AbortController | null>(null)
@@ -95,7 +102,7 @@ export function useQrLogin(onConfirmed: (identity: { fullName: string; phoneNumb
         if (result.status === 'confirmed') {
           stop()
           setState({ kind: 'confirmed', fullName: result.fullName, phoneNumber: result.phoneNumber })
-          confirmed.current({ fullName: result.fullName, phoneNumber: result.phoneNumber })
+          confirmed.current({ fullName: result.fullName, phoneNumber: result.phoneNumber, signInTicket: result.signInTicket })
         }
       } catch {
         if (controller.signal.aborted) return

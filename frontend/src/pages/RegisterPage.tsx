@@ -8,7 +8,7 @@ import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import { Octagram } from '../components/arena/NationalMotifs'
 import GameShowShell from '../components/home/GameShowShell'
 import QrCode from '../components/QrCode'
-import { useQrLogin } from '../hooks/useQrLogin'
+import { useQrLogin, type QrLoginIdentity } from '../hooks/useQrLogin'
 import { useGame } from '../game/GameContext'
 import type { CampaignSummary } from '../types/campaign'
 import { formatDateRange } from '../utils/date'
@@ -167,15 +167,17 @@ export default function RegisterPage() {
   const starting = state.status === 'starting'
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
-  const [signedInAs, setSignedInAs] = useState<{ fullName: string; phoneNumber: string } | null>(null)
+  const [signedInAs, setSignedInAs] = useState<QrLoginIdentity | null>(null)
   const [lookup, setLookup] = useState<CampaignLookup>({ kind: 'loading' })
 
   // A confirmed QRLog sign-in fills the form rather than submitting it: on a shared kiosk the player
   // should see whose name landed there before the quiz starts under it.
-  const qrLogin = useQrLogin(({ fullName: name, phoneNumber }) => {
-    setFullName(name)
-    setPhone(phoneNumber)
-    setSignedInAs({ fullName: name, phoneNumber })
+  const qrLogin = useQrLogin((identity) => {
+    // A fresh sign-in starts clean: a refusal from an earlier attempt no longer applies to it.
+    if (errorCode) reset()
+    setFullName(identity.fullName)
+    setPhone(identity.phoneNumber)
+    setSignedInAs(identity)
     // The player is looking at their phone when this lands. On a laptop window the start button sits
     // below the fold while the QR is up, so bring it into view rather than leave them to find it.
     requestAnimationFrame(() => submitRef.current?.scrollIntoView({
@@ -221,10 +223,20 @@ export default function RegisterPage() {
     // The server has the last word on both, and says so where the player can read it - a check here
     // that failed silently was what made the start button look broken.
     submittedRef.current = true
-    const ok = await startGame({ fullName: fullName.trim(), phoneNumber: phone, campaignId })
+    // The ticket is who plays. The name and phone ride along only for a server that allows starting
+    // without QRLog (development); production ignores them whenever a ticket is sent.
+    const ok = await startGame({ signInTicket: signedInAs?.signInTicket, fullName: fullName.trim(), phoneNumber: phone, campaignId })
     if (ok) navigate('/game')
     else submittedRef.current = false // a failed start (network, validation) may be retried
   }
+
+  // A ticket that has run out (the welcome screen was left open) cannot be retried - the only way on is a
+  // fresh sign-in. The welcome gives way to a new QR at once, under the message saying why, instead of a
+  // start button that fails the same way every time it is pressed.
+  const signInLost = errorCode === 'SIGN_IN_EXPIRED' || errorCode === 'SIGN_IN_REQUIRED'
+  useEffect(() => {
+    if (signInLost) void qrLogin.begin()
+  }, [signInLost, qrLogin])
 
   function goHome() {
     reset()
@@ -346,7 +358,7 @@ export default function RegisterPage() {
 
           {/* Form */}
           <div className={`${CARD} card-glow flex min-w-0 flex-col justify-center gap-[clamp(1rem,2vh,1.4rem)] px-[clamp(1.2rem,3vw,3rem)] py-[clamp(1.4rem,3vh,2.4rem)] [animation-delay:60ms]`}>
-            {signedInAs ? (
+            {signedInAs && !signInLost ? (
               <QrLoginWelcome fullName={signedInAs.fullName} phoneNumber={signedInAs.phoneNumber} />
             ) : (
               <QrLoginPanel

@@ -93,6 +93,9 @@ services:
       # empty, the button is still shown but every confirmation is refused, so set it before
       # announcing the feature. Must be the same value on both sides.
       QrLog__VouchSecret: ${QRLOG_VOUCH_SECRET:-}
+      # A quiz starts only with a QRLog sign-in ticket. Already the default outside Development; stated so
+      # nobody reading this file has to know that.
+      Game__RequireQrLogin: "true"
     depends_on:
       migrate:
         condition: service_completed_successfully
