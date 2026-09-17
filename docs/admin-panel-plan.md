@@ -26,7 +26,8 @@ half-built reaches production.
 ## Phases
 
 ### Phase 1a — Verified sign-in (security)
-- A confirmed QRLog sign-in yields a short-lived, single-use **sign-in ticket** issued by the server.
+- A confirmed QRLog sign-in yields a short-lived **sign-in ticket** issued by the server (10 minutes; reusable
+  within that time, because it can only ever act as its one person and the one-attempt rule still applies).
 - `/api/game/start` requires the ticket; name and phone come from the ticket, never from the request body.
 - Rate limiting on sign-in start/poll and game start.
 
@@ -72,5 +73,6 @@ Show photo credits (CC licences require attribution): 195 picture questions toda
 
 | Phase | State |
 |---|---|
-| 1a | in progress |
-| 1b – 9 | not started |
+| 1a | **done** — deployed 2026-09-17 (`bdee4eb`). Verified on production: a bare name+phone start returns 401 SIGN_IN_REQUIRED and writes nothing, a forged ticket 401 SIGN_IN_EXPIRED, QR sign-in opening is limited (429 after the burst), and the real player path (QR → server-signed QRLog confirmation → welcome → start → first question) works in a browser. |
+| 1b | next |
+| 2 – 9 | not started |
