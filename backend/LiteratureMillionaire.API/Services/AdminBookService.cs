@@ -110,13 +110,13 @@ public sealed class AdminBookService : IAdminBookService
         var errors = new Dictionary<string, List<string>>();
 
         var title = input.Title?.Trim() ?? string.Empty;
-        if (title.Length == 0) Add(errors, "title", "Kitabın adını yazın.");
+        if (title.Length == 0) Add(errors, "title", "Bankın adını yazın.");
         else if (title.Length > TitleMaxLength) Add(errors, "title", $"Ad ən çox {TitleMaxLength} simvol ola bilər.");
         else if (await _db.Books.AnyAsync(b => b.Id != (existing != null ? existing.Id : 0) && b.Title == title, ct))
         {
             // Two books with the same title would be told apart only by an id nobody sees: the campaign form,
             // the question list and the results all show the title.
-            Add(errors, "title", "Bu adla kitab artıq var.");
+            Add(errors, "title", "Bu adla bank artıq var.");
         }
 
         // Optional on purpose: only one of these banks is a book. "Yaşıl Bakı" is a collection of
@@ -133,7 +133,7 @@ public sealed class AdminBookService : IAdminBookService
 
         if (!LocalImagePath.IsCover(input.CoverImageUrl))
         {
-            Add(errors, "coverImageUrl", "Üz qabığını Şəkillər bölməsindən seçin: kənar ünvan qəbul olunmur.");
+            Add(errors, "coverImageUrl", "Şəkli Şəkillər bölməsindən seçin: kənar ünvan qəbul olunmur.");
         }
 
         // Switching off a book takes its campaigns out of play, so the panel says so before it happens rather
@@ -147,7 +147,7 @@ public sealed class AdminBookService : IAdminBookService
             if (playing.Count > 0)
             {
                 Add(errors, "isActive",
-                    $"Bu kitab hazırda oynanılan kampaniyadadır (#{string.Join(", #", playing)}). Əvvəlcə həmin kampaniyanı deaktiv edin.");
+                    $"Bu bank hazırda oynanılan kampaniyadadır (#{string.Join(", #", playing)}). Əvvəlcə həmin kampaniyanı deaktiv edin.");
             }
         }
 
