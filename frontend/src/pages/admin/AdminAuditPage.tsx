@@ -17,6 +17,9 @@ const ACTION_LABELS: Record<string, string> = {
   'image-uploaded': 'Şəkil yüklədi',
   'book-created': 'Sual bankı əlavə etdi',
   'book-updated': 'Sual bankını dəyişdi',
+  'question-created': 'Sual əlavə etdi',
+  'question-updated': 'Sualı dəyişdi',
+  'question-deleted': 'Sualı sildi',
 }
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -24,6 +27,7 @@ const ENTITY_LABELS: Record<string, string> = {
   participant: 'İştirakçı',
   image: 'Şəkil',
   book: 'Sual bankı',
+  question: 'Sual',
 }
 
 const TIME =new Intl.DateTimeFormat('az-Latn-AZ', {

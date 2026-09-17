@@ -27,11 +27,14 @@ namespace LiteratureMillionaire.API.Seed;
 /// with it, or - between conifers - of anything else with needles. A cedar beside a pomegranate, a fig
 /// and a tulip is a question a person can answer.
 ///
-/// Reconciliation: a question is identified by BookId + ImageUrl, which is unique because one photograph
-/// makes exactly one question (the wording repeats, so it cannot be the key). The seeder brings the
-/// database to match the generated bank - stale rows removed, changed rows updated, new rows inserted -
-/// in one transaction, and only if the result is exactly ExpectedQuestionCount rows. The generated bank
-/// wins: an edit made directly in the database to a question of THIS book does not survive a deployment.
+/// First import only (see BankOwnership): the bank is filled when it is empty and never touched again, so a
+/// question corrected or deleted in the panel's editor stays that way through every deployment. Correcting a
+/// generated bank now means editing it in the panel, or - for a wholesale replacement - importing it again in
+/// a later phase, not redeploying this file.
+///
+/// On that first import a question is identified by BookId + ImageUrl, which is unique because one photograph
+/// makes exactly one question (the wording repeats, so it cannot be the key), and the whole import is one
+/// transaction that only commits if the result is exactly ExpectedQuestionCount rows.
 ///
 /// The opening campaign is created here, once, because a category with no campaign is invisible - the
 /// home page lists what can be played, not what exists, so seeding the bank alone left nothing on screen.
@@ -190,6 +193,15 @@ public static class YasilBakiSeed
             };
             db.Books.Add(book);
             await db.SaveChangesAsync(ct);
+        }
+
+
+        // The panel owns this bank once it has questions (see BankOwnership): filled here once, never
+        // reconciled again, so an edit or a deletion made in the editor survives every deployment.
+        if (await BankOwnership.AlreadyFilledAsync(db, book.Id, ct))
+        {
+            await transaction.CommitAsync(ct);
+            return;
         }
 
         var existing = await db.Questions.Where(q => q.BookId == book.Id).ToListAsync(ct);

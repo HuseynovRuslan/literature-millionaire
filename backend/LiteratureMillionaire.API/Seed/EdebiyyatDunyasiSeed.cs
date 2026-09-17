@@ -15,16 +15,14 @@ namespace LiteratureMillionaire.API.Seed;
 /// resource). The workbook is never read at runtime. Only rows the reviewer marked "Təsdiqlənib" are
 /// carried; the per-question source URL and the reviewer's notes stay in the workbook.
 ///
-/// Reconciliation (SourceId is not stored): a question is identified by BookId + its exact text, which
-/// the workbook keeps unique. The seeder brings the database to match the workbook - rows it no longer
-/// contains are removed, rows whose wording is unchanged but whose options, explanation or picture moved
-/// are updated, and new rows are inserted - all in one transaction, and only if the result is exactly
-/// ExpectedQuestionCount rows.
+/// First import only (see BankOwnership): the bank is filled when it is empty and never touched again, so a
+/// question corrected or deleted in the panel's editor stays that way through every deployment. Correcting a
+/// generated bank now means editing it in the panel, or - for a wholesale replacement - importing it again in
+/// a later phase, not redeploying this file.
 ///
-/// That means the workbook wins: an edit made directly in the database to a question of THIS book does
-/// not survive the next deployment. It is the right trade for a generated bank whose wording is reviewed
-/// in the workbook, and it is what lets a corrected workbook actually reach production - without it a
-/// reworded question would be inserted a second time and the old one would stay, answers and all.
+/// On that first import a question is identified by BookId + its exact text, which the workbook keeps unique,
+/// and the whole import is one transaction that only commits if the result is exactly ExpectedQuestionCount
+/// rows.
 ///
 /// No campaign is created here: when the category goes live, an administrator opens a campaign for the
 /// "edebiyyat-dunyasi" quiz mode with the dates, passing score and image target they want.
@@ -187,6 +185,15 @@ public static class EdebiyyatDunyasiSeed
             };
             db.Books.Add(book);
             await db.SaveChangesAsync(ct);
+        }
+
+
+        // The panel owns this bank once it has questions (see BankOwnership): filled here once, never
+        // reconciled again, so an edit or a deletion made in the editor survives every deployment.
+        if (await BankOwnership.AlreadyFilledAsync(db, book.Id, ct))
+        {
+            await transaction.CommitAsync(ct);
+            return;
         }
 
         var existing = await db.Questions.Where(q => q.BookId == book.Id).ToListAsync(ct);

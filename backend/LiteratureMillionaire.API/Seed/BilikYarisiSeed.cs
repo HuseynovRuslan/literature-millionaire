@@ -172,6 +172,15 @@ public static class BilikYarisiSeed
             await db.SaveChangesAsync(ct);
         }
 
+
+        // The panel owns this bank once it has questions (see BankOwnership): filled here once, never
+        // reconciled again, so an edit or a deletion made in the editor survives every deployment.
+        if (await BankOwnership.AlreadyFilledAsync(db, book.Id, ct))
+        {
+            await transaction.CommitAsync(ct);
+            return;
+        }
+
         var existingKeys = (await db.Questions
                 .Where(q => q.BookId == book.Id)
                 .Select(q => new { q.Text, q.ImageUrl })
@@ -252,6 +261,7 @@ public static class BilikYarisiSeed
     /// <summary>Checks what is actually stored before the campaign goes live; throws (and so rolls back) on any gap.</summary>
     private static async Task VerifyStoredBankAsync(ApplicationDbContext db, int bookId, IReadOnlyList<SeedQuestion> seed, CancellationToken ct)
     {
+
         var stored = await db.Questions
             .Where(q => q.BookId == bookId)
             .Select(q => new { q.Id, q.Text, q.ImageUrl, q.Difficulty, q.CorrectOption })

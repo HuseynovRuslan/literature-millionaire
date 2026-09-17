@@ -10,7 +10,7 @@ import {
   type AdminBook,
   type BookInput,
 } from '../../api/admin'
-import CoverPicker from '../../components/admin/CoverPicker'
+import ImagePicker from '../../components/admin/ImagePicker'
 import { useAdmin } from './adminContext'
 import { formatDay } from './campaignDates'
 
@@ -220,7 +220,7 @@ function BookForm({ initial, existing, onCancel, onSaved, onSignedOut }: {
 
       <div className="flex flex-col gap-1.5">
         <span className="text-sm font-bold text-fg-2">Üz qabığı / şəkil</span>
-        <CoverPicker value={form.coverImageUrl} onChange={(url) => set('coverImageUrl', url)} onSignedOut={onSignedOut}
+        <ImagePicker value={form.coverImageUrl} onChange={(url) => set('coverImageUrl', url)} onSignedOut={onSignedOut}
           invalid={Boolean(errors.coverImageUrl)} />
         {errors.coverImageUrl?.map((message) => (
           <p key={message} role="alert" className="text-sm font-semibold text-bad">{message}</p>

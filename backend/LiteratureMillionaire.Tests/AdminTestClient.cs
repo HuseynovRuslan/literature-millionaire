@@ -20,10 +20,11 @@ internal static class AdminTestClient
     public static HttpClient Https(LeaderboardApiFactory factory) =>
         factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
 
-    /// <summary>A state-changing request, with the admin header.</summary>
-    public static Task<HttpResponseMessage> SendAsync(HttpClient client, HttpMethod method, string url, object body)
+    /// <summary>A state-changing request, with the admin header. A null body sends none (DELETE).</summary>
+    public static Task<HttpResponseMessage> SendAsync(HttpClient client, HttpMethod method, string url, object? body)
     {
-        var request = new HttpRequestMessage(method, url) { Content = JsonContent.Create(body) };
+        var request = new HttpRequestMessage(method, url);
+        if (body is not null) request.Content = JsonContent.Create(body);
         request.Headers.Add(AdminAuth.CsrfHeader, "1");
         return client.SendAsync(request);
     }

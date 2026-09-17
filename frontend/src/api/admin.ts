@@ -320,3 +320,137 @@ export function bookInput(book: AdminBook): BookInput {
     isActive: book.isActive,
   }
 }
+
+// --- questions ----------------------------------------------------------------------------------------------
+
+export type Difficulty = 'Easy' | 'Medium' | 'Hard'
+
+export interface AdminQuestion {
+  id: number
+  text: string
+  optionA: string
+  optionB: string
+  optionC: string
+  optionD: string
+  /** "A" | "B" | "C" | "D" */
+  correctOption: string
+  difficulty: Difficulty
+  category: string
+  explanation: string | null
+  bookId: number | null
+  bookTitle: string | null
+  quizModeId: number | null
+  quizModeTitle: string | null
+  imageUrl: string | null
+  imageAltText: string | null
+  imageSource: string | null
+  imageLicense: string | null
+  createdAt: string
+}
+
+export interface QuestionPage {
+  total: number
+  skip: number
+  take: number
+  questions: AdminQuestion[]
+}
+
+export interface QuestionOptions {
+  banks: { id: number; title: string; isActive: boolean; easy: number; medium: number; hard: number; images: number }[]
+  quizModes: { id: number; title: string; isActive: boolean; requiresBook: boolean }[]
+  /** Sub-categories already in use, so the form suggests instead of asking. */
+  categories: string[]
+  easyPerQuiz: number
+  mediumPerQuiz: number
+  hardPerQuiz: number
+}
+
+export interface QuestionInput {
+  text: string
+  optionA: string
+  optionB: string
+  optionC: string
+  optionD: string
+  correctOption: string
+  difficulty: Difficulty
+  category: string
+  explanation: string
+  bookId: number | null
+  quizModeId: number | null
+  imageUrl: string
+  imageAltText: string
+  imageSource: string
+  imageLicense: string
+}
+
+export interface QuestionFilter {
+  bookId: number | null
+  quizModeId: number | null
+  difficulty: Difficulty | null
+  withImage: boolean | null
+  search: string
+  skip: number
+  take: number
+}
+
+/** Field → messages from a refused save (400 QUESTION_INVALID), or null when the failure was something else. */
+export function questionErrors(err: unknown): Record<string, string[]> | null {
+  if (!isAxiosError(err) || err.response?.status !== 400) return null
+  const data = err.response.data as { code?: string; errors?: Record<string, string[]> } | undefined
+  return data?.code === 'QUESTION_INVALID' && data.errors ? data.errors : null
+}
+
+export async function getQuestions(filter: QuestionFilter, signal?: AbortSignal): Promise<QuestionPage> {
+  const { data } = await api.get<QuestionPage>('/api/admin/questions', {
+    params: {
+      bookId: filter.bookId ?? undefined,
+      quizModeId: filter.quizModeId ?? undefined,
+      difficulty: filter.difficulty ?? undefined,
+      withImage: filter.withImage ?? undefined,
+      search: filter.search || undefined,
+      skip: filter.skip,
+      take: filter.take,
+    },
+    signal,
+  })
+  return data
+}
+
+export async function getQuestionOptions(signal?: AbortSignal): Promise<QuestionOptions> {
+  const { data } = await api.get<QuestionOptions>('/api/admin/questions/options', { signal })
+  return data
+}
+
+export async function createQuestion(input: QuestionInput): Promise<AdminQuestion> {
+  const { data } = await api.post<AdminQuestion>('/api/admin/questions', input, { headers: ADMIN_HEADERS })
+  return data
+}
+
+export async function updateQuestion(id: number, input: QuestionInput): Promise<AdminQuestion> {
+  const { data } = await api.put<AdminQuestion>(`/api/admin/questions/${id}`, input, { headers: ADMIN_HEADERS })
+  return data
+}
+
+export async function deleteQuestion(id: number): Promise<void> {
+  await api.delete(`/api/admin/questions/${id}`, { headers: ADMIN_HEADERS })
+}
+
+export function questionInput(question: AdminQuestion): QuestionInput {
+  return {
+    text: question.text,
+    optionA: question.optionA,
+    optionB: question.optionB,
+    optionC: question.optionC,
+    optionD: question.optionD,
+    correctOption: question.correctOption,
+    difficulty: question.difficulty,
+    category: question.category,
+    explanation: question.explanation ?? '',
+    bookId: question.bookId,
+    quizModeId: question.quizModeId,
+    imageUrl: question.imageUrl ?? '',
+    imageAltText: question.imageAltText ?? '',
+    imageSource: question.imageSource ?? '',
+    imageLicense: question.imageLicense ?? '',
+  }
+}

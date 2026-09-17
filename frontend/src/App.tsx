@@ -5,7 +5,7 @@ import RegisterPage from './pages/RegisterPage'
 import GamePage from './pages/GamePage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import QrLoginHelpPage from './pages/QrLoginHelpPage'
-import AdminQuestionsPage from './pages/AdminQuestionsPage'
+import AdminQuestionsEditorPage from './pages/admin/AdminQuestionsEditorPage'
 import AdminApp from './pages/admin/AdminApp'
 import AdminAuditPage from './pages/admin/AdminAuditPage'
 import AdminCampaignEditorPage from './pages/admin/AdminCampaignEditorPage'
@@ -43,8 +43,7 @@ export default function App() {
           <Route path="results" element={<AdminResultsPage />} />
           <Route path="results/:campaignId" element={<AdminResultsPage />} />
           <Route path="audit" element={<AdminAuditPage />} />
-          {/* The old question form, now behind the sign-in; replaced by the question editor in a later phase. */}
-          <Route path="questions" element={<AdminQuestionsPage />} />
+          <Route path="questions-editor" element={<AdminQuestionsEditorPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

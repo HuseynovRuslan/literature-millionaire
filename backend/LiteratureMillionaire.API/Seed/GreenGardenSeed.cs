@@ -30,10 +30,14 @@ namespace LiteratureMillionaire.API.Seed;
 /// to their being shown here is a question for whoever owns that relationship, not something this file
 /// can assert - so the licence field records the source and claims no permission.
 ///
-/// Reconciliation: a question is identified by BookId + ImageUrl, which is unique because one catalogue
-/// entry makes exactly one question (the wording is the same on all of them, so it cannot be the key).
-/// Stale rows removed, changed rows updated, new rows inserted, in one transaction, and only if the
-/// result is exactly ExpectedQuestionCount rows.
+/// First import only (see BankOwnership): the bank is filled when it is empty and never touched again, so a
+/// question corrected or deleted in the panel's editor stays that way through every deployment. Correcting a
+/// generated bank now means editing it in the panel, or - for a wholesale replacement - importing it again in
+/// a later phase, not redeploying this file.
+///
+/// On that first import a question is identified by BookId + ImageUrl, which is unique because one catalogue
+/// entry makes exactly one question, and the whole import is one transaction that only commits if the result
+/// is exactly ExpectedQuestionCount rows.
 ///
 /// The opening campaign is created once, because a category with no campaign is invisible - the home page
 /// lists what can be played, not what exists. Its dates and IsEnabled afterwards belong to whoever
@@ -200,6 +204,15 @@ public static class GreenGardenSeed
             };
             db.Books.Add(book);
             await db.SaveChangesAsync(ct);
+        }
+
+
+        // The panel owns this bank once it has questions (see BankOwnership): filled here once, never
+        // reconciled again, so an edit or a deletion made in the editor survives every deployment.
+        if (await BankOwnership.AlreadyFilledAsync(db, book.Id, ct))
+        {
+            await transaction.CommitAsync(ct);
+            return;
         }
 
         var existing = await db.Questions.Where(q => q.BookId == book.Id).ToListAsync(ct);

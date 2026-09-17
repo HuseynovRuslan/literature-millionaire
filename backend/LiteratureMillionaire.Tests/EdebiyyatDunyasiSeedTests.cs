@@ -123,13 +123,18 @@ public class EdebiyyatDunyasiSeedTests
     }
 
     /// <summary>
-    /// The workbook is the source of truth for this bank. A question reworded there has to replace the
-    /// one in the database, not join it: the first version of this bank shipped 147 questions that were
-    /// later rewritten, and a seeder that only inserts would have left both versions live, each with its
-    /// own answer, on a category people are already playing.
+    /// The panel owns this bank once it exists (docs/admin-panel-plan.md, phase 6). It did not always: the
+    /// seeder used to bring the database back to the workbook on every deployment, which was right while the
+    /// workbook was the only way to change a question and wrong the moment the panel got an editor - a
+    /// correction made there would have been undone by the next deploy, and a question deleted there would
+    /// have come back, on a category people are playing.
+    ///
+    /// What still has to hold is that reseeding adds nothing: without the guard, a question reworded in the
+    /// panel no longer matches the workbook and would be inserted a second time, leaving two versions live,
+    /// each with its own answer.
     /// </summary>
     [Fact]
-    public async Task Reseeding_makes_the_bank_match_the_workbook_again()
+    public async Task Reseeding_leaves_a_bank_the_panel_now_owns_alone()
     {
         await using var factory = new LeaderboardApiFactory();
         await factory.CreateDatabaseAsync();
@@ -138,24 +143,21 @@ public class EdebiyyatDunyasiSeedTests
             await DbSeeder.SeedAsync(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
         }
 
-        int rewordedId;
         int editedId;
+        int deletedId;
         await using (var scope = factory.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            // One question as the previous workbook worded it: same bank, text no longer in the seed.
-            var reworded = await db.Questions.FirstAsync(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle && q.ImageUrl != null);
-            reworded.Text = "Köhnə redaksiyada verilmiş sual mətni";
-            reworded.ImageUrl = "/question-images/literature-001.webp";
-            rewordedId = reworded.Id;
-
-            // And one whose wording still matches, but whose options and picture drifted.
+            // What an administrator does in the editor: correct one question and delete another.
             var edited = await db.Questions.FirstAsync(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle && q.ImageUrl == null);
-            edited.OptionD = "Bazada dəyişdirilmiş cavab";
-            edited.Explanation = "Bazada dəyişdirilmiş izah";
-            edited.Category = "Səhv kateqoriya";
+            edited.Text = "Paneldə düzəldilmiş sual mətni";
+            edited.OptionD = "Paneldə düzəldilmiş cavab";
+            edited.Explanation = "Paneldə yazılmış izah";
             editedId = edited.Id;
 
+            var deleted = await db.Questions.FirstAsync(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle && q.Id != edited.Id);
+            deletedId = deleted.Id;
+            db.Questions.Remove(deleted);
             await db.SaveChangesAsync();
         }
 
@@ -166,22 +168,15 @@ public class EdebiyyatDunyasiSeedTests
 
         await using var verify = factory.Services.CreateAsyncScope();
         var check = verify.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var bank = EdebiyyatDunyasiSeed.LoadQuestions();
 
-        // The bank is exactly the workbook: no leftovers, no duplicates.
-        var rows = await check.Questions.Where(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle).ToListAsync();
-        Assert.Equal(150, rows.Count);
-        Assert.Null(await check.Questions.FirstOrDefaultAsync(q => q.Id == rewordedId));
-        Assert.Equal(
-            bank.Select(q => q.Text.Trim()).OrderBy(t => t, StringComparer.Ordinal),
-            rows.Select(q => q.Text).OrderBy(t => t, StringComparer.Ordinal));
+        // The correction stands, the deletion stands, and nothing was inserted alongside either.
+        var survived = await check.Questions.SingleAsync(q => q.Id == editedId);
+        Assert.Equal(("Paneldə düzəldilmiş sual mətni", "Paneldə düzəldilmiş cavab", "Paneldə yazılmış izah"),
+            (survived.Text, survived.OptionD, survived.Explanation));
+        Assert.Null(await check.Questions.FirstOrDefaultAsync(q => q.Id == deletedId));
+        Assert.Equal(149, await check.Questions.CountAsync(q => q.Book!.Title == EdebiyyatDunyasiSeed.BookTitle));
 
-        // The row whose wording survived was corrected in place, keeping its id.
-        var restored = await check.Questions.SingleAsync(q => q.Id == editedId);
-        var source = bank.Single(q => q.Text.Trim() == restored.Text);
-        Assert.Equal((source.OptionD, source.Explanation, source.Category), (restored.OptionD, restored.Explanation, restored.Category));
-
-        // Nothing outside this book moved.
+        // Nothing outside this book moved either.
         Assert.Equal(441, await check.Questions.CountAsync(q => q.Book!.Title == BilikYarisiSeed.BookTitle));
         Assert.Equal(30, await check.Questions.CountAsync(q => q.Book!.Title == OlulerQuestionSeed.BookTitle));
     }
