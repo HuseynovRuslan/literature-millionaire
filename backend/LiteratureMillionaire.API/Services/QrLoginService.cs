@@ -58,6 +58,12 @@ public interface IQrLoginService
     /// applies to them.
     /// </summary>
     SignedInIdentity? ResolveTicket(string ticket);
+
+    /// <summary>
+    /// Like <see cref="ResolveTicket"/>, but spends the ticket. Signing in to the admin panel uses this: a
+    /// session is worth more than a quiz, so the ticket that opened one cannot open a second.
+    /// </summary>
+    SignedInIdentity? ConsumeTicket(string ticket);
 }
 
 public sealed class QrLoginService : IQrLoginService
@@ -180,6 +186,17 @@ public sealed class QrLoginService : IQrLoginService
         string.IsNullOrWhiteSpace(ticket) ? null : _cache.Get<SignedInIdentity>(TicketKey(ticket.Trim().ToLowerInvariant()));
 
     private static string NewToken() => Convert.ToHexString(RandomNumberGenerator.GetBytes(CodeBytes)).ToLowerInvariant();
+
+    public SignedInIdentity? ConsumeTicket(string ticket)
+    {
+        if (ResolveTicket(ticket) is not { } identity)
+        {
+            return null;
+        }
+
+        _cache.Remove(TicketKey(ticket.Trim().ToLowerInvariant()));
+        return identity;
+    }
 
     private static string TicketKey(string ticket) => $"qrlog-ticket:{ticket}";
 

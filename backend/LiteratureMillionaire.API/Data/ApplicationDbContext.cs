@@ -15,6 +15,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
     public DbSet<QuizMode> QuizModes => Set<QuizMode>();
+    public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
+    public DbSet<AdminLoginLink> AdminLoginLinks => Set<AdminLoginLink>();
 
     // Schema-level ceiling for AttemptNumber, baked into the InitialPostgreSql migration's CHECK
     // constraint. Deliberately NOT QuizRules.MaxAttemptsPerCampaign: the product rule can be
@@ -158,6 +160,37 @@ public class ApplicationDbContext : DbContext
             // Playable-campaign lookups: enabled rows filtered by date range, overall and per quiz mode.
             entity.HasIndex(c => new { c.IsEnabled, c.StartDate, c.EndDate });
             entity.HasIndex(c => new { c.QuizModeId, c.IsEnabled, c.StartDate, c.EndDate });
+        });
+
+        modelBuilder.Entity<AdminAuditEntry>(entity =>
+        {
+            entity.ToTable("AdminAuditEntries");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.AtUtc)
+                .IsRequired()
+                .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            entity.Property(e => e.ActorName).IsRequired().HasMaxLength(120);
+            entity.Property(e => e.ActorPhone).IsRequired().HasMaxLength(16).IsUnicode(false);
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(64).IsUnicode(false);
+            entity.Property(e => e.EntityType).HasMaxLength(64).IsUnicode(false);
+            entity.Property(e => e.EntityId).HasMaxLength(64).IsUnicode(false);
+            entity.Property(e => e.Details).HasMaxLength(2000);
+            // The panel reads the newest first.
+            entity.HasIndex(e => e.AtUtc);
+        });
+
+        modelBuilder.Entity<AdminLoginLink>(entity =>
+        {
+            entity.ToTable("AdminLoginLinks");
+            entity.HasKey(l => l.Id);
+            entity.Property(l => l.TokenHash).IsRequired().HasMaxLength(64).IsUnicode(false);
+            entity.Property(l => l.PhoneNumber).IsRequired().HasMaxLength(16).IsUnicode(false);
+            entity.Property(l => l.FullName).IsRequired().HasMaxLength(120);
+            entity.Property(l => l.CreatedAtUtc).IsRequired().HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            entity.Property(l => l.ExpiresAtUtc).IsRequired().HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            entity.Property(l => l.UsedAtUtc).HasConversion(
+                v => v, v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+            entity.HasIndex(l => l.TokenHash).IsUnique();
         });
 
         modelBuilder.Entity<Participant>(entity =>

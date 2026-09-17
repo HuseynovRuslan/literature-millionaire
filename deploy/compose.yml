@@ -96,6 +96,11 @@ services:
       # A quiz starts only with a QRLog sign-in ticket. Already the default outside Development; stated so
       # nobody reading this file has to know that.
       Game__RequireQrLogin: "true"
+      # Who may use the admin panel: phone numbers separated by commas. Empty means nobody - the panel
+      # fails closed. Kept in deploy/.env, never in this file.
+      Admin__Phones: ${ADMIN_PHONES:-}
+      # Used only to print a full break-glass link (--admin-link).
+      Admin__PublicBaseUrl: ${ADMIN_PUBLIC_BASE_URL:-https://book.qrlog.az}
     depends_on:
       migrate:
         condition: service_completed_successfully

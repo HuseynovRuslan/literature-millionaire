@@ -1,0 +1,71 @@
+import QrCode from './QrCode'
+import type { QrLoginState } from '../hooks/useQrLogin'
+
+/**
+ * The QRLog sign-in QR: the way in for players on the registration screen and for administrators on the
+ * admin panel's sign-in screen. Most people reaching either are colleagues already carrying QRLog, so the QR
+ * is the screen rather than something behind a button.
+ *
+ * Only the code is in the QR. The browser keeps a separate secret and polls with that, so the QR
+ * being visible to the room gives nothing away - see the backend's IQrLoginService.
+ */
+export default function QrLoginPanel({ state, onRetry, hint = 'Telefonunuzda QRLog tətbiqini açın və kodu skan edin — adınız və nömrəniz özü gələcək.' }: {
+  state: QrLoginState
+  onRetry: () => void
+  /** The line under the heading: what scanning will do on this particular screen. */
+  hint?: string
+}) {
+  return (
+    <div className="flex min-w-0 flex-col items-center text-center" data-testid="qrlog-panel" aria-live="polite">
+      {/* The logo and the code share one white card: the QR needs a light background to scan, and on a
+          dark studio screen a floating white square would read as a hole rather than as a sign-in. */}
+      <div className="flex w-full max-w-[22rem] flex-col items-center gap-3 rounded-3xl bg-white p-[clamp(0.9rem,1.6vw,1.4rem)] shadow-[0_1rem_2.4rem_-0.8rem_rgba(0,0,0,0.55)]">
+        <img
+          src="/brand/qrlog-logo.webp"
+          alt="QRLog"
+          width={720}
+          height={265}
+          className="h-[clamp(1.6rem,2.4vw,2.2rem)] w-auto"
+          data-testid="qrlog-logo"
+        />
+
+        {state.kind === 'waiting' ? (
+          <QrCode
+            value={state.qrValue}
+            title="QRLog tətbiqi ilə oxutmaq üçün QR kod"
+            className="aspect-square w-full max-w-[16rem]"
+          />
+        ) : (
+          // Same square either way, so the card does not jump while a code is being minted or renewed.
+          <div className="grid aspect-square w-full max-w-[16rem] place-items-center rounded-xl bg-ink-950/5 px-4 text-center">
+            {state.kind === 'starting' || state.kind === 'idle' ? (
+              <p className="font-semibold text-ink-950/60">QR kod hazırlanır…</p>
+            ) : (
+              <div>
+                <p lang="az" className="font-bold text-ink-950/75">
+                  {state.kind === 'expired' ? 'QR kodun vaxtı bitdi' : 'Əlaqə alınmadı'}
+                </p>
+                <button type="button" onClick={onRetry} className="tap mt-3 rounded-xl bg-brand px-5 py-2.5 font-display font-bold text-white" data-testid="qrlog-retry">
+                  Yeni QR kod
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <p lang="az" className="mt-4 font-display text-[clamp(1.1rem,1.5vw,1.4rem)] font-extrabold">
+        QRLog tətbiqi ilə oxudun
+      </p>
+      <p lang="az" className="mt-1 max-w-[34ch] text-[clamp(0.9rem,1.05vw,1rem)] font-medium leading-snug text-fg-2">
+        {hint}
+      </p>
+      {state.kind === 'waiting' && (
+        <p className="mt-2 text-[clamp(0.8rem,0.9vw,0.88rem)] font-bold tabular-nums text-fg-3" data-testid="qrlog-countdown">
+          Kodun vaxtı: {state.secondsLeft} saniyə
+        </p>
+      )}
+
+    </div>
+  )
+}
