@@ -454,3 +454,63 @@ export function questionInput(question: AdminQuestion): QuestionInput {
     imageLicense: question.imageLicense ?? '',
   }
 }
+
+// --- bulk import --------------------------------------------------------------------------------------------
+
+export interface ImportRow {
+  /** The row number in the file, as Excel shows it. */
+  row: number
+  status: 'ready' | 'duplicate' | 'problem'
+  text: string
+  difficulty: string | null
+  category: string | null
+  hasImage: boolean
+  problems: string[]
+}
+
+export interface ImportReport {
+  /** Sent back to apply exactly what this report describes. */
+  token: string
+  fileName: string
+  bankTitle: string
+  quizModeTitle: string
+  totalRows: number
+  ready: number
+  duplicates: number
+  problems: number
+  columns: string[]
+  rows: ImportRow[]
+}
+
+export interface ImportResult {
+  added: number
+  skipped: number
+  bankTitle: string
+}
+
+export const IMPORT_ACCEPT = '.xlsx,.json'
+export const IMPORT_MAX_BYTES = 5 * 1024 * 1024
+
+export function importTemplateUrl(): string {
+  return `${api.defaults.baseURL ?? ''}/api/admin/questions/import/template.xlsx`
+}
+
+/** Uploads the file and reports what it would do. Writes nothing. */
+export async function analyseImport(file: File, bookId: number, quizModeId: number, category: string): Promise<ImportReport> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('bookId', String(bookId))
+  form.append('quizModeId', String(quizModeId))
+  if (category) form.append('category', category)
+  // Not the shared client: its JSON content type would replace the multipart one the browser has to set.
+  const { data } = await axios.post<ImportReport>(`${api.defaults.baseURL ?? ''}/api/admin/questions/import`, form, {
+    headers: ADMIN_HEADERS,
+    timeout: 120_000,
+  })
+  return data
+}
+
+export async function applyImport(token: string): Promise<ImportResult> {
+  const { data } = await api.post<ImportResult>('/api/admin/questions/import/apply', { token }, { headers: ADMIN_HEADERS })
+  return data
+}

@@ -13,6 +13,7 @@ import AdminCampaignsPage from './pages/admin/AdminCampaignsPage'
 import AdminHomePage from './pages/admin/AdminHomePage'
 import AdminBooksPage from './pages/admin/AdminBooksPage'
 import AdminImagesPage from './pages/admin/AdminImagesPage'
+import AdminImportPage from './pages/admin/AdminImportPage'
 import AdminResultsPage from './pages/admin/AdminResultsPage'
 import AdminLinkPage from './pages/admin/AdminLinkPage'
 
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="results/:campaignId" element={<AdminResultsPage />} />
           <Route path="audit" element={<AdminAuditPage />} />
           <Route path="questions-editor" element={<AdminQuestionsEditorPage />} />
+          <Route path="import" element={<AdminImportPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

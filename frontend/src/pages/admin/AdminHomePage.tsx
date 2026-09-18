@@ -5,7 +5,6 @@ import { useAdmin } from './adminContext'
  * campaign editor that is still being built.
  */
 const COMING = [
-  { title: 'Toplu idxal', text: 'Excel və ya JSON faylla bir dəfəyə çoxlu sual yükləmək.' },
   { title: 'Kateqoriyalar', text: 'Kateqoriyaların adı, sırası və aktivliyi.' },
 ]
 

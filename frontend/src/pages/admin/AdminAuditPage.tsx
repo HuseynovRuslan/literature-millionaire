@@ -20,6 +20,7 @@ const ACTION_LABELS: Record<string, string> = {
   'question-created': 'Sual əlavə etdi',
   'question-updated': 'Sualı dəyişdi',
   'question-deleted': 'Sualı sildi',
+  'questions-imported': 'Faylla sual idxal etdi',
 }
 
 const ENTITY_LABELS: Record<string, string> = {
