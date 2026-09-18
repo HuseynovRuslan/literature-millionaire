@@ -21,6 +21,10 @@ function withReturnAddress(appConfirmUrl: string): string {
  */
 export default function QrLoginPanel({ state, onRetry, hint = 'Telefonunuzda QRLog tətbiqini açın və kodu skan edin — adınız və nömrəniz özü gələcək.' }: {
   state: QrLoginState
+  /**
+   * "Yeni QR kod". It must start a genuinely new sign-in - begin({ fresh: true }) - never resume the one the
+   * person is standing here trying to get away from, which is what made this button look broken.
+   */
   onRetry: () => void
   /** The line under the heading: what scanning will do on this particular screen. */
   hint?: string
@@ -50,6 +54,14 @@ export default function QrLoginPanel({ state, onRetry, hint = 'Telefonunuzda QRL
           <div className="grid aspect-square w-full max-w-[16rem] place-items-center rounded-xl bg-ink-950/5 px-4 text-center">
             {state.kind === 'starting' || state.kind === 'idle' ? (
               <p className="font-semibold text-ink-950/60">QR kod hazırlanır…</p>
+            ) : state.kind === 'confirmed' ? (
+              // QRLog has said yes and the screen is a moment from moving on. This used to fall through to the
+              // error copy below, so the last thing a person saw after a successful approval was "Əlaqə alınmadı".
+              <div data-testid="qrlog-confirmed">
+                <p className="font-display text-[1.6rem] font-extrabold leading-none text-ok">✓</p>
+                <p lang="az" className="mt-2 font-bold text-ink-950/75">Təsdiqləndi</p>
+                <p lang="az" className="mt-1 text-sm font-semibold text-ink-950/55">{state.fullName}</p>
+              </div>
             ) : (
               <div>
                 <p lang="az" className="font-bold text-ink-950/75">

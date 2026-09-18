@@ -59,7 +59,19 @@ public class GameController : ControllerBase
 
         try
         {
-            return Ok(await _game.StartAsync(request, ct));
+            var started = await _game.StartAsync(request, ct);
+
+            // The sign-in has done its job. Ending it here is what lets the device be handed on: the next
+            // screen gets a fresh QR instead of resuming this quiz's sign-in and filling in this player's
+            // name - which is how the next participant ended up playing as the last one. The ticket itself is
+            // left alone; it can only ever act as this one person, and the one-attempt rule still applies.
+            if (!string.IsNullOrWhiteSpace(request.SignInTicket))
+            {
+                _logins.EndForTicket(request.SignInTicket);
+                QrLoginCookie.Clear(Response);
+            }
+
+            return Ok(started);
         }
         catch (GameException ex)
         {

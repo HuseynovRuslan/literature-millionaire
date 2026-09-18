@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { pollQrLogin, resumeQrLogin, startQrLogin, type QrLoginStarted } from '../api/qrLogin'
+import { endQrLogin, pollQrLogin, resumeQrLogin, startQrLogin, type QrLoginStarted } from '../api/qrLogin'
 
 /**
  * What the QR actually carries. An absolute URL on this origin: the QRLog app recognises the /qr/
@@ -105,21 +105,43 @@ export function useQrLogin(onConfirmed: (identity: QrLoginIdentity) => void) {
     setState({ kind: 'idle' })
   }, [stop])
 
+  /**
+   * Signs the person out: this is where a QRLog sign-in ends on purpose rather than by running out.
+   *
+   * It matters most on a shared phone. Whoever is signed in stays signed in for as long as their code lives,
+   * in every window of that browser, so without a way to let go the next person is handed the last person's
+   * name - and, with one attempt per number, the last person's only try. The server forgets the sign-in and
+   * the cookie; this tab forgets its copy.
+   */
+  const end = useCallback(async () => {
+    stop()
+    forget()
+    setState({ kind: 'idle' })
+    await endQrLogin()
+  }, [stop])
+
   useEffect(() => stop, [stop])
 
-  const begin = useCallback(async () => {
+  const begin = useCallback(async (options?: { fresh?: boolean }) => {
     stop()
     const controller = new AbortController()
     aborter.current = controller
 
-    // A sign-in already under way is resumed, never replaced: first the one this tab remembers, then the one
-    // this browser last started (a cookie, so a different window - an installed app, a fresh tab QRLog handed us
-    // back to - finds it too). Only when there is none does a new code get minted.
-    let started = recall()
+    // "Yeni QR kod", and every restart after a sign-in was refused or given up: the person is asking to start
+    // over, so resuming what they just walked away from is the one thing that must not happen. Forgetting it
+    // here is only this tab's half; POST /start ends the server's copy and replaces the cookie.
+    if (options?.fresh) forget()
+
+    // Otherwise a sign-in already under way is resumed, never replaced: first the one this tab remembers, then
+    // the one this browser last started (a cookie, so a different window - an installed app, a fresh tab QRLog
+    // handed us back to - finds it too). Only when there is none does a new code get minted.
+    let started = options?.fresh ? null : recall()
     if (!started) {
       setState({ kind: 'starting' })
       try {
-        started = (await resumeQrLogin(controller.signal).catch(() => null)) ?? (await startQrLogin(controller.signal))
+        started = options?.fresh
+          ? await startQrLogin(controller.signal)
+          : (await resumeQrLogin(controller.signal).catch(() => null)) ?? (await startQrLogin(controller.signal))
       } catch {
         if (!controller.signal.aborted) setState({ kind: 'error' })
         return
@@ -140,9 +162,17 @@ export function useQrLogin(onConfirmed: (identity: QrLoginIdentity) => void) {
       appConfirmUrl: started.appConfirmUrl ?? null,
     })
 
+    // This sign-in ends once and once only. The poll runs on a timer and again whenever the tab becomes
+    // visible, so two answers can be in flight at the same moment, both carrying the same confirmation.
+    // Without this, coming back from QRLog could sign the person in twice: two sessions opened, two quizzes
+    // started, the second refused because the first had spent the ticket.
+    let settled = false
+
     const tick = window.setInterval(() => {
       const left = secondsLeft()
       if (left <= 0) {
+        if (settled) return
+        settled = true
         stop()
         forget()
         setState({ kind: 'expired' })
@@ -154,16 +184,20 @@ export function useQrLogin(onConfirmed: (identity: QrLoginIdentity) => void) {
     let failures = 0
     const pending = started
     const askOnce = async () => {
+      if (settled) return
       try {
         const result = await pollQrLogin(pending.code, pending.pollSecret, controller.signal)
         failures = 0
+        if (settled) return
         if (result === 'expired') {
+          settled = true
           stop()
           forget()
           setState({ kind: 'expired' })
           return
         }
         if (result.status === 'confirmed') {
+          settled = true
           stop()
           forget()
           setState({ kind: 'confirmed', fullName: result.fullName, phoneNumber: result.phoneNumber })
@@ -193,5 +227,5 @@ export function useQrLogin(onConfirmed: (identity: QrLoginIdentity) => void) {
     void askOnce()
   }, [stop])
 
-  return { state, begin, cancel }
+  return { state, begin, cancel, end }
 }

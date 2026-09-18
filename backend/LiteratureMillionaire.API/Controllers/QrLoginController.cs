@@ -23,30 +23,18 @@ public class QrLoginController : ControllerBase
     }
 
     /// <summary>Opens a login. The code goes into the QR; the poll secret stays in this browser.</summary>
-    /// <summary>
-    /// The cookie that lets another window of the same browser carry on a sign-in this one started.
-    ///
-    /// On a phone the person leaves for QRLog and is handed back to a page that is often a different window -
-    /// an installed app, a new tab - with none of this page's storage. Without this, that window minted a fresh
-    /// code and waited for an approval that had already landed on the old one; the name never arrived. Cookies
-    /// are the one thing every window of a browser shares. HttpOnly, so a script (or a photograph of the QR) still
-    /// cannot read the poll secret; it lives as long as the code does.
-    /// </summary>
-    private const string PendingCookie = "kitabxana_qr";
-
     [HttpPost("start")]
     [ProducesResponseType(typeof(QrLoginStartedDto), StatusCodes.Status200OK)]
     public ActionResult<QrLoginStartedDto> Start()
     {
+        // Whatever this browser was in the middle of is over: asking for a QR means asking for a new one.
+        // Without this, "Yeni QR kod" could not produce one - the old sign-in was still there to be resumed.
+        // The cookie is not cleared here, only the sign-in behind it: the new one overwrites it a line later,
+        // and sending a browser a delete and a set for the same cookie in one response is asking for trouble.
+        EndPending(clearCookie: false);
+
         var started = _logins.Start();
-        Response.Cookies.Append(PendingCookie, $"{started.Code}.{started.PollSecret}", new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Lax,
-            Path = "/api/qrlog-login",
-            Expires = started.ExpiresAtUtc,
-        });
+        QrLoginCookie.Set(Response, started.Code, started.PollSecret, started.ExpiresAtUtc);
         return Ok(started);
     }
 
@@ -56,13 +44,40 @@ public class QrLoginController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public ActionResult<QrLoginStartedDto> Resume()
     {
-        if (Request.Cookies.TryGetValue(PendingCookie, out var value) && value.Split('.', 2) is [var code, var secret]
-            && _logins.Resume(code, secret) is { } started)
+        if (QrLoginCookie.TryRead(Request, out var code, out var secret) && _logins.Resume(code, secret) is { } started)
         {
             return Ok(started);
         }
 
+        // Nothing to resume: the cookie points at a sign-in that has been used, ended or has expired. Clearing
+        // it here stops every later screen from asking about a dead sign-in for the rest of its five minutes.
+        QrLoginCookie.Clear(Response);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Ends this browser's sign-in: signing out, handing the phone to the next person, or asking for a new QR.
+    /// Idempotent - there is nothing to report when there was nothing to end.
+    /// </summary>
+    [HttpDelete("pending")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult EndSignIn()
+    {
+        EndPending();
+        return NoContent();
+    }
+
+    private void EndPending(bool clearCookie = true)
+    {
+        if (QrLoginCookie.TryRead(Request, out var code, out var secret))
+        {
+            _logins.End(code, secret);
+        }
+
+        if (clearCookie)
+        {
+            QrLoginCookie.Clear(Response);
+        }
     }
 
     /// <summary>

@@ -45,6 +45,22 @@ export async function startQrLogin(signal?: AbortSignal): Promise<QrLoginStarted
 }
 
 /**
+ * Ends the sign-in this browser is carrying: signing out, handing the phone to the next person, or asking
+ * for a genuinely new QR. The server forgets the pending login and the ticket it issued, and clears the
+ * cookie that pointed at it - without that, every later screen resumes a sign-in that is already spent.
+ *
+ * Never throws. Nothing on screen can act on a failure here, and a sign-out that fails because the network
+ * blinked must still let go of the person standing in front of it; the sign-in expires by itself in minutes.
+ */
+export async function endQrLogin(signal?: AbortSignal): Promise<void> {
+  try {
+    await api.delete('/api/qrlog-login/pending', { signal })
+  } catch {
+    // Deliberately ignored - see above.
+  }
+}
+
+/**
  * Where the sign-in stands. `expired` covers every ending the kiosk treats the same way - the code ran
  * out, it was already used, or the server no longer knows it - because the player can only do one
  * thing about any of them: ask for a new QR.

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { endQrLogin } from '../api/qrLogin'
 import AnswerButton, { type AnswerVisual } from '../components/AnswerButton'
 import GameStageHeader from '../components/game/GameStageHeader'
 import { FlagStripe, Octagram } from '../components/arena/NationalMotifs'
@@ -30,7 +31,10 @@ type Phase =
   | { kind: 'closed'; selected: AnswerOption | null; timedOut: boolean }
 
 export default function GamePage() {
-  const { state, submitAnswer, submitTimeout, advance } = useGame()
+  const { state, submitAnswer, submitTimeout, advance, reset } = useGame()
+  const navigate = useNavigate()
+  // Leaving mid-quiz is asked for before it happens: a stray tap must not end a round somebody is playing.
+  const [askingQuit, setAskingQuit] = useState(false)
   const [phase, setPhase] = useState<Phase>({ kind: 'open' })
   const [now, setNow] = useState(() => Date.now())
   const [sendError, setSendError] = useState<string | null>(null)
@@ -89,6 +93,18 @@ export default function GamePage() {
     timeoutSentFor.current = null
     questionShownAt.current = Date.now()
   }, [q?.id])
+
+  /**
+   * Out of the quiz and out of the sign-in, in that order: the screen is cleared here and the sign-in is ended
+   * on the server, so the phone can be handed to the next person without them arriving as whoever played last.
+   * The attempt itself is already spent - it was spent when the quiz started - and this does not give it back.
+   */
+  async function quit() {
+    sound.stopAll()
+    reset()
+    await endQrLogin()
+    navigate('/')
+  }
 
   function scheduleAdvance(result: AnswerResult) {
     timer.current = window.setTimeout(() => advance(result), TRANSITION_MS)
@@ -196,6 +212,7 @@ export default function GamePage() {
             setSoundOn(next)
             if (next) sound.resume()
           }}
+          onQuit={() => setAskingQuit(true)}
         />
 
         {/* Decorative "Sual N" burst on every new question; the real counter is in the header. */}
@@ -283,6 +300,33 @@ export default function GamePage() {
           )}
         </footer>
       </section>
+
+      {askingQuit && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-ink-950/80 px-4 backdrop-blur-sm">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="quit-title"
+            data-testid="game-quit-dialog"
+            className="card pop w-full max-w-[30rem] rounded-[2rem] px-6 py-7 text-center max-sm:rounded-3xl max-sm:px-5"
+          >
+            <h2 id="quit-title" lang="az" className="font-display text-[clamp(1.3rem,2vw,1.8rem)] font-extrabold leading-tight">
+              Yarışdan çıxmaq istəyirsiniz?
+            </h2>
+            <p lang="az" className="mt-3 text-[clamp(0.95rem,1.1vw,1.05rem)] font-medium leading-snug text-fg-2">
+              Yarış yarımçıq qalacaq və QRLog girişiniz bağlanacaq. Bu cəhd geri qaytarılmır.
+            </p>
+            <div className="mt-6 flex gap-3 max-sm:flex-col-reverse">
+              <button type="button" onClick={() => setAskingQuit(false)} className="btn btn-secondary min-h-12 flex-1 px-5" data-testid="game-quit-cancel">
+                Davam et
+              </button>
+              <button type="button" onClick={() => void quit()} className="btn btn-primary min-h-12 flex-1 px-5" data-testid="game-quit-confirm">
+                Bəli, çıx
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

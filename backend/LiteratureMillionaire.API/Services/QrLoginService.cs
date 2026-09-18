@@ -54,6 +54,20 @@ public interface IQrLoginService
     /// </summary>
     QrLoginStartedDto? Resume(string code, string pollSecret);
 
+    /// <summary>
+    /// Ends a sign-in: the pending login and the ticket it issued are gone, so nothing can be resumed from it
+    /// and no screen can act on it again. Used when somebody signs out, asks for a new QR, or hands the device
+    /// on. Takes the poll secret because ending somebody else's sign-in must not be possible with a code alone.
+    /// </summary>
+    /// <returns>True when there was one to end.</returns>
+    bool End(string code, string pollSecret);
+
+    /// <summary>
+    /// Ends the sign-in that issued this ticket, leaving the ticket itself alone. A quiz start calls it: the
+    /// sign-in has done its job, so the next screen must get a fresh QR rather than the last person's name.
+    /// </summary>
+    void EndForTicket(string ticket);
+
     /// <summary>Verifies the signature QRLog sends with a confirmation.</summary>
     bool IsSignatureValid(string code, string phoneNumber, string timestamp, string signature);
 
@@ -229,16 +243,46 @@ public sealed class QrLoginService : IQrLoginService
         // only worked on the second try. Nothing is given away by answering twice: the poll secret is the
         // proof, it never leaves the browser that started the sign-in, and the code still dies with its five
         // minutes. What is single-use is the ticket's effect - an admin session consumes it (ConsumeTicket).
-        pending.SignInTicket ??= IssueTicket(pending);
+        pending.SignInTicket ??= IssueTicket(pending, code);
         return new QrLoginStatusDto("confirmed", pending.FullName, pending.PhoneNumber, pending.SignInTicket);
     }
 
+    /// <summary>A ticket and the sign-in it came from, so spending one can end the other.</summary>
+    private sealed record IssuedTicket(SignedInIdentity Identity, string Code);
+
     /// <summary>Mints the ticket a confirmed sign-in carries, and remembers who it stands for.</summary>
-    private string IssueTicket(PendingLogin pending)
+    private string IssueTicket(PendingLogin pending, string code)
     {
         var ticket = Convert.ToHexString(RandomNumberGenerator.GetBytes(TicketBytes)).ToLowerInvariant();
-        _cache.Set(TicketKey(ticket), new SignedInIdentity(pending.FullName!, pending.PhoneNumber!), TicketLifetime);
+        _cache.Set(TicketKey(ticket), new IssuedTicket(new SignedInIdentity(pending.FullName!, pending.PhoneNumber!), code),
+            TicketLifetime);
         return ticket;
+    }
+
+    public bool End(string code, string pollSecret)
+    {
+        if (_cache.Get<PendingLogin>(CacheKey(code)) is not { } pending || !SecretMatches(pending, pollSecret))
+        {
+            return false;
+        }
+
+        if (pending.SignInTicket is { } ticket)
+        {
+            _cache.Remove(TicketKey(ticket));
+        }
+
+        _cache.Remove(CacheKey(code));
+        return true;
+    }
+
+    public void EndForTicket(string ticket)
+    {
+        if (string.IsNullOrWhiteSpace(ticket) || _cache.Get<IssuedTicket>(TicketKey(ticket.Trim().ToLowerInvariant())) is not { } issued)
+        {
+            return;
+        }
+
+        _cache.Remove(CacheKey(issued.Code));
     }
 
     public bool IsSignatureValid(string code, string phoneNumber, string timestamp, string signature)
@@ -262,19 +306,24 @@ public sealed class QrLoginService : IQrLoginService
     }
 
     public SignedInIdentity? ResolveTicket(string ticket) =>
-        string.IsNullOrWhiteSpace(ticket) ? null : _cache.Get<SignedInIdentity>(TicketKey(ticket.Trim().ToLowerInvariant()));
+        string.IsNullOrWhiteSpace(ticket) ? null : _cache.Get<IssuedTicket>(TicketKey(ticket.Trim().ToLowerInvariant()))?.Identity;
 
     private static string NewToken() => Convert.ToHexString(RandomNumberGenerator.GetBytes(CodeBytes)).ToLowerInvariant();
 
     public SignedInIdentity? ConsumeTicket(string ticket)
     {
-        if (ResolveTicket(ticket) is not { } identity)
+        var key = TicketKey(ticket?.Trim().ToLowerInvariant() ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(ticket) || _cache.Get<IssuedTicket>(key) is not { } issued)
         {
             return null;
         }
 
-        _cache.Remove(TicketKey(ticket.Trim().ToLowerInvariant()));
-        return identity;
+        // The sign-in goes with the ticket. Leaving it behind is what locked the panel: signing out sent the
+        // screen back to the QR, the cookie resumed this very code, polling handed back this very ticket, and
+        // the session refused it - over and over until the code expired.
+        _cache.Remove(key);
+        _cache.Remove(CacheKey(issued.Code));
+        return issued.Identity;
     }
 
     private static string TicketKey(string ticket) => $"qrlog-ticket:{ticket}";

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { adminFailure, getAdminSession, signInWithTicket, signOut, type AdminSession } from '../../api/admin'
+import { endQrLogin } from '../../api/qrLogin'
 import QrLoginPanel from '../../components/QrLoginPanel'
 import BrandMark from '../../components/national/BrandMark'
 import { PRODUCT_NAME } from '../../components/national/KioskBrand'
@@ -74,6 +75,11 @@ export default function AdminApp() {
         try {
           await signOut()
         } finally {
+          // Signing out of the panel ends the QRLog sign-in too. The server does this itself when the sign-out
+          // reaches it; this is for the time it does not - a dropped request would otherwise leave the sign-in
+          // alive, and the screen behind us would resume a sign-in whose ticket is already spent and keep
+          // asking for it until the code ran out.
+          await endQrLogin()
           setState({ kind: 'signed-out', notice: 'Çıxış etdiniz.' })
         }
       }}
@@ -134,9 +140,13 @@ function AdminSignIn({ notice, onSignedIn }: { notice?: string; onSignedIn: (ses
 
   // On `begin` itself, which is stable - not on the object useQrLogin returns, which is new on every render and
   // would restart the QR on every render, so it never settled long enough to be scanned.
+  //
+  // The first QR of the screen may be resumed: an approval given in QRLog often comes back to a different
+  // window, and resuming is how it is found. Every later round follows a refused sign-in, so it must be a new
+  // code - resuming there put this screen in a loop, refusing the same spent ticket about once a second.
   const beginQrLogin = qrLogin.begin
   useEffect(() => {
-    void beginQrLogin()
+    void beginQrLogin(round === 0 ? undefined : { fresh: true })
   }, [beginQrLogin, round])
 
   return (
@@ -156,7 +166,7 @@ function AdminSignIn({ notice, onSignedIn }: { notice?: string; onSignedIn: (ses
         ) : (
           <QrLoginPanel
             state={qrLogin.state}
-            onRetry={() => void qrLogin.begin()}
+            onRetry={() => void qrLogin.begin({ fresh: true })}
             hint="Admin siyahısında olan nömrənizlə QRLog tətbiqindən skan edin."
           />
         )}

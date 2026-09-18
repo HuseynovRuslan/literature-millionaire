@@ -16,6 +16,7 @@ export default function GameStageHeader({
   quizModeTitle,
   soundOn,
   onToggleSound,
+  onQuit,
 }: {
   questionNumber: number
   totalQuestions: number
@@ -28,6 +29,12 @@ export default function GameStageHeader({
   /** Whether the atmosphere is audible; the toggle is here so a venue can silence the kiosk mid-round. */
   soundOn: boolean
   onToggleSound: () => void
+  /**
+   * Leave the quiz and sign out. Asked for by name: a person who reaches this screen as somebody else - a
+   * shared phone, an admin's sign-in - had no way off it, and a quiz nobody is playing runs its clock down
+   * ten seconds at a time. The button only asks; GamePage does the confirming.
+   */
+  onQuit: () => void
 }) {
   return (
     <header
@@ -60,6 +67,20 @@ export default function GameStageHeader({
           <svg viewBox="0 0 24 24" className="size-[52%]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4a.5.5 0 0 1-.5-.5v-4a.5.5 0 0 1 .5-.5Z" />
             {soundOn ? <path d="M15.6 9a4.2 4.2 0 0 1 0 6M18.2 6.6a7.6 7.6 0 0 1 0 10.8" /> : <path d="m16 9.5 4.5 5M20.5 9.5 16 14.5" />}
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          onClick={onQuit}
+          aria-label="Yarışdan çıx"
+          title="Yarışdan çıx"
+          data-testid="game-quit"
+          className="icon-btn ml-[clamp(0.15rem,0.4vw,0.5rem)] size-[clamp(2.75rem,3.2vw,3.1rem)] shrink-0 max-sm:size-10"
+        >
+          <svg viewBox="0 0 24 24" className="size-[52%]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14" />
+            <path d="M17.5 8.5 21 12l-3.5 3.5M20.5 12H10" />
           </svg>
         </button>
       </div>

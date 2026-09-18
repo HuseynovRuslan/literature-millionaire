@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { getAvailableCampaigns } from '../api/campaigns'
 import QuizModeIcon from '../components/home/QuizModeIcon'
 import { accentFor } from '../components/home/categoryThemes'
@@ -59,7 +59,12 @@ type CampaignLookup = { kind: 'loading' } | { kind: 'found'; campaign: CampaignS
  * identifier - every quiz rule (passing score, image count, book) still comes from the backend.
  */
 /** After QRLog has vouched: who arrived, before a quiz starts under their name. */
-function QrLoginWelcome({ fullName, phoneNumber }: { fullName: string; phoneNumber: string }) {
+function QrLoginWelcome({ fullName, phoneNumber, onSignOut }: {
+  fullName: string
+  phoneNumber: string
+  /** Not this person: let go of the sign-in and put a new QR up for whoever is actually standing here. */
+  onSignOut: () => void
+}) {
   return (
     <div className="pop flex min-w-0 flex-col items-center text-center" data-testid="qrlog-signed-in">
       <span className="grid size-16 place-items-center rounded-full bg-ok/15 text-ok ring-1 ring-ok/40 max-sm:size-14">
@@ -89,6 +94,12 @@ function QrLoginWelcome({ fullName, phoneNumber }: { fullName: string; phoneNumb
         </div>
       </dl>
 
+      {/* One phone is passed around a room, and whoever signed in last stays signed in until their code runs
+          out. Without this the next person starts the quiz under somebody else's name and spends that person's
+          single attempt - and there was nothing on the screen they could press to stop it. */}
+      <button type="button" onClick={onSignOut} className="tap mt-4 rounded-xl px-4 py-2 text-[clamp(0.9rem,1vw,1rem)] font-bold text-fg-2 underline decoration-white/30 underline-offset-4 hover:text-fg" data-testid="qrlog-sign-out">
+        Bu mən deyiləm — çıxış et
+      </button>
     </div>
   )
 }
@@ -102,13 +113,17 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [signedInAs, setSignedInAs] = useState<QrLoginIdentity | null>(null)
+  /** The ticket the server last turned down, so a repeat of it is never mistaken for a new sign-in. */
+  const [refusedTicket, setRefusedTicket] = useState<string | null>(null)
   const [lookup, setLookup] = useState<CampaignLookup>({ kind: 'loading' })
 
   // A confirmed QRLog sign-in fills the form rather than submitting it: on a shared kiosk the player
   // should see whose name landed there before the quiz starts under it.
   const qrLogin = useQrLogin((identity) => {
-    // A fresh sign-in starts clean: a refusal from an earlier attempt no longer applies to it.
-    if (errorCode) reset()
+    // A fresh sign-in starts clean: a refusal from an earlier attempt no longer applies to it. Only a genuinely
+    // different ticket clears the message, though - a screen that wiped its own explanation and put the same
+    // refused identity back is how "Yarışa başla" came to look like a button that does nothing.
+    if (errorCode && identity.signInTicket !== refusedTicket) reset()
     setFullName(identity.fullName)
     setPhone(identity.phoneNumber)
     setSignedInAs(identity)
@@ -159,9 +174,17 @@ export default function RegisterPage() {
     submittedRef.current = true
     // The ticket is who plays. The name and phone ride along only for a server that allows starting
     // without QRLog (development); production ignores them whenever a ticket is sent.
-    const ok = await startGame({ signInTicket: signedInAs?.signInTicket, fullName: fullName.trim(), phoneNumber: phone, campaignId })
-    if (ok) navigate('/game')
-    else submittedRef.current = false // a failed start (network, validation) may be retried
+    const ticket = signedInAs?.signInTicket
+    const ok = await startGame({ signInTicket: ticket, fullName: fullName.trim(), phoneNumber: phone, campaignId })
+    if (ok) {
+      // The quiz is running and the sign-in has done its job. Letting go of it here is what makes the phone
+      // safe to hand on: the server ends it as the quiz starts, and this drops this tab's copy with it.
+      void qrLogin.end()
+      navigate('/game')
+    } else {
+      setRefusedTicket(ticket ?? null)
+      submittedRef.current = false // a failed start (network, validation) may be retried
+    }
   }
 
   // A ticket that has run out (the welcome screen was left open) cannot be retried - the only way on is a
@@ -172,12 +195,21 @@ export default function RegisterPage() {
   // depending on it restarted the QR on every render for as long as the sign-in stayed lost.
   const beginQrLogin = qrLogin.begin
   useEffect(() => {
-    if (signInLost) void beginQrLogin()
+    // A new code, never the lost one: resuming what the server has just refused is how this screen ended up
+    // offering the same dead sign-in back to the player, over and over, with no way out on the screen.
+    if (signInLost) void beginQrLogin({ fresh: true })
   }, [signInLost, beginQrLogin])
 
   function goHome() {
     reset()
     navigate('/')
+  }
+
+  // A quiz that is still running is not walked out of by accident. Back from the game screen lands here, and
+  // this screen's own "Geri qayıt" would throw the round away - the attempt with it, since there is only one.
+  // Leaving mid-quiz is a deliberate act now, and it has its own button on the game screen.
+  if (state.status === 'playing') {
+    return <Navigate to="/game" replace />
   }
 
   // No campaignId in the route, or it no longer names a playable category: never silently fall back
@@ -296,11 +328,22 @@ export default function RegisterPage() {
           {/* Form */}
           <div className={`${CARD} card-glow flex min-w-0 flex-col justify-center gap-[clamp(1rem,2vh,1.4rem)] px-[clamp(1.2rem,3vw,3rem)] py-[clamp(1.4rem,3vh,2.4rem)] [animation-delay:60ms]`}>
             {signedInAs && !signInLost ? (
-              <QrLoginWelcome fullName={signedInAs.fullName} phoneNumber={signedInAs.phoneNumber} />
+              <QrLoginWelcome
+                fullName={signedInAs.fullName}
+                phoneNumber={signedInAs.phoneNumber}
+                onSignOut={async () => {
+                  setSignedInAs(null)
+                  setFullName('')
+                  setPhone('')
+                  if (errorCode) reset()
+                  await qrLogin.end()
+                  void qrLogin.begin({ fresh: true })
+                }}
+              />
             ) : (
               <QrLoginPanel
                 state={qrLogin.state}
-                onRetry={() => { setSignedInAs(null); void qrLogin.begin() }}
+                onRetry={() => { setSignedInAs(null); void qrLogin.begin({ fresh: true }) }}
               />
             )}
             {error && (
