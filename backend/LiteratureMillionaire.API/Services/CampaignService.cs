@@ -37,6 +37,7 @@ public class CampaignService : ICampaignService
         string QuizModeIconKey,
         int QuizModeDisplayOrder,
         bool QuizModeIsActive,
+        bool QuizModeIsPreview,
         int? BookId,
         string? BookTitle,
         string? BookAuthor,
@@ -138,6 +139,7 @@ public class CampaignService : ICampaignService
             c.QuizMode.IconKey,
             c.QuizMode.DisplayOrder,
             c.QuizMode.IsActive,
+            c.QuizMode.IsPreview,
             c.BookId,
             c.BookId != null ? c.Book!.Title : null,
             c.BookId != null ? c.Book!.Author : null,
@@ -204,7 +206,8 @@ public class CampaignService : ICampaignService
         row.RewardTitle,
         QuizRules.QuestionsPerQuiz,
         row.ImageQuestionsPerQuiz,
-        new QuizModeDto(row.QuizModeId, row.QuizModeSlug, row.QuizModeTitle, row.QuizModeDescription, row.QuizModeIconKey, row.QuizModeDisplayOrder),
+        new QuizModeDto(row.QuizModeId, row.QuizModeSlug, row.QuizModeTitle, row.QuizModeDescription, row.QuizModeIconKey,
+            row.QuizModeDisplayOrder, row.QuizModeIsPreview),
         ToBook(row));
 
     private static CampaignBookDto? ToBook(CampaignRow row) =>

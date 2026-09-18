@@ -6,7 +6,7 @@ import { CARD_PRIMARY_CTA, CARD_QUIET_CTA } from './gameShowClasses'
 import { CarpetBand } from '../arena/NationalMotifs'
 import QuizModeIcon from './QuizModeIcon'
 import CategoryArt from './CategoryArt'
-import { accentFor, bookCategories, previewCategories } from './categoryThemes'
+import { accentFor, bookCategories } from './categoryThemes'
 
 /**
  * One playable category/campaign. Every displayed value comes from the `available` API response; the only
@@ -35,7 +35,8 @@ export default function CategoryCard({
   const titleId = `category-${campaign.campaignId}-title`
   // The category's own colour, not the one its position in the grid happened to land on.
   const accent = accentFor(quizMode.slug, index)
-  const isPreview = previewCategories.has(quizMode.slug)
+  // The category's own flag, set in the panel: taking the label off a finished bank is not a deployment.
+  const isPreview = quizMode.isPreview
   // Only a mode played from one book names it; for the others `book` is the question bank's container.
   const namedBook = book && bookCategories.has(quizMode.slug) && book.title.trim() ? book : null
 

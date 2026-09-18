@@ -29,7 +29,7 @@ const NAV: { to: string; label: string; ready: boolean }[] = [
   { to: '/admin/books', label: 'Sual bankları', ready: true },
   { to: '/admin/questions-editor', label: 'Suallar', ready: true },
   { to: '/admin/import', label: 'Toplu idxal', ready: true },
-  { to: '/admin/categories', label: 'Kateqoriyalar', ready: false },
+  { to: '/admin/categories', label: 'Kateqoriyalar', ready: true },
   { to: '/admin/audit', label: 'Jurnal', ready: true },
 ]
 

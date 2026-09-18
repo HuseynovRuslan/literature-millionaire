@@ -108,6 +108,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(m => m.DisplayOrder).IsRequired();
             entity.Property(m => m.IsActive).IsRequired();
 
+            entity.Property(m => m.IsPreview).IsRequired().HasDefaultValue(false);
             entity.HasIndex(m => m.Slug).IsUnique();
             entity.HasIndex(m => m.DisplayOrder);
         });

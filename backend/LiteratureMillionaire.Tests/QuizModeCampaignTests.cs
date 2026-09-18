@@ -159,10 +159,12 @@ public class QuizModeCampaignTests
             new[] { "campaignId", "startDate", "endDate", "passingScore", "rewardTitle", "questionCount", "imageQuestionsPerQuiz", "quizMode", "book" },
             first.EnumerateObject().Select(p => p.Name));
         Assert.Equal(
-            new[] { "id", "slug", "title", "description", "iconKey", "displayOrder" },
+            new[] { "id", "slug", "title", "description", "iconKey", "displayOrder", "isPreview" },
             first.GetProperty("quizMode").EnumerateObject().Select(p => p.Name));
         Assert.Equal(("Bilik Dünyası", "globe", 1), (first.GetProperty("quizMode").GetProperty("title").GetString(),
             first.GetProperty("quizMode").GetProperty("iconKey").GetString(), first.GetProperty("quizMode").GetProperty("displayOrder").GetInt32()));
+        // The "test version" label the card shows is the category's own flag, not something the frontend decides.
+        Assert.False(first.GetProperty("quizMode").GetProperty("isPreview").GetBoolean());
         Assert.Equal(10, first.GetProperty("questionCount").GetInt32());
         Assert.Equal(2, first.GetProperty("imageQuestionsPerQuiz").GetInt32());
         Assert.Equal(0, list[1].GetProperty("imageQuestionsPerQuiz").GetInt32());

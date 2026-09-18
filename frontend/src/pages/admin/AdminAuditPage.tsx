@@ -21,6 +21,7 @@ const ACTION_LABELS: Record<string, string> = {
   'question-updated': 'Sualı dəyişdi',
   'question-deleted': 'Sualı sildi',
   'questions-imported': 'Faylla sual idxal etdi',
+  'category-updated': 'Kateqoriyanı dəyişdi',
 }
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -29,6 +30,7 @@ const ENTITY_LABELS: Record<string, string> = {
   image: 'Şəkil',
   book: 'Sual bankı',
   question: 'Sual',
+  category: 'Kateqoriya',
 }
 
 const TIME =new Intl.DateTimeFormat('az-Latn-AZ', {

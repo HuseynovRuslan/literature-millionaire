@@ -514,3 +514,70 @@ export async function applyImport(token: string): Promise<ImportResult> {
   const { data } = await api.post<ImportResult>('/api/admin/questions/import/apply', { token }, { headers: ADMIN_HEADERS })
   return data
 }
+
+// --- categories ---------------------------------------------------------------------------------------------
+
+export interface AdminCategory {
+  id: number
+  /** Fixed: questions, campaigns and the card artwork key on it. Shown, never edited. */
+  slug: string
+  title: string
+  description: string
+  iconKey: string
+  displayOrder: number
+  isActive: boolean
+  /** Players see a "test version" label on the card. */
+  isPreview: boolean
+  requiresBook: boolean
+  questionCount: number
+  campaignCount: number
+  hasRunningCampaign: boolean
+}
+
+export interface CategoryInput {
+  title: string
+  description: string
+  iconKey: string
+  isActive: boolean
+  isPreview: boolean
+}
+
+/** Field → messages from a refused save (400 CATEGORY_INVALID), or null when the failure was something else. */
+export function categoryErrors(err: unknown): Record<string, string[]> | null {
+  if (!isAxiosError(err) || err.response?.status !== 400) return null
+  const data = err.response.data as { code?: string; errors?: Record<string, string[]> } | undefined
+  return data?.code === 'CATEGORY_INVALID' && data.errors ? data.errors : null
+}
+
+export async function getCategories(signal?: AbortSignal): Promise<AdminCategory[]> {
+  const { data } = await api.get<AdminCategory[]>('/api/admin/categories', { signal })
+  return data
+}
+
+export async function getCategoryIcons(signal?: AbortSignal): Promise<string[]> {
+  const { data } = await api.get<{ iconKeys: string[] }>('/api/admin/categories/options', { signal })
+  return data.iconKeys
+}
+
+export async function updateCategory(id: number, input: CategoryInput): Promise<AdminCategory> {
+  const { data } = await api.put<AdminCategory>(`/api/admin/categories/${id}`, input, { headers: ADMIN_HEADERS })
+  return data
+}
+
+export async function moveCategory(id: number, direction: 'up' | 'down'): Promise<AdminCategory[]> {
+  const { data } = await api.post<AdminCategory[]>(`/api/admin/categories/${id}/move`, null, {
+    params: { direction },
+    headers: ADMIN_HEADERS,
+  })
+  return data
+}
+
+export function categoryInput(category: AdminCategory): CategoryInput {
+  return {
+    title: category.title,
+    description: category.description,
+    iconKey: category.iconKey,
+    isActive: category.isActive,
+    isPreview: category.isPreview,
+  }
+}

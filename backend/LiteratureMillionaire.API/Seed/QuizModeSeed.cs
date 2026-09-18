@@ -11,7 +11,8 @@ namespace LiteratureMillionaire.API.Seed;
 /// </summary>
 public static class QuizModeSeed
 {
-    public sealed record Definition(string Slug, string Title, string Description, string IconKey, int DisplayOrder);
+    public sealed record Definition(string Slug, string Title, string Description, string IconKey, int DisplayOrder,
+        bool IsPreview = false);
 
     public static readonly IReadOnlyList<Definition> Modes = new[]
     {
@@ -23,8 +24,11 @@ public static class QuizModeSeed
             "Azərbaycan və dünya ədəbiyyatı üzrə bilik yarışı.", "feather", 3),
         new Definition(QuizModeSlugs.YasilBaki, "Yaşıl Bakı",
             "Bakının bitkiləri, parkları və yaşıllıqları üzrə bilik yarışı.", "leaf", 4),
+        // Playable, not finished: the catalogue's names are trade names and half of them carry no sourced
+        // Azerbaijani name yet, so the card says "test version" until the panel takes the flag off.
         new Definition(QuizModeSlugs.GreenGarden, "Green Garden Kolleksiyası",
-            "Green Garden kataloqundakı bəzək bitkiləri: ağac, kol, sarmaşıq və onların sortları.", "sprout", 5),
+            "Green Garden kataloqundakı bəzək bitkiləri: ağac, kol, sarmaşıq və onların sortları.", "sprout", 5,
+            IsPreview: true),
     };
 
     public static async Task SeedAsync(ApplicationDbContext db, CancellationToken ct = default)
@@ -45,6 +49,7 @@ public static class QuizModeSeed
                 Description = m.Description,
                 IconKey = m.IconKey,
                 DisplayOrder = m.DisplayOrder,
+                IsPreview = m.IsPreview,
                 IsActive = true
             })
             .ToList();
