@@ -23,9 +23,47 @@ public class QrLoginController : ControllerBase
     }
 
     /// <summary>Opens a login. The code goes into the QR; the poll secret stays in this browser.</summary>
+    /// <summary>
+    /// The cookie that lets another window of the same browser carry on a sign-in this one started.
+    ///
+    /// On a phone the person leaves for QRLog and is handed back to a page that is often a different window -
+    /// an installed app, a new tab - with none of this page's storage. Without this, that window minted a fresh
+    /// code and waited for an approval that had already landed on the old one; the name never arrived. Cookies
+    /// are the one thing every window of a browser shares. HttpOnly, so a script (or a photograph of the QR) still
+    /// cannot read the poll secret; it lives as long as the code does.
+    /// </summary>
+    private const string PendingCookie = "kitabxana_qr";
+
     [HttpPost("start")]
     [ProducesResponseType(typeof(QrLoginStartedDto), StatusCodes.Status200OK)]
-    public ActionResult<QrLoginStartedDto> Start() => Ok(_logins.Start());
+    public ActionResult<QrLoginStartedDto> Start()
+    {
+        var started = _logins.Start();
+        Response.Cookies.Append(PendingCookie, $"{started.Code}.{started.PollSecret}", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Path = "/api/qrlog-login",
+            Expires = started.ExpiresAtUtc,
+        });
+        return Ok(started);
+    }
+
+    /// <summary>The sign-in this browser last started, if it is still alive. Read from the cookie; nothing else identifies it.</summary>
+    [HttpGet("resume")]
+    [ProducesResponseType(typeof(QrLoginStartedDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public ActionResult<QrLoginStartedDto> Resume()
+    {
+        if (Request.Cookies.TryGetValue(PendingCookie, out var value) && value.Split('.', 2) is [var code, var secret]
+            && _logins.Resume(code, secret) is { } started)
+        {
+            return Ok(started);
+        }
+
+        return NoContent();
+    }
 
     /// <summary>
     /// Confirms a code on behalf of an employee. Called by QRLog's server, never by a browser or a

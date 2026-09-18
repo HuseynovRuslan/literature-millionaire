@@ -29,6 +29,16 @@ export type QrLoginStatus =
   | { status: 'pending' }
   | { status: 'confirmed'; fullName: string; phoneNumber: string; signInTicket: string }
 
+/**
+ * The sign-in this browser last started, if it is still alive - known to the server by a cookie every window
+ * of the browser shares. Null when there is none. This is how a window with none of the original page's
+ * storage (an installed app, a fresh tab QRLog handed us back to) carries on waiting instead of starting over.
+ */
+export async function resumeQrLogin(signal?: AbortSignal): Promise<QrLoginStarted | null> {
+  const { status, data } = await api.get<QrLoginStarted | ''>('/api/qrlog-login/resume', { signal })
+  return status === 200 && data && typeof data === 'object' ? data : null
+}
+
 export async function startQrLogin(signal?: AbortSignal): Promise<QrLoginStarted> {
   const { data } = await api.post<QrLoginStarted>('/api/qrlog-login/start', null, { signal })
   return data

@@ -48,6 +48,12 @@ public interface IQrLoginService
     /// <summary>What the kiosk sees. Wrong or missing secret reads as "no such login", not as a hint.</summary>
     QrLoginStatusDto? Poll(string code, string pollSecret);
 
+    /// <summary>
+    /// The sign-in a browser started, described again as Start described it, so a second window of the same
+    /// browser can carry on waiting for it. Null when the code is unknown, expired, or the secret is wrong.
+    /// </summary>
+    QrLoginStartedDto? Resume(string code, string pollSecret);
+
     /// <summary>Verifies the signature QRLog sends with a confirmation.</summary>
     bool IsSignatureValid(string code, string phoneNumber, string timestamp, string signature);
 
@@ -119,6 +125,7 @@ public sealed class QrLoginService : IQrLoginService
     private sealed class PendingLogin
     {
         public required string PollSecret { get; init; }
+        public required DateTime ExpiresAtUtc { get; init; }
         public string? FullName { get; set; }
         public string? PhoneNumber { get; set; }
         public bool Confirmed { get; set; }
@@ -131,10 +138,28 @@ public sealed class QrLoginService : IQrLoginService
     {
         var code = NewToken();
         var pollSecret = NewToken();
-        _cache.Set(CacheKey(code), new PendingLogin { PollSecret = pollSecret }, Lifetime);
-        return new QrLoginStartedDto(code, pollSecret, DateTime.UtcNow.Add(Lifetime), (int)Lifetime.TotalSeconds,
-            _appConfirmUrlTemplate?.Replace("{code}", Uri.EscapeDataString(code), StringComparison.Ordinal));
+        var expires = DateTime.UtcNow.Add(Lifetime);
+        _cache.Set(CacheKey(code), new PendingLogin { PollSecret = pollSecret, ExpiresAtUtc = expires }, Lifetime);
+        return Describe(code, pollSecret, expires);
     }
+
+    public QrLoginStartedDto? Resume(string code, string pollSecret)
+    {
+        if (_cache.Get<PendingLogin>(CacheKey(code)) is not { } pending || !SecretMatches(pending, pollSecret))
+        {
+            return null;
+        }
+
+        return Describe(code, pollSecret, pending.ExpiresAtUtc);
+    }
+
+    private QrLoginStartedDto Describe(string code, string pollSecret, DateTime expiresAtUtc) =>
+        new(code, pollSecret, expiresAtUtc, Math.Max(0, (int)(expiresAtUtc - DateTime.UtcNow).TotalSeconds),
+            _appConfirmUrlTemplate?.Replace("{code}", Uri.EscapeDataString(code), StringComparison.Ordinal));
+
+    /// <summary>Constant-time: a timing difference here would turn the poll into an oracle for the secret.</summary>
+    private static bool SecretMatches(PendingLogin pending, string pollSecret) =>
+        CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(pending.PollSecret), Encoding.UTF8.GetBytes(pollSecret));
 
     /// <summary>
     /// Accepts the configured address only if it is an https URL on qrlog.az carrying {code}. The code is what
@@ -184,9 +209,7 @@ public sealed class QrLoginService : IQrLoginService
             return null;
         }
 
-        // Constant-time: a timing difference here would turn the poll into an oracle for the secret.
-        if (!CryptographicOperations.FixedTimeEquals(
-                Encoding.UTF8.GetBytes(pending.PollSecret), Encoding.UTF8.GetBytes(pollSecret)))
+        if (!SecretMatches(pending, pollSecret))
         {
             return null;
         }

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -53,5 +54,40 @@ public class QrLoginAppConfirmTests
         var appConfirmUrl = (await started.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("appConfirmUrl");
         Assert.Equal(JsonValueKind.Null, appConfirmUrl.ValueKind);
         Assert.Contains(factory.Logs, line => line.Contains("QrLog:AppConfirmUrl is ignored"));
+    }
+}
+
+/// <summary>
+/// A sign-in has to survive the browser handing the person to a different window: QRLog gives them back to an
+/// installed app or a fresh tab, which has none of the original page's storage. The server keeps it in a cookie
+/// every window of the browser shares.
+/// </summary>
+public class QrLoginResumeTests
+{
+    [Fact]
+    public async Task Another_window_of_the_same_browser_picks_up_the_sign_in_and_a_stranger_cannot()
+    {
+        await using var factory = new LeaderboardApiFactory(qrLogSecret: "test-shared-secret-value");
+        using var browser = AdminTestClient.Https(factory);
+
+        using var started = await browser.PostAsync("/api/qrlog-login/start", null);
+        var first = await started.Content.ReadFromJsonAsync<JsonElement>();
+        var cookie = Assert.Single(started.Headers.GetValues("Set-Cookie"), c => c.StartsWith("kitabxana_qr=", StringComparison.Ordinal)).ToLowerInvariant();
+        Assert.Contains("httponly", cookie);
+        Assert.Contains("secure", cookie);
+        Assert.Contains("path=/api/qrlog-login", cookie);
+
+        // The same browser, a different window: the same code, the same secret, the same time left.
+        using var resumed = await browser.GetAsync("/api/qrlog-login/resume");
+        Assert.Equal(HttpStatusCode.OK, resumed.StatusCode);
+        var again = await resumed.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(first.GetProperty("code").GetString(), again.GetProperty("code").GetString());
+        Assert.Equal(first.GetProperty("pollSecret").GetString(), again.GetProperty("pollSecret").GetString());
+        Assert.InRange(again.GetProperty("secondsToLive").GetInt32(), 1, 300);
+
+        // Somebody else's browser has no cookie and gets nothing - not even a hint that a sign-in exists.
+        using var stranger = AdminTestClient.Https(factory);
+        using var nothing = await stranger.GetAsync("/api/qrlog-login/resume");
+        Assert.Equal(HttpStatusCode.NoContent, nothing.StatusCode);
     }
 }

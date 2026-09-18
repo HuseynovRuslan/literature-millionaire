@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { pollQrLogin, startQrLogin, type QrLoginStarted } from '../api/qrLogin'
+import { pollQrLogin, resumeQrLogin, startQrLogin, type QrLoginStarted } from '../api/qrLogin'
 
 /**
  * What the QR actually carries. An absolute URL on this origin: the QRLog app recognises the /qr/
@@ -112,12 +112,14 @@ export function useQrLogin(onConfirmed: (identity: QrLoginIdentity) => void) {
     const controller = new AbortController()
     aborter.current = controller
 
-    // A sign-in this tab already has - it went to QRLog and came back - is resumed, never replaced.
+    // A sign-in already under way is resumed, never replaced: first the one this tab remembers, then the one
+    // this browser last started (a cookie, so a different window - an installed app, a fresh tab QRLog handed us
+    // back to - finds it too). Only when there is none does a new code get minted.
     let started = recall()
     if (!started) {
       setState({ kind: 'starting' })
       try {
-        started = await startQrLogin(controller.signal)
+        started = (await resumeQrLogin(controller.signal).catch(() => null)) ?? (await startQrLogin(controller.signal))
       } catch {
         if (!controller.signal.aborted) setState({ kind: 'error' })
         return
