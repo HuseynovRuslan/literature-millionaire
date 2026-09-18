@@ -23,12 +23,30 @@ const TOLERATED_FAILURES = 4
  */
 const PENDING_KEY = 'qrlog-pending'
 
-function remember(started: QrLoginStarted) {
+/**
+ * A sign-in as this tab stores it, with its end written in this device's own time.
+ *
+ * The server sends both an absolute expiry and the seconds left, and only the seconds survive the trip: the
+ * two machines do not agree on what time it is. A phone whose clock is a few minutes fast read the server's
+ * timestamp as already past and gave up on every code the moment it arrived - a sign-in that could never work,
+ * on a device whose owner had no idea why.
+ */
+interface StoredLogin extends QrLoginStarted {
+  /** When this code runs out, by the clock of the device that is counting. */
+  expiresAtLocal: number
+}
+
+function remember(started: StoredLogin) {
   try {
     window.sessionStorage.setItem(PENDING_KEY, JSON.stringify(started))
   } catch {
     // Private browsing, or storage turned off: the sign-in still works, it just cannot survive a reload.
   }
+}
+
+/** The server's figures, translated into this device's clock. */
+function localise(started: QrLoginStarted): StoredLogin {
+  return { ...started, expiresAtLocal: Date.now() + Math.max(0, started.secondsToLive) * 1000 }
 }
 
 function forget() {
@@ -40,13 +58,16 @@ function forget() {
 }
 
 /** The sign-in this tab left behind, if it is still worth resuming (more than a few seconds left). */
-function recall(): QrLoginStarted | null {
+function recall(): StoredLogin | null {
   try {
     const stored = window.sessionStorage.getItem(PENDING_KEY)
     if (!stored) return null
-    const started = JSON.parse(stored) as QrLoginStarted
+    const started = JSON.parse(stored) as StoredLogin
     if (!started?.code || !started.pollSecret) return null
-    return Date.parse(started.expiresAtUtc) - Date.now() > 5_000 ? started : null
+    // Written by this device's clock when the code was minted, so comparing it with this device's clock now
+    // measures a real five minutes however wrong that clock happens to be.
+    if (!Number.isFinite(started.expiresAtLocal)) return null
+    return started.expiresAtLocal - Date.now() > 5_000 ? started : null
   } catch {
     return null
   }
@@ -139,9 +160,9 @@ export function useQrLogin(onConfirmed: (identity: QrLoginIdentity) => void) {
     if (!started) {
       setState({ kind: 'starting' })
       try {
-        started = options?.fresh
+        started = localise(options?.fresh
           ? await startQrLogin(controller.signal)
-          : (await resumeQrLogin(controller.signal).catch(() => null)) ?? (await startQrLogin(controller.signal))
+          : (await resumeQrLogin(controller.signal).catch(() => null)) ?? (await startQrLogin(controller.signal)))
       } catch {
         if (!controller.signal.aborted) setState({ kind: 'error' })
         return
@@ -150,10 +171,10 @@ export function useQrLogin(onConfirmed: (identity: QrLoginIdentity) => void) {
       remember(started)
     }
 
-    const deadline = Date.parse(started.expiresAtUtc)
-    // Fall back to the server's own figure if its timestamp is unparseable for any reason.
-    const secondsLeft = () =>
-      Number.isFinite(deadline) ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : started.secondsToLive
+    // Counted against this device's own clock (see StoredLogin): the server's timestamp is only there for
+    // anyone reading the response by hand.
+    const deadline = started.expiresAtLocal
+    const secondsLeft = () => Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
     setState({
       kind: 'waiting',
       code: started.code,

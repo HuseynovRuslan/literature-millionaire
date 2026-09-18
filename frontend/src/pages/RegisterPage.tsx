@@ -367,7 +367,9 @@ export default function RegisterPage() {
           <button
             ref={submitRef}
             type="submit"
-            disabled={starting || !signedInAs}
+            /* Not while the sign-in is being replaced: the identity on screen is the one the server has just
+               refused, so a press here can only fail again, and each one flashed the stale welcome card back. */
+            disabled={starting || !signedInAs || signInLost}
             aria-busy={starting}
             className={`${PRIMARY_CTA} flex-[2] disabled:opacity-55`}
             data-testid="register-submit"
