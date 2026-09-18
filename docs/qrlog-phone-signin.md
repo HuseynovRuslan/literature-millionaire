@@ -35,6 +35,10 @@ a player opening the game — is stuck looking at a QR nobody can scan.
 - A sign-in code now lives **5 minutes** (was 2), enough to leave for QRLog and come back.
 - The Kitabxana page keeps its pending sign-in while it is in the background or reloaded, and asks the server
   again the moment it is looked at, so an approval given elsewhere is picked up and never lost.
+- A confirmed sign-in is delivered to **every** copy of the screen that asks (same answer, same ticket, for as
+  long as the code lives), and starting one sets an HttpOnly cookie so a **different window** of the same
+  browser — an installed app, a fresh tab QRLog hands the person back to — resumes it (`/api/qrlog-login/resume`)
+  instead of minting a new code. Both were real failures on phones: "approved in QRLog, nothing arrived".
 
 ## What QRLog added (frontend/src/pages/KitabxanaSignInPage.tsx)
 
