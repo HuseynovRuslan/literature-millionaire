@@ -98,7 +98,9 @@ body {
 .kiosk.kiosk-scroll {
   height: auto;
   min-height: 100dvh;
-  overflow-x: hidden;
+  overflow-x: hidden; /* fallback for browsers without "clip" */
+  /* clip: the same clipping without making this a scroll container, so sticky parts follow the page (leaderboard) */
+  overflow-x: clip;
   overflow-y: visible;
 }
 

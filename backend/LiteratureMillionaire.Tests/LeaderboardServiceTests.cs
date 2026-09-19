@@ -60,6 +60,36 @@ public class LeaderboardServiceTests
     }
 
     [Fact]
+    public async Task Without_a_limit_everyone_who_finished_is_listed_in_rank_order()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var (campaign, _) = await database.SeedCampaignsAsync();
+        var people = Enumerable.Range(1, 25)
+            .Select(i => new Participant { FullName = $"İştirakçı Nömrə{i}", NormalizedPhoneNumber = $"+9945000000{i:D2}" })
+            .ToList();
+        database.Db.Participants.AddRange(people);
+        await database.Db.SaveChangesAsync();
+        var completed = new DateTime(2026, 9, 1, 12, 0, 30, DateTimeKind.Utc);
+        // Different scores (1..25 points) so the expected order is unambiguous; one unfinished attempt is not listed.
+        database.Db.QuizAttempts.AddRange(people.Select((p, i) =>
+            Attempt(p.Id, campaign.Id, 1, completed.AddSeconds(-30), completed, 5, i + 1, passed: false)));
+        var unfinished = new Participant { FullName = "Yarımçıq Oyun", NormalizedPhoneNumber = "+994509999999" };
+        database.Db.Participants.Add(unfinished);
+        await database.Db.SaveChangesAsync();
+        database.Db.QuizAttempts.Add(Attempt(unfinished.Id, campaign.Id, 1, completed, null, null, null, null));
+        await database.Db.SaveChangesAsync();
+
+        var service = new LeaderboardService(database.Db);
+        var everyone = await service.GetAsync(campaign.Id);
+        var top = await service.GetAsync(campaign.Id, 5);
+
+        Assert.Equal(25, everyone.Entries.Count);
+        Assert.Equal(Enumerable.Range(1, 25), everyone.Entries.Select(e => e.Rank));
+        Assert.Equal(Enumerable.Range(1, 25).Reverse(), everyone.Entries.Select(e => e.PointsEarned));
+        Assert.Equal(everyone.Entries.Take(5), top.Entries);
+    }
+
+    [Fact]
     public void Public_DTOs_do_not_expose_PII_or_internal_identifiers()
     {
         var propertyNames = typeof(LeaderboardDto).GetProperties()

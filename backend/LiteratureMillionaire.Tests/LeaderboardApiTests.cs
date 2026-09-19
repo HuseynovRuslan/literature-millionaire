@@ -76,8 +76,9 @@ public class LeaderboardApiTests
     [Theory]
     [InlineData(1, HttpStatusCode.OK)]
     [InlineData(10, HttpStatusCode.OK)]
+    [InlineData(11, HttpStatusCode.OK)] // no upper cap any more: without a limit the board lists everyone
     [InlineData(0, HttpStatusCode.BadRequest)]
-    [InlineData(11, HttpStatusCode.BadRequest)]
+    [InlineData(-1, HttpStatusCode.BadRequest)]
     public async Task Limit_boundaries_use_standard_api_validation(int limit, HttpStatusCode expected)
     {
         await using var factory = new LeaderboardApiFactory();
@@ -309,7 +310,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
 
     private sealed class FailingPositionLeaderboardService : ILeaderboardService
     {
-        public Task<LeaderboardDto> GetAsync(int campaignId, int limit, CancellationToken ct = default) =>
+        public Task<LeaderboardDto> GetAsync(int campaignId, int? limit = null, CancellationToken ct = default) =>
             throw new InvalidOperationException("test failure");
 
         public Task<int?> GetPositionAsync(int campaignId, int participantId, CancellationToken ct = default) =>
