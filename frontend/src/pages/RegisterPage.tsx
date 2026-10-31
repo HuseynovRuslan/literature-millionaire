@@ -7,16 +7,11 @@ import { ArrowLeftIcon, CheckIcon, ClockIcon, ListIcon, MailIcon, PhoneIcon, Pla
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import { Octagram } from '../components/arena/NationalMotifs'
 import GameShowShell from '../components/home/GameShowShell'
-import QrLoginPanel from '../components/QrLoginPanel'
-import EmailLoginPanel from '../components/EmailLoginPanel'
-import { getEmailLoginEnabled } from '../api/emailLogin'
-import { useQrLogin } from '../hooks/useQrLogin'
+import SignInPanel from '../components/SignInPanel'
 import { useGame } from '../game/GameContext'
+import { useSignIn, type SignedIn } from '../game/SignInContext'
 import type { CampaignSummary } from '../types/campaign'
 import { formatDateRange } from '../utils/date'
-
-
-
 
 const CARD = 'card rise rounded-[2rem] max-sm:rounded-3xl'
 
@@ -26,14 +21,17 @@ function parseCampaignId(value: string | undefined): number | null {
   return Number.isSafeInteger(parsed) ? parsed : null
 }
 
-/** Where the participant is in the flow: category chosen, registering now, the quiz next. */
-function Stepper() {
-  const steps = ['Kateqoriya', 'Qeydiyyat', 'Yarış']
+/**
+ * Where the participant is in the flow. Signing in comes first, on the front door; a player who reached this
+ * screen without it (a shared link, a sign-in that ran out) is put back on that step here.
+ */
+function Stepper({ signedIn }: { signedIn: boolean }) {
+  const steps = ['Giriş', 'Kateqoriya', 'Yarış']
   return (
     <ol className="rise flex items-center justify-center gap-2 max-sm:gap-1.5" aria-label="Addımlar">
       {steps.map((label, i) => {
-        const done = i === 0
-        const current = i === 1
+        const done = i === 1 || (i === 0 && signedIn)
+        const current = i === (signedIn ? 2 : 0)
         return (
           <li key={label} className="flex items-center gap-2 max-sm:gap-1.5" aria-current={current ? 'step' : undefined}>
             <span
@@ -53,23 +51,6 @@ function Stepper() {
 }
 
 type CampaignLookup = { kind: 'loading' } | { kind: 'found'; campaign: CampaignSummary } | { kind: 'not-found' }
-
-/**
- * Touch registration before a quiz, for the category selected on the home screen (route
- * /register/:campaignId). Name and phone live only in this component's state and are sent once
- * with the start request; nothing is written to sessionStorage. campaignId is only a selection
- * identifier - every quiz rule (passing score, image count, book) still comes from the backend.
- */
-/**
- * Who has signed in, by whichever door: QRLog vouched for a phone, or an emailed code proved an address. Either
- * way the ticket is what the quiz is started with; the rest is only shown.
- */
-type SignedIn =
-  | { method: 'qrlog'; fullName: string; phoneNumber: string; signInTicket: string }
-  | { method: 'email'; fullName: string; email: string; signInTicket: string }
-
-/** How the player signs in on this screen. QRLog first: most players are colleagues already carrying it. */
-type SignInMethod = 'qrlog' | 'email'
 
 /** After a sign-in: who arrived, before a quiz starts under their name. */
 function SignedInWelcome({ identity, onSignOut }: {
@@ -127,36 +108,32 @@ function SignedInWelcome({ identity, onSignOut }: {
   )
 }
 
+/**
+ * Touch registration before a quiz, for the category selected on the home screen (route
+ * /register/:campaignId). Who is playing comes from SignInContext - signed in on the front door, or here if
+ * they arrived without it - and the ticket goes once with the start request. campaignId is only a selection
+ * identifier - every quiz rule (passing score, image count, book) still comes from the backend.
+ */
 export default function RegisterPage() {
   const navigate = useNavigate()
   const { campaignId: routeCampaignId } = useParams()
   const campaignId = parseCampaignId(routeCampaignId)
   const { state, startGame, reset, error, errorCode } = useGame()
+  const { signedIn, signOut } = useSignIn()
   const starting = state.status === 'starting'
-  const [fullName, setFullName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [signedInAs, setSignedInAs] = useState<SignedIn | null>(null)
-  const [method, setMethod] = useState<SignInMethod>('qrlog')
-  /** Offered only once the server says a mailbox is configured; until then (or without one) the screen is QRLog's. */
-  const [emailEnabled, setEmailEnabled] = useState(false)
-  /** What was typed into the email panel last, so it comes back filled in after a sign-out or an expired ticket. */
-  const [lastEmail, setLastEmail] = useState({ fullName: '', email: '' })
   /** The ticket the server last turned down, so a repeat of it is never mistaken for a new sign-in. */
   const [refusedTicket, setRefusedTicket] = useState<string | null>(null)
   const [lookup, setLookup] = useState<CampaignLookup>({ kind: 'loading' })
 
-  // A confirmed QRLog sign-in fills the form rather than submitting it: on a shared kiosk the player
+  // A sign-in made on this screen fills the form rather than submitting it: on a shared kiosk the player
   // should see whose name landed there before the quiz starts under it.
-  const qrLogin = useQrLogin((identity) => {
+  function onSignedIn(identity: SignedIn) {
     // A fresh sign-in starts clean: a refusal from an earlier attempt no longer applies to it. Only a genuinely
     // different ticket clears the message, though - a screen that wiped its own explanation and put the same
     // refused identity back is how "Yarışa başla" came to look like a button that does nothing.
     if (errorCode && identity.signInTicket !== refusedTicket) reset()
-    setFullName(identity.fullName)
-    setPhone(identity.phoneNumber)
-    setSignedInAs({ method: 'qrlog', ...identity })
     revealStart()
-  })
+  }
 
   // The player is looking at their phone (or their mail) when a sign-in lands. On a laptop window the start
   // button sits below the fold while the QR or the form is up, so bring it into view rather than leave them to find it.
@@ -167,11 +144,6 @@ export default function RegisterPage() {
     }))
   }
 
-  useEffect(() => {
-    const controller = new AbortController()
-    void getEmailLoginEnabled(controller.signal).then((enabled) => { if (!controller.signal.aborted) setEmailEnabled(enabled) })
-    return () => controller.abort()
-  }, [])
   const submitRef = useRef<HTMLButtonElement>(null)
   // One start per registration. The context only ignores taps while a request is in flight; once it
   // succeeds, the form is briefly interactive again before navigation. With one attempt per campaign
@@ -193,16 +165,6 @@ export default function RegisterPage() {
     return () => { cancelled = true }
   }, [campaignId])
 
-  // Open the sign-in as soon as there is a category to play: the QR is the screen, not a step behind
-  // a button. Runs once - beginRef keeps a re-render from minting a second code and orphaning the
-  // first, which the player may already be scanning.
-  const beganRef = useRef(false)
-  useEffect(() => {
-    if (lookup.kind !== 'found' || beganRef.current) return
-    beganRef.current = true
-    void qrLogin.begin()
-  }, [lookup.kind, qrLogin])
-
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (starting || submittedRef.current || campaignId === null) return
@@ -212,12 +174,18 @@ export default function RegisterPage() {
     submittedRef.current = true
     // The ticket is who plays. The name and phone ride along only for a server that allows starting
     // without QRLog (development); production ignores them whenever a ticket is sent.
-    const ticket = signedInAs?.signInTicket
-    const ok = await startGame({ signInTicket: ticket, fullName: fullName.trim(), phoneNumber: phone, campaignId })
+    const ticket = signedIn?.signInTicket
+    const ok = await startGame({
+      signInTicket: ticket,
+      fullName: signedIn?.fullName.trim() ?? '',
+      phoneNumber: signedIn?.method === 'qrlog' ? signedIn.phoneNumber : '',
+      campaignId,
+    })
     if (ok) {
       // The quiz is running and the sign-in has done its job. Letting go of it here is what makes the phone
-      // safe to hand on: the server ends it as the quiz starts, and this drops this tab's copy with it.
-      void qrLogin.end()
+      // safe to hand on: the server ends it as the quiz starts, and this drops this tab's copy with it - the
+      // front door asks the next player to sign in again.
+      void signOut()
       navigate('/game')
     } else {
       setRefusedTicket(ticket ?? null)
@@ -229,14 +197,11 @@ export default function RegisterPage() {
   // fresh sign-in. The welcome gives way to a new QR at once, under the message saying why, instead of a
   // start button that fails the same way every time it is pressed.
   const signInLost = errorCode === 'SIGN_IN_EXPIRED' || errorCode === 'SIGN_IN_REQUIRED'
-  // Depends on the stable `begin`, not on the object useQrLogin returns: that object is new on every render, so
-  // depending on it restarted the QR on every render for as long as the sign-in stayed lost.
-  const beginQrLogin = qrLogin.begin
   useEffect(() => {
-    // A new code, never the lost one: resuming what the server has just refused is how this screen ended up
-    // offering the same dead sign-in back to the player, over and over, with no way out on the screen.
-    if (signInLost) void beginQrLogin({ fresh: true })
-  }, [signInLost, beginQrLogin])
+    // Letting go marks the next sign-in as fresh: a new code, never the lost one. Resuming what the server has
+    // just refused is how this screen ended up offering the same dead sign-in back, with no way out on the screen.
+    if (signInLost && signedIn) void signOut()
+  }, [signInLost, signedIn, signOut])
 
   function goHome() {
     reset()
@@ -315,7 +280,7 @@ export default function RegisterPage() {
 
   return (
     <GameShowShell>
-      <Stepper />
+      <Stepper signedIn={!!signedIn && !signInLost} />
       <form onSubmit={submit} noValidate aria-labelledby="register-title" className="mx-auto flex w-full max-w-[84rem] flex-col gap-[clamp(1rem,2vh,1.5rem)] max-sm:gap-4" data-testid="register-form">
         <section data-testid="register-stage" className="grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-[clamp(1rem,1.6vw,1.5rem)] max-lg:grid-cols-1">
           {/* Category summary */}
@@ -365,61 +330,16 @@ export default function RegisterPage() {
 
           {/* Form */}
           <div className={`${CARD} card-glow flex min-w-0 flex-col justify-center gap-[clamp(1rem,2vh,1.4rem)] px-[clamp(1.2rem,3vw,3rem)] py-[clamp(1.4rem,3vh,2.4rem)] [animation-delay:60ms]`}>
-            {signedInAs && !signInLost ? (
+            {signedIn && !signInLost ? (
               <SignedInWelcome
-                identity={signedInAs}
-                onSignOut={async () => {
-                  setSignedInAs(null)
-                  setFullName('')
-                  setPhone('')
+                identity={signedIn}
+                onSignOut={() => {
                   if (errorCode) reset()
-                  await qrLogin.end()
-                  void qrLogin.begin({ fresh: true })
+                  void signOut()
                 }}
               />
             ) : (
-              <>
-                {emailEnabled && (
-                  <div role="group" aria-label="Giriş üsulu" className="mx-auto grid w-full max-w-[24rem] grid-cols-2 gap-1 rounded-2xl bg-white/[0.05] p-1 ring-1 ring-white/10" data-testid="sign-in-method">
-                    {([['qrlog', 'QRLog ilə'], ['email', 'Email ilə']] as const).map(([value, label]) => (
-                      <button
-                        key={value}
-                        type="button"
-                        aria-pressed={method === value}
-                        onClick={() => setMethod(value)}
-                        className={`tap min-h-11 rounded-xl px-3 font-display text-[clamp(0.95rem,1.05vw,1.05rem)] font-bold transition-colors ${
-                          method === value ? 'bg-brand text-white shadow-[0_0.4rem_1rem_-0.4rem_rgba(123,97,255,0.8)]' : 'text-fg-2 hover:text-fg'
-                        }`}
-                        data-testid={`sign-in-method-${value}`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {emailEnabled && method === 'email' ? (
-                  <EmailLoginPanel
-                    initialName={lastEmail.fullName}
-                    initialEmail={lastEmail.email}
-                    onVerified={(verified) => {
-                      if (errorCode && verified.signInTicket !== refusedTicket) reset()
-                      setLastEmail({ fullName: verified.fullName, email: verified.email })
-                      setFullName(verified.fullName)
-                      setPhone('')
-                      setSignedInAs({ method: 'email', ...verified })
-                      // The QR waiting in the other tab is not needed any more; a scan landing now would replace this
-                      // sign-in with somebody else's.
-                      qrLogin.cancel()
-                      revealStart()
-                    }}
-                  />
-                ) : (
-                  <QrLoginPanel
-                    state={qrLogin.state}
-                    onRetry={() => { setSignedInAs(null); void qrLogin.begin({ fresh: true }) }}
-                  />
-                )}
-              </>
+              <SignInPanel onSignedIn={onSignedIn} />
             )}
             {error && (
               <p
@@ -444,7 +364,7 @@ export default function RegisterPage() {
             type="submit"
             /* Not while the sign-in is being replaced: the identity on screen is the one the server has just
                refused, so a press here can only fail again, and each one flashed the stale welcome card back. */
-            disabled={starting || !signedInAs || signInLost}
+            disabled={starting || !signedIn || signInLost}
             aria-busy={starting}
             className={`${PRIMARY_CTA} flex-[2] disabled:opacity-55`}
             data-testid="register-submit"
