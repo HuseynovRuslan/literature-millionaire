@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react'
 import BrandMark from '../national/BrandMark'
 import { PRODUCT_NAME } from '../national/KioskBrand'
 
 /** Brand bar for the information screens: organisation logo, product wordmark and the product type. */
-export default function HomeHeader() {
+export default function HomeHeader({ end }: { end?: ReactNode }) {
   return (
     <header className="relative z-10 mx-auto flex w-full max-w-[112rem] shrink-0 items-center gap-4 px-[clamp(1.2rem,3vw,3rem)] pt-[clamp(1rem,2.4vh,1.8rem)] max-sm:px-4 max-sm:pt-[calc(0.8rem_+_var(--safe-top))]">
       <div className="flex min-w-0 items-center gap-[clamp(0.8rem,1.2vw,1.2rem)] max-sm:gap-2.5" data-testid="kiosk-brand">
@@ -16,6 +17,7 @@ export default function HomeHeader() {
           </p>
         </div>
       </div>
+      {end && <div className="ml-auto flex min-w-0 shrink-0 items-center">{end}</div>}
     </header>
   )
 }

@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { classifyCampaignError, getAvailableCampaigns, type CampaignErrorKind } from '../api/campaigns'
 import { Octagram } from '../components/arena/NationalMotifs'
 import CategoryCard from '../components/home/CategoryCard'
-import { PlayIcon, QuizEmblem } from '../components/home/GameShowArt'
+import { CheckIcon, PlayIcon, QuizEmblem } from '../components/home/GameShowArt'
 import { PRIMARY_CTA as PRIMARY, SECONDARY_CTA as SECONDARY } from '../components/home/gameShowClasses'
 import GameShowShell from '../components/home/GameShowShell'
 import HeroArt from '../components/home/HeroArt'
+import SignInPanel from '../components/SignInPanel'
 import { useGame } from '../game/GameContext'
+import { useSignIn, type SignedIn } from '../game/SignInContext'
 import type { CampaignSummary } from '../types/campaign'
 
 const ERROR_COPY: Record<CampaignErrorKind, { title: string; text: string }> = {
@@ -18,8 +20,8 @@ const ERROR_COPY: Record<CampaignErrorKind, { title: string; text: string }> = {
 }
 
 const STEPS = [
+  { title: 'Daxil ol', text: 'QRLog və ya email ilə' },
   { title: 'Kateqoriya seç', text: 'Sevdiyin mövzunu götür' },
-  { title: 'Qeydiyyatdan keç', text: 'Ad və telefon nömrəsi' },
   { title: 'Cavabla və qazan', text: 'Vaxt azdır, tələs!' },
 ]
 
@@ -74,6 +76,53 @@ function Hero({ count }: { count: number }) {
 }
 
 /**
+ * The front door. Whoever is standing here signs in first - before the categories, and before the news that
+ * there is no quiz on right now - so every screen after this one knows who it is talking to.
+ */
+function SignInStage() {
+  return (
+    <section
+      aria-labelledby="sign-in-title"
+      data-testid="home-sign-in"
+      className="card card-glow rise mx-auto grid w-full max-w-[64rem] grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] items-center gap-[clamp(1.5rem,3vw,3rem)] rounded-[2rem] px-[clamp(1.5rem,4vw,3.5rem)] py-[clamp(1.6rem,4vh,3rem)] max-lg:grid-cols-1 max-sm:rounded-3xl max-sm:px-5 max-sm:py-7"
+    >
+      <div className="min-w-0 text-left max-lg:text-center">
+        <p lang="az" className="chip px-4 py-2 text-[clamp(0.75rem,0.9vw,0.9rem)] uppercase tracking-[0.16em] text-brand-soft max-sm:text-[0.7rem]">
+          Oxu <Octagram className="size-3 text-sun" /> Tanı <Octagram className="size-3 text-sun" /> Cavablandır
+        </p>
+        <h1 id="sign-in-title" lang="az" className="text-gradient shimmer mt-3 font-display text-[clamp(2.4rem,4.4vw,4.2rem)] font-extrabold uppercase leading-[0.95] tracking-tight max-sm:text-[2.2rem]">
+          Bilik Bağı
+        </h1>
+        <p lang="az" className="mt-3 text-[clamp(1.1rem,1.5vw,1.4rem)] font-bold text-fg">
+          Yarışa qoşulmaq üçün daxil olun
+        </p>
+        <p lang="az" className="mt-1.5 text-[clamp(0.95rem,1.1vw,1.05rem)] font-medium leading-snug text-fg-2">
+          Bir dəfə daxil olun — sonra kateqoriyanı seçib yarışa başlayın.
+        </p>
+      </div>
+      <SignInPanel />
+    </section>
+  )
+}
+
+/** Who is signed in, and the way out for whoever is not them: one phone is often passed around a room. */
+function SignedInChip({ identity, onSignOut }: { identity: SignedIn; onSignOut: () => void }) {
+  return (
+    <div className="flex min-w-0 items-center gap-2 rounded-full bg-white/[0.06] py-1 pl-1.5 pr-1 ring-1 ring-white/10" data-testid="home-signed-in">
+      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ok/15 text-ok ring-1 ring-ok/40">
+        <CheckIcon className="size-3.5" />
+      </span>
+      <span lang="az" className="max-w-[16rem] truncate text-[clamp(0.85rem,0.95vw,0.95rem)] font-bold text-fg max-sm:hidden" data-testid="home-signed-in-name">
+        {identity.fullName}
+      </span>
+      <button type="button" onClick={onSignOut} className="tap shrink-0 rounded-full px-3 py-1.5 text-[clamp(0.82rem,0.9vw,0.9rem)] font-bold text-fg-2 underline decoration-white/30 underline-offset-4 hover:text-fg" data-testid="home-sign-out">
+        Çıxış
+      </button>
+    </div>
+  )
+}
+
+/**
  * How a round works. It sits under the categories, not above them: a visitor came here to pick one,
  * and on a laptop window (1366x768 leaves about 640px of page) a strip this tall above the grid pushed
  * the "Oyna" buttons off the screen entirely.
@@ -99,6 +148,8 @@ function HowItWorks() {
 export default function HomePage() {
   const navigate = useNavigate()
   const { state, reset } = useGame()
+  const { signedIn, signOut } = useSignIn()
+  const headerEnd = signedIn ? <SignedInChip identity={signedIn} onSignOut={() => void signOut()} /> : undefined
   // A valid, unanswered question restored from sessionStorage, with its category: offer to
   // continue rather than showing the category grid, so a stray tap can never start a second session.
   const activeGame =
@@ -169,9 +220,19 @@ export default function HomePage() {
     )
   }
 
-  if (categories.kind === 'loading') {
+  // The categories load behind the sign-in, so whatever they turn out to be - a grid, or no quiz at all - is
+  // ready the moment the player is in.
+  if (!signedIn) {
     return (
       <GameShowShell atmosphere>
+        <SignInStage />
+      </GameShowShell>
+    )
+  }
+
+  if (categories.kind === 'loading') {
+    return (
+      <GameShowShell atmosphere headerEnd={headerEnd}>
         <StatusStage>
           <QuizEmblem className="pop size-32 max-sm:size-24" />
           <Octagram className="spin mt-7 size-12 text-sun" />
@@ -184,7 +245,7 @@ export default function HomePage() {
   if (categories.kind === 'error') {
     const copy = ERROR_COPY[categories.error]
     return (
-      <GameShowShell atmosphere>
+      <GameShowShell atmosphere headerEnd={headerEnd}>
         <StatusStage alert>
           <QuizEmblem className="size-28 max-sm:size-24" />
           <h1 className="mt-6 max-w-[24ch] font-display text-[clamp(1.9rem,3.6vw,3.2rem)] font-bold leading-tight max-sm:text-[1.6rem]">{copy.title}</h1>
@@ -201,7 +262,7 @@ export default function HomePage() {
 
   if (categories.kind === 'empty') {
     return (
-      <GameShowShell atmosphere>
+      <GameShowShell atmosphere headerEnd={headerEnd}>
         <StatusStage>
           <QuizEmblem className="size-28 max-sm:size-24" />
           <h1 className="mt-6 max-w-[24ch] font-display text-[clamp(1.8rem,3.2vw,2.8rem)] font-bold leading-tight max-sm:text-[1.5rem]">Hazırda heç bir kateqoriya yoxdur</h1>
@@ -220,7 +281,7 @@ export default function HomePage() {
   const isLastOdd = data.length % 2 === 1
 
   return (
-    <GameShowShell atmosphere>
+    <GameShowShell atmosphere headerEnd={headerEnd}>
       <Hero count={data.length} />
       <ul
         data-testid="category-grid"
