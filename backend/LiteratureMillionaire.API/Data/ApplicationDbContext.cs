@@ -15,6 +15,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<QuizAttempt> QuizAttempts => Set<QuizAttempt>();
     public DbSet<QuizMode> QuizModes => Set<QuizMode>();
+    public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
+    public DbSet<AdminLoginLink> AdminLoginLinks => Set<AdminLoginLink>();
+    public DbSet<UploadedImage> UploadedImages => Set<UploadedImage>();
 
     // Schema-level ceiling for AttemptNumber, baked into the InitialPostgreSql migration's CHECK
     // constraint. Deliberately NOT QuizRules.MaxAttemptsPerCampaign: the product rule can be
@@ -105,6 +108,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(m => m.DisplayOrder).IsRequired();
             entity.Property(m => m.IsActive).IsRequired();
 
+            entity.Property(m => m.IsPreview).IsRequired().HasDefaultValue(false);
             entity.HasIndex(m => m.Slug).IsUnique();
             entity.HasIndex(m => m.DisplayOrder);
         });
@@ -158,6 +162,55 @@ public class ApplicationDbContext : DbContext
             // Playable-campaign lookups: enabled rows filtered by date range, overall and per quiz mode.
             entity.HasIndex(c => new { c.IsEnabled, c.StartDate, c.EndDate });
             entity.HasIndex(c => new { c.QuizModeId, c.IsEnabled, c.StartDate, c.EndDate });
+        });
+
+        modelBuilder.Entity<AdminAuditEntry>(entity =>
+        {
+            entity.ToTable("AdminAuditEntries");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.AtUtc)
+                .IsRequired()
+                .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            entity.Property(e => e.ActorName).IsRequired().HasMaxLength(120);
+            entity.Property(e => e.ActorPhone).IsRequired().HasMaxLength(16).IsUnicode(false);
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(64).IsUnicode(false);
+            entity.Property(e => e.EntityType).HasMaxLength(64).IsUnicode(false);
+            entity.Property(e => e.EntityId).HasMaxLength(64).IsUnicode(false);
+            entity.Property(e => e.Details).HasMaxLength(2000);
+            // The panel reads the newest first.
+            entity.HasIndex(e => e.AtUtc);
+        });
+
+        modelBuilder.Entity<AdminLoginLink>(entity =>
+        {
+            entity.ToTable("AdminLoginLinks");
+            entity.HasKey(l => l.Id);
+            entity.Property(l => l.TokenHash).IsRequired().HasMaxLength(64).IsUnicode(false);
+            entity.Property(l => l.PhoneNumber).IsRequired().HasMaxLength(16).IsUnicode(false);
+            entity.Property(l => l.FullName).IsRequired().HasMaxLength(120);
+            entity.Property(l => l.CreatedAtUtc).IsRequired().HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            entity.Property(l => l.ExpiresAtUtc).IsRequired().HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            entity.Property(l => l.UsedAtUtc).HasConversion(
+                v => v, v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+            entity.HasIndex(l => l.TokenHash).IsUnique();
+        });
+
+        modelBuilder.Entity<UploadedImage>(entity =>
+        {
+            entity.ToTable("UploadedImages", t =>
+            {
+                t.HasCheckConstraint("CK_UploadedImages_Kind", "\"Kind\" IN ('question', 'cover')");
+            });
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.Kind).IsRequired().HasMaxLength(16).IsUnicode(false);
+            entity.Property(i => i.Hash).IsRequired().HasMaxLength(32).IsUnicode(false);
+            entity.Property(i => i.Url).IsRequired().HasMaxLength(128).IsUnicode(false);
+            entity.Property(i => i.OriginalFileName).IsRequired().HasMaxLength(200);
+            entity.Property(i => i.UploadedBy).IsRequired().HasMaxLength(120);
+            entity.Property(i => i.UploadedAtUtc).IsRequired().HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            // One row per picture: the same file uploaded twice is found, not stored again.
+            entity.HasIndex(i => new { i.Kind, i.Hash }).IsUnique();
+            entity.HasIndex(i => i.UploadedAtUtc);
         });
 
         modelBuilder.Entity<Participant>(entity =>

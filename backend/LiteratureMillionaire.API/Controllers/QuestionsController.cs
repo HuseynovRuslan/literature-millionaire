@@ -1,15 +1,18 @@
 using LiteratureMillionaire.API.Dtos;
 using LiteratureMillionaire.API.Entities;
 using LiteratureMillionaire.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LiteratureMillionaire.API.Controllers;
 
 /// <summary>
-/// Admin CRUD for questions. Game-specific endpoints (random question by
-/// difficulty, answer checking without leaking the answer) will be added later.
+/// Admin CRUD for questions. Not reachable from outside (nginx has no route to it), and since the admin panel
+/// exists it also requires an admin session: an unauthenticated write API should not depend on a proxy rule
+/// alone. Replaced by the panel's question editor in a later phase.
 /// </summary>
 [ApiController]
+[Authorize(Policy = AdminAuth.Policy)]
 [Route("api/[controller]")]
 [Produces("application/json")]
 public class QuestionsController : ControllerBase

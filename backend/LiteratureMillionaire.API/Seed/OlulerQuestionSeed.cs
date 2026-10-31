@@ -15,9 +15,9 @@ public static class OlulerQuestionSeed
     public const string BookTitle = "Ölülər";
 
     /// <summary>
-    /// Inserts any approved question that is not yet present for the book.
-    /// Idempotent: a row is skipped when the same BookId + exact Text already exists.
-    /// Never touches rows it did not create (administrator or legacy questions).
+    /// Fills the book with the approved questions the first time, and only then (see BankOwnership): once the
+    /// bank has questions, they belong to the panel's editor, so a question deleted there does not come back at
+    /// the next deployment. Rows it did not create were never touched anyway.
     /// </summary>
     public static async Task SeedAsync(ApplicationDbContext db, CancellationToken ct = default)
     {

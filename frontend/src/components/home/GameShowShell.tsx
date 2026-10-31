@@ -1,12 +1,18 @@
 import type { ReactNode } from 'react'
 import ArenaBackdrop from '../arena/ArenaBackdrop'
 import { FlagStripe } from '../arena/NationalMotifs'
+import HomeAtmosphere from './HomeAtmosphere'
 import HomeHeader from './HomeHeader'
 
-/** Page frame for every information screen: the arena background, the brand bar and a content column. */
-export default function GameShowShell({ children }: { children: ReactNode }) {
+/**
+ * Page frame for every information screen: the arena background, the brand bar and a content column.
+ * `atmosphere` adds the home page's layered background (HomeAtmosphere); every other screen keeps the
+ * plain arena, which is also what the game itself stands on.
+ */
+export default function GameShowShell({ children, atmosphere = false }: { children: ReactNode; atmosphere?: boolean }) {
   return (
-    <main className="kiosk kiosk-scroll arena flex flex-col">
+    <main className={`kiosk kiosk-scroll arena flex flex-col${atmosphere ? ' arena-atmosphere' : ''}`}>
+      {atmosphere && <HomeAtmosphere />}
       <FlagStripe className="relative z-20 shrink-0" />
       <ArenaBackdrop />
       <HomeHeader />

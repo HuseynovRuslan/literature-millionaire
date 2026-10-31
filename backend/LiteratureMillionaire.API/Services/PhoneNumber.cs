@@ -27,4 +27,11 @@ public static partial class PhoneNumber
         normalized = CountryCode + match.Groups[1].Value;
         return true;
     }
+
+    /// <summary>
+    /// "+994 55 *** ** 67": enough to tell two colleagues apart on a screen, not enough to call someone.
+    /// Anything that is not a normalisable number is masked completely.
+    /// </summary>
+    public static string Mask(string? phoneNumber) =>
+        TryNormalize(phoneNumber, out var n) ? $"{CountryCode} {n.Substring(4, 2)} *** ** {n[^2..]}" : "***";
 }

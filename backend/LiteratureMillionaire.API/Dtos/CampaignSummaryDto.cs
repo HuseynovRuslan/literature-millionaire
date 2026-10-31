@@ -15,13 +15,15 @@ public record CampaignSummaryDto(
     CampaignBookDto? Book);
 
 /// <summary>Public description of a quiz mode.</summary>
+/// <param name="IsPreview">The bank is playable but unfinished; the card says so.</param>
 public record QuizModeDto(
     int Id,
     string Slug,
     string Title,
     string Description,
     string IconKey,
-    int DisplayOrder);
+    int DisplayOrder,
+    bool IsPreview);
 
 /// <summary>Short quiz mode reference carried by the game start response and the final result.</summary>
 public record QuizModeRefDto(

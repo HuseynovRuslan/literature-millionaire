@@ -110,8 +110,18 @@ Writes a timestamped `pg_dump` (custom format) of the application database to
 to *this* project's own `db` service (`--project-name literature-millionaire`); it will
 refuse to run if that service is not currently running.
 
-Automated/scheduled backups (cron, retention policy) are Task 11B.2's job - run this
-script manually for now.
+Pictures uploaded in the admin panel live on a second volume and are backed up separately:
+
+```bash
+deploy/scripts/backup-uploads.sh
+```
+
+It writes `deploy/backups/uploads-<timestamp>.tar.gz` from the `web` container, which mounts
+the volume read-only. Run both: the database backup holds the rows that point at those files,
+so a database restored without them would show questions whose pictures are gone.
+
+Both scripts run nightly from the deploy user's cron (03:30 Asia/Baku, tag `literature-backup`,
+14-day retention). Backups stay on the same disk as the stack - there is no off-site copy yet.
 
 ## 11. Restoring a backup - READ THIS FIRST
 
@@ -151,6 +161,12 @@ PostgreSQL's data directory is the named volume `postgres-data` (Docker manages 
 under `/var/lib/docker/volumes/...`; you do not need to touch that path directly). It
 survives `docker compose down`, `stop`, container recreation, image rebuilds and host
 reboots - it is only ever destroyed by `down -v` or an explicit `docker volume rm`.
+
+Pictures uploaded in the admin panel live on the named volume `uploads`, written by the API
+(`/app/uploads`) and served read-only by Nginx (`/usr/share/nginx/uploads`, exposed as
+`/uploads/...`). It has exactly the same life cycle - and the same warning about `down -v`.
+Questions and book covers point at files there by URL, so losing it means losing their
+pictures even though the database is intact.
 
 ## 14. Changing `.env` after the volume already exists
 

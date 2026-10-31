@@ -11,7 +11,7 @@ export type LeaderboardLoad =
   | { kind: 'error'; notFound: boolean }
 
 /** Loads public leaderboard data without caching it in browser storage. */
-export function useLeaderboard(campaignId: number | null, limit: 5 | 10) {
+export function useLeaderboard(campaignId: number | null, limit: 5 | 'all') {
   const [requestNumber, setRequestNumber] = useState(0)
   const requestKey = campaignId === null ? 'idle' : `${campaignId}:${limit}:${requestNumber}`
   const [settled, setSettled] = useState<{ requestKey: string; load: LeaderboardLoad }>({

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -75,8 +76,9 @@ public class LeaderboardApiTests
     [Theory]
     [InlineData(1, HttpStatusCode.OK)]
     [InlineData(10, HttpStatusCode.OK)]
+    [InlineData(11, HttpStatusCode.OK)] // no upper cap any more: without a limit the board lists everyone
     [InlineData(0, HttpStatusCode.BadRequest)]
-    [InlineData(11, HttpStatusCode.BadRequest)]
+    [InlineData(-1, HttpStatusCode.BadRequest)]
     public async Task Limit_boundaries_use_standard_api_validation(int limit, HttpStatusCode expected)
     {
         await using var factory = new LeaderboardApiFactory();
@@ -180,13 +182,29 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
 {
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
     private readonly bool _failPositionLookup;
+    private readonly string? _qrLogSecret;
+    private readonly bool? _requireQrLogin;
+    private readonly string? _adminPhones;
+    private readonly string? _uploadsRoot;
+    private readonly string? _qrLogAppConfirmUrl;
 
     /// <summary>Every log line written by the API during the test (for PII checks).</summary>
     public ConcurrentQueue<string> Logs { get; } = new();
 
-    public LeaderboardApiFactory(bool failPositionLookup = false)
+    /// <param name="qrLogSecret">The secret QRLog signs sign-in confirmations with; null leaves it unconfigured.</param>
+    /// <param name="requireQrLogin">Game:RequireQrLogin; null keeps the Testing default (not required).</param>
+    /// <param name="adminPhones">Admin:Phones; null leaves the admin list empty (nobody is an admin).</param>
+    /// <param name="uploadsRoot">Uploads:Root; null leaves the default (a folder under the content root).</param>
+    /// <param name="qrLogAppConfirmUrl">QrLog:AppConfirmUrl; null leaves the phone button unconfigured.</param>
+    public LeaderboardApiFactory(bool failPositionLookup = false, string? qrLogSecret = null, bool? requireQrLogin = null,
+        string? adminPhones = null, string? uploadsRoot = null, string? qrLogAppConfirmUrl = null)
     {
+        _qrLogAppConfirmUrl = qrLogAppConfirmUrl;
+        _adminPhones = adminPhones;
+        _uploadsRoot = uploadsRoot;
         _failPositionLookup = failPositionLookup;
+        _qrLogSecret = qrLogSecret;
+        _requireQrLogin = requireQrLogin;
         _connection.Open();
         _connection.CreateFunction<string, int>("LEN", value => value?.Length ?? 0);
     }
@@ -195,6 +213,16 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     {
         builder.UseEnvironment("Testing");
         builder.ConfigureLogging(logging => logging.AddProvider(new CapturingLoggerProvider(Logs)));
+        var settings = new Dictionary<string, string?>();
+        if (_qrLogSecret is not null) settings["QrLog:VouchSecret"] = _qrLogSecret;
+        if (_requireQrLogin is not null) settings["Game:RequireQrLogin"] = _requireQrLogin.Value ? "true" : "false";
+        if (_adminPhones is not null) settings["Admin:Phones"] = _adminPhones;
+        if (_uploadsRoot is not null) settings["Uploads:Root"] = _uploadsRoot;
+        if (_qrLogAppConfirmUrl is not null) settings["QrLog:AppConfirmUrl"] = _qrLogAppConfirmUrl;
+        if (settings.Count > 0)
+        {
+            builder.ConfigureAppConfiguration(config => config.AddInMemoryCollection(settings));
+        }
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<ApplicationDbContext>();
@@ -282,7 +310,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
 
     private sealed class FailingPositionLeaderboardService : ILeaderboardService
     {
-        public Task<LeaderboardDto> GetAsync(int campaignId, int limit, CancellationToken ct = default) =>
+        public Task<LeaderboardDto> GetAsync(int campaignId, int? limit = null, CancellationToken ct = default) =>
             throw new InvalidOperationException("test failure");
 
         public Task<int?> GetPositionAsync(int campaignId, int participantId, CancellationToken ct = default) =>

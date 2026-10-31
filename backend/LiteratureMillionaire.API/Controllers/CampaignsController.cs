@@ -58,7 +58,10 @@ public class CampaignsController : ControllerBase
         }
     }
 
-    /// <summary>Top completed results for a campaign, including inactive and past campaigns.</summary>
+    /// <summary>
+    /// Completed results for a campaign, including inactive and past campaigns: everyone who finished, ranked.
+    /// <c>limit</c> keeps only the first places (the result screen shows five).
+    /// </summary>
     [HttpGet("{campaignId:int}/leaderboard")]
     [ProducesResponseType(typeof(LeaderboardDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -66,7 +69,7 @@ public class CampaignsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LeaderboardDto>> Leaderboard(
         int campaignId,
-        [FromQuery, Range(1, 10)] int limit = 10,
+        [FromQuery, Range(1, int.MaxValue)] int? limit = null,
         CancellationToken ct = default)
     {
         try

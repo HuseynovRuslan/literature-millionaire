@@ -32,6 +32,11 @@ RUN apt-get update \
 
 COPY --from=build /app/publish .
 
+# The uploads volume mounts here. The directory is created in the image and owned by the app user, so the
+# volume inherits that ownership the first time it is mounted - the API runs as a non-root user and writes
+# uploaded pictures here (Nginx serves the same volume read-only).
+RUN mkdir -p /app/uploads && chown -R $APP_UID /app/uploads
+
 ENV ASPNETCORE_URLS=http://+:8080 \
     ASPNETCORE_ENVIRONMENT=Production
 EXPOSE 8080

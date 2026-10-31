@@ -1,5 +1,6 @@
 import { startTransition, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { endQrLogin } from '../api/qrLogin'
 import { OpenBookMark, RewardMedal, TrophyIcon, VictoryStar } from '../components/home/GameShowArt'
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import GameShowShell from '../components/home/GameShowShell'
@@ -166,6 +167,10 @@ export default function GameResult() {
     if (navigationLocked.current) return
     navigationLocked.current = true
     setNavigating(true)
+    // Leaving this screen for another participant also lets go of the sign-in that played this quiz. The
+    // server already ended it when the quiz started; this covers the quiz that was started in another window,
+    // whose cookie would otherwise greet the next person with the last player's name.
+    if (clearGame) void endQrLogin()
     startTransition(() => {
       if (clearGame) reset()
       navigate(path)

@@ -1,0 +1,994 @@
+[
+ {
+  "catalogId": "PLT-001",
+  "name": "Şərq çinarı",
+  "scientificName": "Platanus orientalis",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "çinar - tikanlı yumru meyvələr aydın görünür, Azərbaycanda hamı tanıyır"
+ },
+ {
+  "catalogId": "PLT-002",
+  "name": "Ürəkvari cökə",
+  "scientificName": "Tilia cordata",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-003",
+  "name": "Sivriyarpaq ağcaqayın",
+  "scientificName": "Acer platanoides",
+  "verdict": "keçdi",
+  "difficulty": "orta",
+  "reason": "ağcaqayın yarpağı və çiçəyi birlikdə görünür"
+ },
+ {
+  "catalogId": "PLT-004",
+  "name": "Göyrüşyarpaq ağcaqayın",
+  "scientificName": "Acer negundo",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-005",
+  "name": "Adi göyrüş",
+  "scientificName": "Fraxinus excelsior",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-006",
+  "name": "Kiçik qarağac",
+  "scientificName": "Ulmus minor",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-007",
+  "name": "Yalançı akasiya robiniyası",
+  "scientificName": "Robinia pseudoacacia",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-008",
+  "name": "Üçtikan şeytanağacı",
+  "scientificName": "Gleditsia triacanthos",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-009",
+  "name": "Yapon stifnolobiumu",
+  "scientificName": "Styphnolobium japonicum",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-010",
+  "name": "Qaraqovaq",
+  "scientificName": "Populus nigra",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-011",
+  "name": "Babil söyüdü",
+  "scientificName": "Salix babylonica",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "sallaq söyüd formasını başqa ağacla qarışdırmaq olmur"
+ },
+ {
+  "catalogId": "PLT-012",
+  "name": "Yay palıdı",
+  "scientificName": "Quercus robur",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-014",
+  "name": "Sallaq tozağacı",
+  "scientificName": "Betula pendula",
+  "verdict": "keçdi",
+  "difficulty": "orta",
+  "reason": "ağ qabıq tozağacını birmənalı verir"
+ },
+ {
+  "catalogId": "PLT-015",
+  "name": "Adi atşabalıdı",
+  "scientificName": "Aesculus hippocastanum",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-016",
+  "name": "Yasəmənyarpaq katalpa",
+  "scientificName": "Catalpa bignonioides",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-017",
+  "name": "Ağ tut",
+  "scientificName": "Morus alba",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "budaqdakı tut meyvəsi - şəkildə əsas əlamət var"
+ },
+ {
+  "catalogId": "PLT-018",
+  "name": "Cənub dağdağanı",
+  "scientificName": "Celtis australis",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-019",
+  "name": "Süpürgəvari kölreyteriya",
+  "scientificName": "Koelreuteria paniculata",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-020",
+  "name": "Qatranlı likvidambar",
+  "scientificName": "Liquidambar styraciflua",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-021",
+  "name": "İkidilim ginkqo",
+  "scientificName": "Ginkgo biloba",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-022",
+  "name": "Lənkəran güləbrişini",
+  "scientificName": "Albizia julibrissin",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-023",
+  "name": "İran meliyası",
+  "scientificName": "Melia azedarach",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-024",
+  "name": "Daryarpaq iydə",
+  "scientificName": "Elaeagnus angustifolia",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-025",
+  "name": "Uca aylant",
+  "scientificName": "Ailanthus altissima",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-026",
+  "name": "Keçəvari pavlovniya",
+  "scientificName": "Paulownia tomentosa",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-028",
+  "name": "Hind yasəməni",
+  "scientificName": "Lagerstroemia indica",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-029",
+  "name": "İriçiçək maqnoliya",
+  "scientificName": "Magnolia grandiflora",
+  "verdict": "keçdi",
+  "difficulty": "orta",
+  "reason": "iri ağ maqnoliya çiçəyi"
+ },
+ {
+  "catalogId": "PLT-030",
+  "name": "Alça",
+  "scientificName": "Prunus cerasifera",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-034",
+  "name": "Çoxbudaqlı yulğun",
+  "scientificName": "Tamarix ramosissima",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-035",
+  "name": "Avropa zeytunu",
+  "scientificName": "Olea europaea",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-036",
+  "name": "Adi əncir",
+  "scientificName": "Ficus carica",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "əncir meyvəsi və yarpağı"
+ },
+ {
+  "catalogId": "PLT-037",
+  "name": "Adi nar",
+  "scientificName": "Punica granatum",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "nar meyvəsi - ən tanınan"
+ },
+ {
+  "catalogId": "PLT-041",
+  "name": "Piniya şamı",
+  "scientificName": "Pinus pinea",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-042",
+  "name": "Qara şam",
+  "scientificName": "Pinus nigra",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-043",
+  "name": "Adi şam",
+  "scientificName": "Pinus sylvestris",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-044",
+  "name": "Adi küknar",
+  "scientificName": "Picea abies",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-045",
+  "name": "Tikanlı küknar",
+  "scientificName": "Picea pungens",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-046",
+  "name": "Qafqaz ağ şamı",
+  "scientificName": "Abies nordmanniana",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-047",
+  "name": "Himalay sidri",
+  "scientificName": "Cedrus deodara",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-048",
+  "name": "Livan sidri",
+  "scientificName": "Cedrus libani",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-049",
+  "name": "Atlas sidri",
+  "scientificName": "Cedrus atlantica",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-050",
+  "name": "Həmişəyaşıl sərv",
+  "scientificName": "Cupressus sempervirens",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-051",
+  "name": "Hesperocyparis arizonica",
+  "scientificName": "Cupressus arizonica",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-052",
+  "name": "Qərb tuyası",
+  "scientificName": "Thuja occidentalis",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-053",
+  "name": "Şərq səlbi",
+  "scientificName": "Platycladus orientalis",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-054",
+  "name": "Qazax ardıcı",
+  "scientificName": "Juniperus sabina",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-056",
+  "name": "Adi ardıc",
+  "scientificName": "Juniperus communis",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-057",
+  "name": "Giləmeyvəli qaraçöhrə",
+  "scientificName": "Taxus baccata",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-058",
+  "name": "Lavson sərvpəri",
+  "scientificName": "Chamaecyparis lawsoniana",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-060",
+  "name": "Yapon kriptomeriyası",
+  "scientificName": "Cryptomeria japonica",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-061",
+  "name": "Nəhəng sekvoyadendron",
+  "scientificName": "Sequoiadendron giganteum",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-064",
+  "name": "Həmişəyaşıl şümşad",
+  "scientificName": "Buxus sempervirens",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-065",
+  "name": "Yapon birgözü",
+  "scientificName": "Ligustrum japonicum",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-066",
+  "name": "Girdəyarpaq birgöz",
+  "scientificName": "Ligustrum ovalifolium",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-068",
+  "name": "Tоbirа pittоspоrumu",
+  "scientificName": "Pittosporum tobira",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-070",
+  "name": "Yapon gərməşovu",
+  "scientificName": "Euonymus japonicus",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-072",
+  "name": "Tunberq zirinci",
+  "scientificName": "Berberis thunbergii",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-073",
+  "name": "Üfüqi dovşanalması",
+  "scientificName": "Cotoneaster horizontalis",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-074",
+  "name": "Qırmızı pirakanta",
+  "scientificName": "Pyracantha coccinea",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-075",
+  "name": "Yapon topulqası",
+  "scientificName": "Spiraea japonica",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-078",
+  "name": "Adi yasəmən",
+  "scientificName": "Syringa vulgaris",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "yasəmən salxımı ön planda"
+ },
+ {
+  "catalogId": "PLT-079",
+  "name": "Əklil çubuqlucası",
+  "scientificName": "Philadelphus coronarius",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-081",
+  "name": "Nahamar deysiya",
+  "scientificName": "Deutzia scabra",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-082",
+  "name": "Suriya hibiskusu",
+  "scientificName": "Hibiscus syriacus",
+  "verdict": "keçdi",
+  "difficulty": "orta",
+  "reason": "hibiskus çiçəyi - mərkəzdəki tünd ləkə ilə"
+ },
+ {
+  "catalogId": "PLT-083",
+  "name": "İriyarpaq hidrangeya",
+  "scientificName": "Hydrangea macrophylla",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-084",
+  "name": "Həmişəyaşıl başınağacı",
+  "scientificName": "Viburnum tinus",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-085",
+  "name": "Adi başınağacı",
+  "scientificName": "Viburnum opulus",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-087",
+  "name": "Ev nandinası",
+  "scientificName": "Nandina domestica",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-089",
+  "name": "Ensizyarpaq lavanda",
+  "scientificName": "Lavandula angustifolia",
+  "verdict": "şəkil rəsimdir",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-090",
+  "name": "Sərvəoxşar santolina",
+  "scientificName": "Santolina chamaecyparissus",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-093",
+  "name": "Şərəfli yukka",
+  "scientificName": "Yucca gloriosa",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-094",
+  "name": "Lifli yukka",
+  "scientificName": "Yucca filamentosa",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-095",
+  "name": "Cənub kordilinası",
+  "scientificName": "Cordyline australis",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-097",
+  "name": "Nəcib dəfnə",
+  "scientificName": "Laurus nobilis",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-098",
+  "name": "Adi mərsin",
+  "scientificName": "Myrtus communis",
+  "verdict": "şəkil rəsimdir",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-101",
+  "name": "Yapon kameliyası",
+  "scientificName": "Camellia japonica",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-102",
+  "name": "Pontiya rododendronu",
+  "scientificName": "Rhododendron ponticum",
+  "verdict": "keçdi",
+  "difficulty": "çətin",
+  "reason": "rododendron - çiçək xarakterik, ad az işlənir"
+ },
+ {
+  "catalogId": "PLT-103",
+  "name": "Yapon xenomelesi",
+  "scientificName": "Chaenomeles japonica",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-107",
+  "name": "Ağ zoğal",
+  "scientificName": "Cornus alba",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-108",
+  "name": "Qara gəndəlaş",
+  "scientificName": "Sambucus nigra",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-109",
+  "name": "Maralbuynuz sumaq",
+  "scientificName": "Rhus typhina",
+  "verdict": "keçdi",
+  "difficulty": "çətin",
+  "reason": "sumaq - qırmızı meyvə qozası birmənalıdır"
+ },
+ {
+  "catalogId": "PLT-110",
+  "name": "Müqəddəs viteks",
+  "scientificName": "Vitex agnus-castus",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-112",
+  "name": "Çılpaq buqenvilleya",
+  "scientificName": "Bougainvillea glabra",
+  "verdict": "keçdi",
+  "difficulty": "çətin",
+  "reason": "buqenvilleya - rəngi başqa bitkidə yoxdur"
+ },
+ {
+  "catalogId": "PLT-113",
+  "name": "Adi daşsarmaşığı",
+  "scientificName": "Hedera helix",
+  "verdict": "keçdi",
+  "difficulty": "orta",
+  "reason": "gövdəyə sarılmış daşsarmaşığı"
+ },
+ {
+  "catalogId": "PLT-114",
+  "name": "Çin filbaharı",
+  "scientificName": "Wisteria sinensis",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-115",
+  "name": "Kökatan nargülü",
+  "scientificName": "Campsis radicans",
+  "verdict": "keçdi",
+  "difficulty": "çətin",
+  "reason": "nargülü - narıncı şeypur çiçək"
+ },
+ {
+  "catalogId": "PLT-116",
+  "name": "Beşləçəkli qızüzümü",
+  "scientificName": "Parthenocissus quinquefolia",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-118",
+  "name": "Yapon doqquzdonu",
+  "scientificName": "Lonicera japonica",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-119",
+  "name": "Bənövşəyi ağəsmə",
+  "scientificName": "Clematis viticella",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-120",
+  "name": "Ağ jasmin",
+  "scientificName": "Jasminum officinale",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-121",
+  "name": "Çılpaqçiçək jasmin",
+  "scientificName": "Jasminum nudiflorum",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-122",
+  "name": "Mavi qonaqotu",
+  "scientificName": "Passiflora caerulea",
+  "verdict": "keçdi",
+  "difficulty": "çətin",
+  "reason": "qonaqotu çiçəyi - dünyada bənzəri yoxdur"
+ },
+ {
+  "catalogId": "PLT-123",
+  "name": "Mədəni üzüm",
+  "scientificName": "Vitis vinifera",
+  "verdict": "şəkil rəsimdir",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-124",
+  "name": "Fortuna traxikarpusu",
+  "scientificName": "Trachycarpus fortunei",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-125",
+  "name": "Lifli vaşinqtoniya",
+  "scientificName": "Washingtonia filifera",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-127",
+  "name": "Kanar finiki",
+  "scientificName": "Phoenix canariensis",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-128",
+  "name": "Alçaqboy xamerops",
+  "scientificName": "Chamaerops humilis",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-129",
+  "name": "Əyriyarpaq saqovnik",
+  "scientificName": "Cycas revoluta",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-132",
+  "name": "Amerika aqavası",
+  "scientificName": "Agave americana",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-134",
+  "name": "Əsl əzvay",
+  "scientificName": "Aloe vera",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "əzvay - ətli yarpaqlar, geniş tanınır"
+ },
+ {
+  "catalogId": "PLT-135",
+  "name": "Ədəm ağacı",
+  "scientificName": "Dracaena draco",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-142",
+  "name": "Çoxillik qızçiçəyi",
+  "scientificName": "Bellis perennis",
+  "verdict": "keçdi",
+  "difficulty": "orta",
+  "reason": "qızçiçəyi - sadə, aydın"
+ },
+ {
+  "catalogId": "PLT-145",
+  "name": "Gümüşü seloziya",
+  "scientificName": "Celosia argentea",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-148",
+  "name": "Dərman gülümbaharı",
+  "scientificName": "Calendula officinalis",
+  "verdict": "şəkil rəsimdir",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-153",
+  "name": "İriçiçək pərpərən",
+  "scientificName": "Portulaca grandiflora",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-154",
+  "name": "Dəniz lobulariyası",
+  "scientificName": "Lobularia maritima",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-163",
+  "name": "Adi boymadərən",
+  "scientificName": "Achillea millefolium",
+  "verdict": "keçdi",
+  "difficulty": "çətin",
+  "reason": "boymadərən - dərman bitkisi kimi tanınır"
+ },
+ {
+  "catalogId": "PLT-164",
+  "name": "Kürən günotu",
+  "scientificName": "Hemerocallis fulva",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-167",
+  "name": "Şərq sünbülçiçəyi",
+  "scientificName": "Hyacinthus orientalis",
+  "verdict": "keçdi",
+  "difficulty": "orta",
+  "reason": "sünbülçiçəyi (sümbül) - salxım forması xarakterik"
+ },
+ {
+  "catalogId": "PLT-168",
+  "name": "Gesner dağlaləsi",
+  "scientificName": "Tulipa gesneriana",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "lalə"
+ },
+ {
+  "catalogId": "PLT-169",
+  "name": "Yalançı nərgizgülü",
+  "scientificName": "Narcissus pseudonarcissus",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "nərgiz"
+ },
+ {
+  "catalogId": "PLT-171",
+  "name": "Ağ zanbaq",
+  "scientificName": "Lilium candidum",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-172",
+  "name": "Erməni ilansoğanı",
+  "scientificName": "Muscari armeniacum",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-175",
+  "name": "Birillik günəbaxan",
+  "scientificName": "Helianthus annuus",
+  "verdict": "keçdi",
+  "difficulty": "asan",
+  "reason": "günəbaxan"
+ },
+ {
+  "catalogId": "PLT-176",
+  "name": "İran meşənovruzu",
+  "scientificName": "Cyclamen persicum",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-180",
+  "name": "Andre anturiumu",
+  "scientificName": "Anthurium andraeanum",
+  "verdict": "keçdi",
+  "difficulty": "orta",
+  "reason": "anturium - qırmızı yelkən yarpağı, ev bitkisi kimi tanınır"
+ },
+ {
+  "catalogId": "PLT-184",
+  "name": "Ətirli drasena",
+  "scientificName": "Dracaena fragrans",
+  "verdict": "ad tanınmır",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-219",
+  "name": "Kiçik qıfotu",
+  "scientificName": "Vinca minor",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-220",
+  "name": "Böyük qıfotu",
+  "scientificName": "Vinca major",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-221",
+  "name": "Sedum spurium",
+  "scientificName": "Phedimus spurius",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-222",
+  "name": "Sürünən dirçək",
+  "scientificName": "Ajuga reptans",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-223",
+  "name": "Sürünən kəklikotu",
+  "scientificName": "Thymus serpyllum",
+  "verdict": "şəkil zəif",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-228",
+  "name": "Qırışıqmeyvəli itburnu",
+  "scientificName": "Rosa rugosa",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ },
+ {
+  "catalogId": "PLT-229",
+  "name": "Banks itburnusu",
+  "scientificName": "Rosa banksiae",
+  "verdict": "ayırd edə bilmirəm",
+  "difficulty": null,
+  "reason": null
+ }
+]

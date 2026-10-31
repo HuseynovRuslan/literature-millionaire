@@ -18,6 +18,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="SkiaSharp" Version="4.152.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.152.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
@@ -31,6 +33,14 @@
          implementation time). Compiled into the assembly; the workbook is never read at runtime. -->
     <Content Remove="Seed/Data/edebiyyat-dunyasi-questions.json" />
     <EmbeddedResource Include="Seed/Data/edebiyyat-dunyasi-questions.json" LogicalName="LiteratureMillionaire.API.Seed.Data.edebiyyat-dunyasi-questions.json" />
+
+    <!-- Generated "Yaşıl Bakı" bank: photographs from NC State Extension's Plant Toolbox, names confirmed
+         against Wikidata. Compiled into the assembly; the sources are never read at runtime. -->
+    <EmbeddedResource Include="Seed/Data/yasil-baki-questions.json" LogicalName="LiteratureMillionaire.API.Seed.Data.yasil-baki-questions.json" />
+
+    <!-- Generated "Green Garden Kolleksiyası" bank: the nursery catalogue in docs/greegardenbitkiler-import,
+         its Azerbaijani names checked against Wikidata. Compiled in; the catalogue is never read at runtime. -->
+    <EmbeddedResource Include="Seed/Data/green-garden-questions.json" LogicalName="LiteratureMillionaire.API.Seed.Data.green-garden-questions.json" />
   </ItemGroup>
 
 </Project>

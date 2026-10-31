@@ -13,11 +13,11 @@ public class LeaderboardService : ILeaderboardService
         _db = db;
     }
 
-    public async Task<LeaderboardDto> GetAsync(int campaignId, int limit, CancellationToken ct = default)
+    public async Task<LeaderboardDto> GetAsync(int campaignId, int? limit = null, CancellationToken ct = default)
     {
-        if (limit is < 1 or > 10)
+        if (limit is < 1)
         {
-            throw new ArgumentOutOfRangeException(nameof(limit), limit, "Limit must be between 1 and 10.");
+            throw new ArgumentOutOfRangeException(nameof(limit), limit, "Limit must be at least 1.");
         }
 
         var quizMode = await _db.MonthlyCampaigns
@@ -28,8 +28,7 @@ public class LeaderboardService : ILeaderboardService
             ?? throw CampaignException.CampaignNotFound(campaignId);
 
         var ranked = LeaderboardRanking.Rank(await LoadCompletedAttemptsAsync(campaignId, ct));
-        var entries = ranked
-            .Take(limit)
+        var entries = (limit is { } top ? ranked.Take(top) : ranked)
             .Select(item =>
             {
                 var attempt = item.Candidate;

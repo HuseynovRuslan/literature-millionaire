@@ -18,7 +18,7 @@ public class QuizModeCampaignTests
     // --- seed and bank assignment ---------------------------------------------------
 
     [Fact]
-    public async Task Seed_creates_the_four_modes_and_assigns_banks_and_campaigns_idempotently()
+    public async Task Seed_creates_the_modes_and_assigns_banks_and_campaigns_idempotently()
     {
         await using var factory = new LeaderboardApiFactory();
         await factory.CreateDatabaseAsync();
@@ -33,7 +33,12 @@ public class QuizModeCampaignTests
         var db = verify.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var modes = await db.QuizModes.AsNoTracking().OrderBy(m => m.DisplayOrder).ToListAsync();
         Assert.Equal(
-            new[] { ("bilik-dunyasi", "Bilik Dünyası", 1), ("ayin-kitabi", "Ayın Kitabı", 2), ("edebiyyat-dunyasi", "Ədəbiyyat Dünyası", 3), ("yasil-baki", "Yaşıl Bakı", 4) },
+            new[]
+            {
+                ("bilik-dunyasi", "Bilik Dünyası", 1), ("ayin-kitabi", "Ayın Kitabı", 2),
+                ("edebiyyat-dunyasi", "Ədəbiyyat Dünyası", 3), ("yasil-baki", "Yaşıl Bakı", 4),
+                ("green-garden", "Green Garden Kolleksiyası", 5),
+            },
             modes.Select(m => (m.Slug, m.Title, m.DisplayOrder)));
         Assert.All(modes, m => Assert.True(m.IsActive));
 
@@ -49,10 +54,18 @@ public class QuizModeCampaignTests
         Assert.All(questions.Where(q => q.BookId == null), q => Assert.Null(q.QuizModeId));
 
         var campaigns = await db.MonthlyCampaigns.AsNoTracking().Include(c => c.Book).ToListAsync();
-        Assert.Equal(2, campaigns.Count);
+        Assert.Equal(4, campaigns.Count);
         Assert.Equal(bilikMode, campaigns.Single(c => c.Book!.Title == BilikYarisiSeed.BookTitle).QuizModeId);
         Assert.Equal(ayinMode, campaigns.Single(c => c.Book!.Title == OlulerQuestionSeed.BookTitle).QuizModeId);
-        Assert.All(campaigns, c => Assert.Equal(2, c.ImageQuestionsPerQuiz));
+        Assert.Equal(modes[3].Id, campaigns.Single(c => c.Book!.Title == YasilBakiSeed.BookTitle).QuizModeId);
+        Assert.Equal(modes[4].Id, campaigns.Single(c => c.Book!.Title == GreenGardenSeed.BookTitle).QuizModeId);
+        // The mixed banks ask for two pictures in a round; every question of the two plant banks is a
+        // photograph, so their rounds are ten of them.
+        string[] allPictures = [YasilBakiSeed.BookTitle, GreenGardenSeed.BookTitle];
+        Assert.All(campaigns.Where(c => !allPictures.Contains(c.Book!.Title)),
+            c => Assert.Equal(2, c.ImageQuestionsPerQuiz));
+        Assert.All(campaigns.Where(c => allPictures.Contains(c.Book!.Title)),
+            c => Assert.Equal(10, c.ImageQuestionsPerQuiz));
     }
 
     [Theory]
@@ -146,10 +159,12 @@ public class QuizModeCampaignTests
             new[] { "campaignId", "startDate", "endDate", "passingScore", "rewardTitle", "questionCount", "imageQuestionsPerQuiz", "quizMode", "book" },
             first.EnumerateObject().Select(p => p.Name));
         Assert.Equal(
-            new[] { "id", "slug", "title", "description", "iconKey", "displayOrder" },
+            new[] { "id", "slug", "title", "description", "iconKey", "displayOrder", "isPreview" },
             first.GetProperty("quizMode").EnumerateObject().Select(p => p.Name));
         Assert.Equal(("Bilik Dünyası", "globe", 1), (first.GetProperty("quizMode").GetProperty("title").GetString(),
             first.GetProperty("quizMode").GetProperty("iconKey").GetString(), first.GetProperty("quizMode").GetProperty("displayOrder").GetInt32()));
+        // The "test version" label the card shows is the category's own flag, not something the frontend decides.
+        Assert.False(first.GetProperty("quizMode").GetProperty("isPreview").GetBoolean());
         Assert.Equal(10, first.GetProperty("questionCount").GetInt32());
         Assert.Equal(2, first.GetProperty("imageQuestionsPerQuiz").GetInt32());
         Assert.Equal(0, list[1].GetProperty("imageQuestionsPerQuiz").GetInt32());

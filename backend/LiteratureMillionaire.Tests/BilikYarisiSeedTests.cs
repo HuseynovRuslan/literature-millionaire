@@ -105,7 +105,9 @@ public class BilikYarisiSeedTests
         var bilik = Assert.Single(campaigns, c => c.Book!.Title == BilikYarisiSeed.BookTitle);
         Assert.False(oluler.IsEnabled);
         Assert.True(bilik.IsEnabled);
-        Assert.Single(campaigns, c => c.IsEnabled);
+        // Quiz modes run in parallel now, so another category having its own campaign enabled says
+        // nothing about this import; what it decided is that one campaign of ITS mode is live.
+        Assert.Single(campaigns, c => c.IsEnabled && c.QuizModeId == bilik.QuizModeId);
         Assert.Equal((new DateOnly(2026, 9, 15), new DateOnly(2026, 9, 30), 8), (bilik.StartDate, bilik.EndDate, bilik.PassingScore));
         Assert.Equal("Bakı Abadlıq Xidməti MMC-dən hədiyyə", bilik.RewardTitle);
         Assert.NotEqual(oluler.RewardTitle, bilik.RewardTitle);
@@ -159,9 +161,16 @@ public class BilikYarisiSeedTests
         {
             // The seeded campaign is dated September 2026; move it onto "today" so the test is not date-bound.
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var campaign = await db.MonthlyCampaigns.SingleAsync(c => c.IsEnabled);
+            var campaign = await db.MonthlyCampaigns.Include(c => c.Book)
+                .SingleAsync(c => c.Book!.Title == BilikYarisiSeed.BookTitle);
             campaign.StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-1));
             campaign.EndDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1));
+            // Other categories seed campaigns of their own; this test is about the Bilik yarışı mix, so it
+            // is the only one left running.
+            foreach (var other in await db.MonthlyCampaigns.Where(c => c.Id != campaign.Id).ToListAsync())
+            {
+                other.IsEnabled = false;
+            }
             await db.SaveChangesAsync();
         }
 

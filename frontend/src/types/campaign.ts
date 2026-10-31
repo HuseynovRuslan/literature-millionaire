@@ -16,6 +16,8 @@ export interface QuizMode {
   description: string
   iconKey: string
   displayOrder: number
+  /** The bank is playable but unfinished; the card says so. Set in the panel, not in this code. */
+  isPreview: boolean
 }
 
 /** Mirrors QuizModeRefDto: the minimal identity carried by game start/result/leaderboard responses. */

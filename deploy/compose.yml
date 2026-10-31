@@ -27,6 +27,9 @@ networks:
 
 volumes:
   postgres-data:
+  # Pictures uploaded in the admin panel. The API writes here, Nginx serves it read-only,
+  # and it must outlive every deployment - the questions point at these files.
+  uploads:
 
 x-logging: &default-logging
   driver: json-file
@@ -89,6 +92,26 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__DefaultConnection: >-
         Host=db;Port=5432;Database=${APP_DB_NAME:?APP_DB_NAME must be set in deploy/.env};Username=${APP_DB_USER:?APP_DB_USER must be set in deploy/.env};Password=${APP_DB_PASSWORD:?APP_DB_PASSWORD must be set in deploy/.env}
+      # Shared with QRLog, which signs "QRLog ilə davam et" confirmations with it. Optional: left
+      # empty, the button is still shown but every confirmation is refused, so set it before
+      # announcing the feature. Must be the same value on both sides.
+      QrLog__VouchSecret: ${QRLOG_VOUCH_SECRET:-}
+      # Where QRLog approves a sign-in for someone already on their phone (a phone cannot scan its own
+      # screen). Must contain {code}; see docs/qrlog-phone-signin.md. Empty until QRLog has that page:
+      # the button is then simply not shown and only the QR is.
+      QrLog__AppConfirmUrl: ${QRLOG_APP_CONFIRM_URL:-}
+      # A quiz starts only with a QRLog sign-in ticket. Already the default outside Development; stated so
+      # nobody reading this file has to know that.
+      Game__RequireQrLogin: "true"
+      # Who may use the admin panel: phone numbers separated by commas. Empty means nobody - the panel
+      # fails closed. Kept in deploy/.env, never in this file.
+      Admin__Phones: ${ADMIN_PHONES:-}
+      # Used only to print a full break-glass link (--admin-link).
+      Admin__PublicBaseUrl: ${ADMIN_PUBLIC_BASE_URL:-https://book.qrlog.az}
+      # Where uploaded pictures are written (the "uploads" volume below).
+      Uploads__Root: /app/uploads
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -114,6 +137,9 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
     image: literature-millionaire-web:${IMAGE_TAG:-local}
+    volumes:
+      # Read-only on purpose: Nginx serves uploaded pictures, only the API writes them.
+      - uploads:/usr/share/nginx/uploads:ro
     depends_on:
       api:
         condition: service_healthy

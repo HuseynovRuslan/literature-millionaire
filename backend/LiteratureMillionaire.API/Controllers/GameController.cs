@@ -10,10 +10,14 @@ namespace LiteratureMillionaire.API.Controllers;
 public class GameController : ControllerBase
 {
     private readonly IGameService _game;
+    private readonly IQrLoginService _logins;
+    private readonly GameSignInPolicy _signIn;
 
-    public GameController(IGameService game)
+    public GameController(IGameService game, IQrLoginService logins, GameSignInPolicy signIn)
     {
         _game = game;
+        _logins = logins;
+        _signIn = signIn;
     }
 
     /// <summary>Legacy Millionaire-era prize ladder. Not used by the campaign quiz; kept for compatibility until removed.</summary>
@@ -36,9 +40,38 @@ public class GameController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<StartGameResponseDto>> Start([FromBody] StartGameRequestDto request, CancellationToken ct)
     {
+        // Who is playing comes from a QRLog sign-in, never from what the request says about itself. A ticket
+        // replaces any name and phone in the body; without one, production refuses to start at all.
+        if (!string.IsNullOrWhiteSpace(request.SignInTicket))
+        {
+            if (_logins.ResolveTicket(request.SignInTicket) is not { } identity)
+            {
+                return SignInProblem("SIGN_IN_EXPIRED", "QRLog girişinin vaxtı bitib. QR kodu yenidən oxudun.");
+            }
+
+            request.FullName = identity.FullName;
+            request.PhoneNumber = identity.PhoneNumber;
+        }
+        else if (_signIn.RequireQrLogin)
+        {
+            return SignInProblem("SIGN_IN_REQUIRED", "Yarışa yalnız QRLog ilə daxil olmaq olar.");
+        }
+
         try
         {
-            return Ok(await _game.StartAsync(request, ct));
+            var started = await _game.StartAsync(request, ct);
+
+            // The sign-in has done its job. Ending it here is what lets the device be handed on: the next
+            // screen gets a fresh QR instead of resuming this quiz's sign-in and filling in this player's
+            // name - which is how the next participant ended up playing as the last one. The ticket itself is
+            // left alone; it can only ever act as this one person, and the one-attempt rule still applies.
+            if (!string.IsNullOrWhiteSpace(request.SignInTicket))
+            {
+                _logins.EndForTicket(request.SignInTicket);
+                QrLoginCookie.Clear(Response);
+            }
+
+            return Ok(started);
         }
         catch (GameException ex)
         {
@@ -51,6 +84,14 @@ public class GameController : ControllerBase
             problem.Extensions["code"] = ex.Code;
             return StatusCode(ex.StatusCode, problem);
         }
+    }
+
+    private ObjectResult SignInProblem(string code, string detail)
+    {
+        var problem = ProblemDetailsFactory.CreateProblemDetails(
+            HttpContext, statusCode: StatusCodes.Status401Unauthorized, title: "QRLog sign-in required", detail: detail);
+        problem.Extensions["code"] = code;
+        return StatusCode(StatusCodes.Status401Unauthorized, problem);
     }
 
     /// <summary>Submit an answer for the session's current question. Late answers count as timed out; correctness is not disclosed until the quiz ends.</summary>

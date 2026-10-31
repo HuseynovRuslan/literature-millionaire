@@ -12,5 +12,10 @@ export const SECONDARY_CTA =
 export const CARD_PRIMARY_CTA =
   'btn btn-primary min-h-[clamp(3.9rem,6.6vh,4.6rem)] px-[clamp(0.9rem,1.3vw,1.4rem)] text-[clamp(0.95rem,1.1vw,1.15rem)] max-sm:min-h-[3.4rem] max-sm:text-[1rem]'
 
-export const CARD_SECONDARY_CTA =
-  'btn btn-secondary min-h-[clamp(3.9rem,6.6vh,4.6rem)] px-[clamp(0.7rem,1vw,1.1rem)] text-[clamp(0.82rem,0.95vw,1rem)] max-sm:min-h-[3.25rem] max-sm:text-[0.92rem]'
+/**
+ * The card's second action (Liderlər): a quiet text button beside "Oyna", not a second slab of the same
+ * weight - two equal buttons left a player asking where to start. Still a full touch target (48px, 44px on
+ * phones) and still the .btn focus ring.
+ */
+export const CARD_QUIET_CTA =
+  'btn min-h-[3rem] rounded-xl px-[clamp(0.8rem,1.1vw,1.1rem)] text-[clamp(0.88rem,0.95vw,0.95rem)] text-fg-2 hover:bg-white/[0.06] hover:text-fg max-sm:min-h-[2.75rem] max-sm:text-[0.92rem]'

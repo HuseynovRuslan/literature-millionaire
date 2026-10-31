@@ -1,24 +1,20 @@
-import { useEffect, useRef, useState, type FormEvent, type InputHTMLAttributes, type ReactNode, type RefObject } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { getAvailableCampaigns } from '../api/campaigns'
 import QuizModeIcon from '../components/home/QuizModeIcon'
+import { accentFor } from '../components/home/categoryThemes'
 import { ArrowLeftIcon, CheckIcon, ClockIcon, ListIcon, PhoneIcon, PlayIcon, RewardMedal, RuleBadge, TargetIcon, UserIcon } from '../components/home/GameShowArt'
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import { Octagram } from '../components/arena/NationalMotifs'
 import GameShowShell from '../components/home/GameShowShell'
+import QrLoginPanel from '../components/QrLoginPanel'
+import { useQrLogin, type QrLoginIdentity } from '../hooks/useQrLogin'
 import { useGame } from '../game/GameContext'
 import type { CampaignSummary } from '../types/campaign'
 import { formatDateRange } from '../utils/date'
 
-/** Mirrors the backend rule: Azerbaijani mobile in 0XX…, 994XX… or +994XX… form (spaces and dashes allowed). */
-const PHONE = /^(?:\+?994|0)(?:10|50|51|55|60|70|77|99)\d{7}$/
-const compact = (v: string) => v.replace(/[\s\-()]/g, '')
 
-const NAME_MESSAGE = 'Ad və soyadınızı yazın (ən azı 2 hərf).'
-const PHONE_MESSAGE = 'Telefon nömrəsi düzgün deyil. Nümunə: 050 123 45 67'
 
-type FieldErrors = { fullName: string | null; phone: string | null }
-const NO_ERRORS: FieldErrors = { fullName: null, phone: null }
 
 const CARD = 'card rise rounded-[2rem] max-sm:rounded-3xl'
 
@@ -26,44 +22,6 @@ function parseCampaignId(value: string | undefined): number | null {
   if (!value || !/^[1-9]\d*$/.test(value)) return null
   const parsed = Number(value)
   return Number.isSafeInteger(parsed) ? parsed : null
-}
-
-/** Label above a large touch input with a leading icon; the field's own error sits right under it. */
-function Field({
-  id,
-  label,
-  icon,
-  error,
-  inputRef,
-  ...input
-}: { id: string; label: string; icon: ReactNode; error: string | null; inputRef: RefObject<HTMLInputElement | null> } & InputHTMLAttributes<HTMLInputElement>) {
-  const errorId = `${id}-error`
-  return (
-    <div className="flex min-w-0 flex-col gap-2">
-      <label htmlFor={id} className="text-[clamp(1rem,1.2vw,1.15rem)] font-extrabold text-fg max-sm:text-[0.98rem]">
-        {label}
-      </label>
-      <div className="relative">
-        <span className="pointer-events-none absolute left-[clamp(1rem,1.3vw,1.3rem)] top-1/2 -translate-y-1/2 text-fg-3" aria-hidden="true">
-          {icon}
-        </span>
-        <input
-          id={id}
-          ref={inputRef}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
-          className="field min-h-[clamp(4rem,7.5vh,4.75rem)] w-full rounded-2xl pl-[clamp(3.2rem,4vw,3.8rem)] pr-5 font-sans text-[clamp(1.15rem,1.5vw,1.45rem)] font-semibold max-sm:min-h-[3.5rem] max-sm:pl-12 max-sm:text-[1.1rem]"
-          {...input}
-        />
-      </div>
-      {error && (
-        <p id={errorId} className="flex items-start gap-2 text-[clamp(0.95rem,1.1vw,1.05rem)] font-semibold leading-snug text-bad max-sm:text-[0.92rem]">
-          <span aria-hidden className="mt-[0.1em] grid size-[1.3em] shrink-0 place-items-center rounded-full bg-bad text-[0.8em] font-extrabold text-ink-950">!</span>
-          {error}
-        </p>
-      )}
-    </div>
-  )
 }
 
 /** Where the participant is in the flow: category chosen, registering now, the quiz next. */
@@ -100,6 +58,52 @@ type CampaignLookup = { kind: 'loading' } | { kind: 'found'; campaign: CampaignS
  * with the start request; nothing is written to sessionStorage. campaignId is only a selection
  * identifier - every quiz rule (passing score, image count, book) still comes from the backend.
  */
+/** After QRLog has vouched: who arrived, before a quiz starts under their name. */
+function QrLoginWelcome({ fullName, phoneNumber, onSignOut }: {
+  fullName: string
+  phoneNumber: string
+  /** Not this person: let go of the sign-in and put a new QR up for whoever is actually standing here. */
+  onSignOut: () => void
+}) {
+  return (
+    <div className="pop flex min-w-0 flex-col items-center text-center" data-testid="qrlog-signed-in">
+      <span className="grid size-16 place-items-center rounded-full bg-ok/15 text-ok ring-1 ring-ok/40 max-sm:size-14">
+        <CheckIcon className="size-8 max-sm:size-7" />
+      </span>
+      <p lang="az" className="mt-4 font-display text-[clamp(1.4rem,2.2vw,2rem)] font-extrabold leading-tight">
+        Xoş gəldiniz, dəyərli QRLog üzvü!
+      </p>
+      <p lang="az" className="mt-1 text-[clamp(0.95rem,1.1vw,1.05rem)] font-medium text-fg-2">
+        Məlumatlarınız QRLog-dan gəldi. Yoxlayın və yarışa başlayın.
+      </p>
+
+      <dl className="mt-5 w-full max-w-[24rem] overflow-hidden rounded-2xl bg-white/[0.05] text-left ring-1 ring-white/10">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <UserIcon className="size-5 shrink-0 text-brand-soft" />
+          <div className="min-w-0">
+            <dt className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-fg-3">Ad və soyad</dt>
+            <dd lang="az" className="font-display text-[clamp(1.05rem,1.3vw,1.25rem)] font-bold [overflow-wrap:anywhere]" data-testid="qrlog-name">{fullName}</dd>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 border-t border-white/10 px-4 py-3">
+          <PhoneIcon className="size-5 shrink-0 text-brand-soft" />
+          <div className="min-w-0">
+            <dt className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-fg-3">Telefon nömrəsi</dt>
+            <dd className="font-display text-[clamp(1.05rem,1.3vw,1.25rem)] font-bold tabular-nums" data-testid="qrlog-phone">{phoneNumber}</dd>
+          </div>
+        </div>
+      </dl>
+
+      {/* One phone is passed around a room, and whoever signed in last stays signed in until their code runs
+          out. Without this the next person starts the quiz under somebody else's name and spends that person's
+          single attempt - and there was nothing on the screen they could press to stop it. */}
+      <button type="button" onClick={onSignOut} className="tap mt-4 rounded-xl px-4 py-2 text-[clamp(0.9rem,1vw,1rem)] font-bold text-fg-2 underline decoration-white/30 underline-offset-4 hover:text-fg" data-testid="qrlog-sign-out">
+        Bu mən deyiləm — çıxış et
+      </button>
+    </div>
+  )
+}
+
 export default function RegisterPage() {
   const navigate = useNavigate()
   const { campaignId: routeCampaignId } = useParams()
@@ -108,10 +112,29 @@ export default function RegisterPage() {
   const starting = state.status === 'starting'
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>(NO_ERRORS)
+  const [signedInAs, setSignedInAs] = useState<QrLoginIdentity | null>(null)
+  /** The ticket the server last turned down, so a repeat of it is never mistaken for a new sign-in. */
+  const [refusedTicket, setRefusedTicket] = useState<string | null>(null)
   const [lookup, setLookup] = useState<CampaignLookup>({ kind: 'loading' })
-  const nameRef = useRef<HTMLInputElement>(null)
-  const phoneRef = useRef<HTMLInputElement>(null)
+
+  // A confirmed QRLog sign-in fills the form rather than submitting it: on a shared kiosk the player
+  // should see whose name landed there before the quiz starts under it.
+  const qrLogin = useQrLogin((identity) => {
+    // A fresh sign-in starts clean: a refusal from an earlier attempt no longer applies to it. Only a genuinely
+    // different ticket clears the message, though - a screen that wiped its own explanation and put the same
+    // refused identity back is how "Yarışa başla" came to look like a button that does nothing.
+    if (errorCode && identity.signInTicket !== refusedTicket) reset()
+    setFullName(identity.fullName)
+    setPhone(identity.phoneNumber)
+    setSignedInAs(identity)
+    // The player is looking at their phone when this lands. On a laptop window the start button sits
+    // below the fold while the QR is up, so bring it into view rather than leave them to find it.
+    requestAnimationFrame(() => submitRef.current?.scrollIntoView({
+      block: 'nearest',
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    }))
+  })
+  const submitRef = useRef<HTMLButtonElement>(null)
   // One start per registration. The context only ignores taps while a request is in flight; once it
   // succeeds, the form is briefly interactive again before navigation. With one attempt per campaign
   // a second tap in that window would get a 409 and wipe the quiz that was just started.
@@ -132,29 +155,61 @@ export default function RegisterPage() {
     return () => { cancelled = true }
   }, [campaignId])
 
+  // Open the sign-in as soon as there is a category to play: the QR is the screen, not a step behind
+  // a button. Runs once - beginRef keeps a re-render from minting a second code and orphaning the
+  // first, which the player may already be scanning.
+  const beganRef = useRef(false)
+  useEffect(() => {
+    if (lookup.kind !== 'found' || beganRef.current) return
+    beganRef.current = true
+    void qrLogin.begin()
+  }, [lookup.kind, qrLogin])
+
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (starting || submittedRef.current || campaignId === null) return
-    const name = fullName.trim().replace(/\s+/g, ' ')
-    // Same rules and messages as before; each field shows its own message under the field.
-    const errors: FieldErrors = {
-      fullName: name.length < 2 ? NAME_MESSAGE : null,
-      phone: PHONE.test(compact(phone)) ? null : PHONE_MESSAGE,
-    }
-    setFieldErrors(errors)
-    if (errors.fullName || errors.phone) {
-      ;(errors.fullName ? nameRef : phoneRef).current?.focus()
-      return
-    }
+    // Nothing here is typed any more: the name and phone came from QRLog, which is the only way in.
+    // The server has the last word on both, and says so where the player can read it - a check here
+    // that failed silently was what made the start button look broken.
     submittedRef.current = true
-    const ok = await startGame({ fullName: name, phoneNumber: compact(phone), campaignId })
-    if (ok) navigate('/game')
-    else submittedRef.current = false // a failed start (network, validation) may be retried
+    // The ticket is who plays. The name and phone ride along only for a server that allows starting
+    // without QRLog (development); production ignores them whenever a ticket is sent.
+    const ticket = signedInAs?.signInTicket
+    const ok = await startGame({ signInTicket: ticket, fullName: fullName.trim(), phoneNumber: phone, campaignId })
+    if (ok) {
+      // The quiz is running and the sign-in has done its job. Letting go of it here is what makes the phone
+      // safe to hand on: the server ends it as the quiz starts, and this drops this tab's copy with it.
+      void qrLogin.end()
+      navigate('/game')
+    } else {
+      setRefusedTicket(ticket ?? null)
+      submittedRef.current = false // a failed start (network, validation) may be retried
+    }
   }
+
+  // A ticket that has run out (the welcome screen was left open) cannot be retried - the only way on is a
+  // fresh sign-in. The welcome gives way to a new QR at once, under the message saying why, instead of a
+  // start button that fails the same way every time it is pressed.
+  const signInLost = errorCode === 'SIGN_IN_EXPIRED' || errorCode === 'SIGN_IN_REQUIRED'
+  // Depends on the stable `begin`, not on the object useQrLogin returns: that object is new on every render, so
+  // depending on it restarted the QR on every render for as long as the sign-in stayed lost.
+  const beginQrLogin = qrLogin.begin
+  useEffect(() => {
+    // A new code, never the lost one: resuming what the server has just refused is how this screen ended up
+    // offering the same dead sign-in back to the player, over and over, with no way out on the screen.
+    if (signInLost) void beginQrLogin({ fresh: true })
+  }, [signInLost, beginQrLogin])
 
   function goHome() {
     reset()
     navigate('/')
+  }
+
+  // A quiz that is still running is not walked out of by accident. Back from the game screen lands here, and
+  // this screen's own "Geri qayıt" would throw the round away - the attempt with it, since there is only one.
+  // Leaving mid-quiz is a deliberate act now, and it has its own button on the game screen.
+  if (state.status === 'playing') {
+    return <Navigate to="/game" replace />
   }
 
   // No campaignId in the route, or it no longer names a playable category: never silently fall back
@@ -227,8 +282,12 @@ export default function RegisterPage() {
         <section data-testid="register-stage" className="grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-[clamp(1rem,1.6vw,1.5rem)] max-lg:grid-cols-1">
           {/* Category summary */}
           <div className={`${CARD} flex min-w-0 flex-col overflow-hidden`}>
-            <div className="flex items-center gap-4 bg-[linear-gradient(135deg,#8f78ff,#5a3fe0)] px-[clamp(1.2rem,2vw,2rem)] py-5" data-testid="register-category">
-              <span aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-2xl bg-white/20 text-white max-sm:size-12">
+            <div
+              style={{ '--accent': accentFor(campaign.quizMode.slug, 0) } as CSSProperties}
+              className="flex items-center gap-4 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_92%,#ffffff),color-mix(in_srgb,var(--accent)_72%,#110c2c))] px-[clamp(1.2rem,2vw,2rem)] py-5"
+              data-testid="register-category"
+            >
+              <span aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[color-mix(in_srgb,var(--accent)_45%,#ffffff_28%)] text-white ring-1 ring-white/30 max-sm:size-12">
                 <QuizModeIcon iconKey={campaign.quizMode.iconKey} className="size-[58%]" />
               </span>
               <div className="min-w-0">
@@ -268,46 +327,25 @@ export default function RegisterPage() {
 
           {/* Form */}
           <div className={`${CARD} card-glow flex min-w-0 flex-col justify-center gap-[clamp(1rem,2vh,1.4rem)] px-[clamp(1.2rem,3vw,3rem)] py-[clamp(1.4rem,3vh,2.4rem)] [animation-delay:60ms]`}>
-            <div>
-              <h1 id="register-title" lang="az" className="font-display text-[clamp(1.9rem,3.2vw,3rem)] font-extrabold leading-tight [text-wrap:balance] max-sm:text-[1.6rem]">
-                İştirakçı qeydiyyatı
-              </h1>
-              <p className="mt-2 text-[clamp(1rem,1.25vw,1.2rem)] font-medium text-fg-2 max-sm:text-[0.95rem]">
-                Məlumatlarınızı daxil edin və bilik yarışına başlayın.
-              </p>
-            </div>
-            <Field
-              id="register-full-name"
-              label="Ad və soyad"
-              icon={<UserIcon className="size-6 max-sm:size-5" />}
-              error={fieldErrors.fullName}
-              inputRef={nameRef}
-              value={fullName}
-              onChange={(e) => { setFullName(e.target.value); if (fieldErrors.fullName) setFieldErrors((f) => ({ ...f, fullName: null })) }}
-              maxLength={120}
-              autoComplete="off"
-              autoCapitalize="words"
-              spellCheck={false}
-              enterKeyHint="next"
-              placeholder="Məsələn: Ayşə Məmmədova"
-              data-testid="fullName"
-            />
-            <Field
-              id="register-phone"
-              label="Telefon nömrəsi"
-              icon={<PhoneIcon className="size-6 max-sm:size-5" />}
-              error={fieldErrors.phone}
-              inputRef={phoneRef}
-              value={phone}
-              onChange={(e) => { setPhone(e.target.value); if (fieldErrors.phone) setFieldErrors((f) => ({ ...f, phone: null })) }}
-              type="tel"
-              inputMode="tel"
-              autoComplete="off"
-              maxLength={20}
-              enterKeyHint="go"
-              placeholder="050 123 45 67"
-              data-testid="phone"
-            />
+            {signedInAs && !signInLost ? (
+              <QrLoginWelcome
+                fullName={signedInAs.fullName}
+                phoneNumber={signedInAs.phoneNumber}
+                onSignOut={async () => {
+                  setSignedInAs(null)
+                  setFullName('')
+                  setPhone('')
+                  if (errorCode) reset()
+                  await qrLogin.end()
+                  void qrLogin.begin({ fresh: true })
+                }}
+              />
+            ) : (
+              <QrLoginPanel
+                state={qrLogin.state}
+                onRetry={() => { setSignedInAs(null); void qrLogin.begin({ fresh: true }) }}
+              />
+            )}
             {error && (
               <p
                 role="alert"
@@ -326,7 +364,16 @@ export default function RegisterPage() {
             <ArrowLeftIcon className="size-[1.1em] shrink-0" />
             Geri qayıt
           </button>
-          <button type="submit" disabled={starting} aria-busy={starting} className={`${PRIMARY_CTA} flex-[2]`} data-testid="register-submit">
+          <button
+            ref={submitRef}
+            type="submit"
+            /* Not while the sign-in is being replaced: the identity on screen is the one the server has just
+               refused, so a press here can only fail again, and each one flashed the stale welcome card back. */
+            disabled={starting || !signedInAs || signInLost}
+            aria-busy={starting}
+            className={`${PRIMARY_CTA} flex-[2] disabled:opacity-55`}
+            data-testid="register-submit"
+          >
             {starting ? 'Quiz hazırlanır…' : 'Yarışa başla'}
             {!starting && <PlayIcon className="size-[0.85em] shrink-0" />}
           </button>

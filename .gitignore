@@ -37,3 +37,7 @@ deploy/backups/*
 # frontend/public/question-images are the ones the app serves, so the originals are
 # not committed twice. The workbook/CSV beside them IS committed as the provenance record.
 docs/edebiyyat-import/images/
+
+# Source material for the question banks: kept locally, never committed (large binaries,
+# and the banks themselves are generated from it at implementation time).
+docs/import/

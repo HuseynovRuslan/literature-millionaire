@@ -80,7 +80,7 @@ function Podium({ entries }: { entries: LeaderboardEntry[] }) {
 export default function LeaderboardPage() {
   const { campaignId: routeCampaignId } = useParams()
   const campaignId = parseCampaignId(routeCampaignId)
-  const { load, retry } = useLeaderboard(campaignId, 10)
+  const { load, retry } = useLeaderboard(campaignId, 'all')
   const { reset } = useGame()
   const navigate = useNavigate()
   const navigationLocked = useRef(false)
@@ -115,11 +115,13 @@ export default function LeaderboardPage() {
         data-testid="leaderboard-stage"
         aria-labelledby="leaderboard-title"
         role="region"
-        // On a laptop/kiosk the whole board fits the window: title, podium and actions on the left, the list on
-        // the right, with row heights following the window height. Narrower screens stack and may scroll.
-        className="mx-auto grid w-full max-w-[100rem] grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] grid-rows-[minmax(0,1fr)_auto] gap-[clamp(1rem,1.6vw,1.5rem)] max-lg:grid-cols-1 max-lg:grid-rows-none"
+        // On a laptop/kiosk: title, podium and actions on the left, the list of everyone who finished on the right,
+        // row heights following the window height. A long list scrolls with the page while the left column stays in
+        // view. Narrower screens stack: title and podium, the actions, then the list.
+        className="mx-auto grid w-full max-w-[100rem] grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] items-start gap-[clamp(1rem,1.6vw,1.5rem)] max-lg:grid-cols-1"
       >
-        <section className="card card-glow rise flex min-w-0 flex-col justify-between gap-[clamp(0.8rem,2vh,1.4rem)] lg:col-start-1 lg:row-start-1 rounded-[2rem] px-[clamp(1rem,2.2vw,2.2rem)] py-[clamp(1rem,2.4vh,1.8rem)] max-sm:rounded-3xl max-sm:px-3.5">
+        <div className="flex min-w-0 flex-col gap-[clamp(1rem,1.6vw,1.5rem)] lg:sticky lg:top-[clamp(1rem,2.4vh,1.8rem)] lg:col-start-1 lg:row-start-1">
+        <section className="card card-glow rise flex min-w-0 flex-col justify-between gap-[clamp(0.8rem,2vh,1.4rem)] rounded-[2rem] px-[clamp(1rem,2.2vw,2.2rem)] py-[clamp(1rem,2.4vh,1.8rem)] max-sm:rounded-3xl max-sm:px-3.5">
           <header className="flex flex-col items-center text-center">
             <p className="chip px-4 py-1.5 text-[clamp(0.72rem,0.88vw,0.86rem)] uppercase tracking-[0.14em] text-brand-soft max-sm:text-[0.68rem]">
               {!invalidRoute && load.kind === 'ready' ? load.data.quizMode.title : 'Kampaniya nəticələri'}
@@ -127,7 +129,9 @@ export default function LeaderboardPage() {
             <h1 id="leaderboard-title" className="text-gradient shimmer mt-[clamp(0.4rem,1.2vh,0.9rem)] font-display text-[clamp(1.9rem,min(3.4vw,6vh),3.2rem)] font-extrabold leading-tight max-sm:text-[1.7rem]">
               Lider cədvəli
             </h1>
-            <p className="text-[clamp(0.82rem,0.95vw,0.92rem)] font-bold text-fg-3">Top 10</p>
+            <p className="text-[clamp(0.82rem,0.95vw,0.92rem)] font-bold text-fg-3" data-testid="leaderboard-count">
+              {!invalidRoute && load.kind === 'ready' ? `${load.data.entries.length} iştirakçı` : 'Bütün iştirakçılar'}
+            </p>
           </header>
 
           {ready && (
@@ -137,8 +141,10 @@ export default function LeaderboardPage() {
             </div>
           )}
         </section>
+        {actions}
+        </div>
 
-        <section className="card rise flex min-h-0 min-w-0 flex-col justify-center rounded-[2rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 px-[clamp(0.8rem,1.8vw,1.8rem)] py-[clamp(0.8rem,2vh,1.4rem)] [animation-delay:120ms] max-sm:rounded-3xl max-sm:px-2.5">
+        <section className="card rise flex min-h-full min-w-0 flex-col justify-center self-stretch rounded-[2rem] lg:col-start-2 lg:row-start-1 px-[clamp(0.8rem,1.8vw,1.8rem)] py-[clamp(0.8rem,2vh,1.4rem)] [animation-delay:120ms] max-sm:rounded-3xl max-sm:px-2.5">
           {invalidRoute && (
             <StageMessage role="alert">
               <p className={MESSAGE_TITLE}>Kampaniya ünvanı düzgün deyil</p>
@@ -181,7 +187,7 @@ export default function LeaderboardPage() {
               className="w-full table-fixed border-separate border-spacing-y-[clamp(0.2rem,0.6vh,0.4rem)] text-left text-[clamp(0.9rem,min(1.1vw,2vh),1.08rem)] max-sm:text-[0.8rem] max-sm:[&_td]:px-1.5 max-sm:[&_th]:px-1.5"
               data-testid="leaderboard-table"
             >
-              <caption className="sr-only">Kampaniyanın ilk on iştirakçısı və nəticələri</caption>
+              <caption className="sr-only">Kampaniyanın bütün iştirakçıları və nəticələri</caption>
               <thead>
                 <tr className="text-[clamp(0.68rem,0.8vw,0.78rem)] uppercase tracking-[0.1em] text-fg-3 max-sm:text-[0.6rem] max-sm:tracking-[0.02em]">
                   <th scope="col" className="w-[13%] px-3 py-1 font-bold max-sm:w-[16%]">Yer</th>
@@ -193,7 +199,8 @@ export default function LeaderboardPage() {
               </thead>
               <tbody>
                 {load.data.entries.map((entry, i) => (
-                  <tr key={entry.rank} className={`slide-in-right ${entry.rank <= 3 ? 'bg-sun/[0.08]' : 'bg-white/[0.05]'}`} style={{ animationDelay: `${200 + i * 55}ms` }}>
+                  // The first rows arrive one by one; the rest of a long list comes in together, not a minute later.
+                  <tr key={entry.rank} className={`slide-in-right ${entry.rank <= 3 ? 'bg-sun/[0.08]' : 'bg-white/[0.05]'}`} style={{ animationDelay: `${200 + Math.min(i, 12) * 55}ms` }}>
                     <th scope="row" className="h-[clamp(2.4rem,5.6vh,3.5rem)] rounded-l-2xl px-3 py-0.5 max-sm:h-11">
                       <RankMedal rank={entry.rank} compact />
                     </th>
@@ -210,7 +217,6 @@ export default function LeaderboardPage() {
           )}
         </section>
 
-        <div className="lg:col-start-1 lg:row-start-2">{actions}</div>
       </div>
     </GameShowShell>
   )

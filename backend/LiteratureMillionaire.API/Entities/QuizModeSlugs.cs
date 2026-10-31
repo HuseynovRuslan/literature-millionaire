@@ -7,6 +7,7 @@ public static class QuizModeSlugs
     public const string AyinKitabi = "ayin-kitabi";
     public const string EdebiyyatDunyasi = "edebiyyat-dunyasi";
     public const string YasilBaki = "yasil-baki";
+    public const string GreenGarden = "green-garden";
 
     /// <summary>
     /// Mode used by GET /api/campaigns/current and by start requests that name no campaign (clients written
