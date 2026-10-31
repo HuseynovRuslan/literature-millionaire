@@ -39,6 +39,7 @@ public class GameService : IGameService
     // Unique index names from the migration. A 23505 unique_violation is only ever treated as a
     // resolvable race when it names exactly one of these - anything else is a genuine DB failure.
     private const string ParticipantPhoneUniqueIndex = "IX_Participants_NormalizedPhoneNumber";
+    private const string ParticipantEmailUniqueIndex = "IX_Participants_Email";
     private const string AttemptUniqueIndex = "IX_QuizAttempts_ParticipantId_CampaignId_AttemptNumber";
 
     private readonly ApplicationDbContext _db;
@@ -367,19 +368,36 @@ public class GameService : IGameService
     /// </remarks>
     private async Task<Participant> FindOrCreateParticipantAsync(StartGameRequestDto request, CancellationToken ct)
     {
-        if (!PhoneNumber.TryNormalize(request.PhoneNumber, out var phone))
+        // An email sign-in proved an address, and the address is who they are - the same way a QRLog sign-in's phone
+        // is. The email comes only from a ticket (StartGameRequestDto.Email is never read from the body).
+        string? phone = null;
+        string? email = null;
+        if (request.Email is not null)
+        {
+            if (!EmailAddress.TryNormalize(request.Email, out var normalizedEmail))
+            {
+                throw new GameException(StatusCodes.Status400BadRequest, "Invalid email", "Email is not a valid address.",
+                    new Dictionary<string, object?> { ["code"] = "INVALID_EMAIL" });
+            }
+            email = normalizedEmail;
+        }
+        else if (PhoneNumber.TryNormalize(request.PhoneNumber, out var normalizedPhone))
+        {
+            phone = normalizedPhone;
+        }
+        else
         {
             throw new GameException(StatusCodes.Status400BadRequest, "Invalid phone number", "PhoneNumber must be an Azerbaijani mobile number.",
                 new Dictionary<string, object?> { ["code"] = "INVALID_PHONE_NUMBER" });
         }
 
-        var existing = await _db.Participants.FirstOrDefaultAsync(p => p.NormalizedPhoneNumber == phone, ct);
+        var existing = await FindParticipantAsync(phone, email, ct);
         if (existing is not null)
         {
             return existing;
         }
 
-        var participant = new Participant { FullName = request.FullName.Trim(), NormalizedPhoneNumber = phone, CreatedAtUtc = DateTime.UtcNow };
+        var participant = new Participant { FullName = request.FullName.Trim(), NormalizedPhoneNumber = phone, Email = email, CreatedAtUtc = DateTime.UtcNow };
         _db.Participants.Add(participant);
         try
         {
@@ -390,16 +408,21 @@ public class GameService : IGameService
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _db.Entry(participant).State = EntityState.Detached;
-            if (!PostgresErrors.IsUniqueViolationOn(ex, ParticipantPhoneUniqueIndex))
+            if (!PostgresErrors.IsUniqueViolationOn(ex, email is null ? ParticipantPhoneUniqueIndex : ParticipantEmailUniqueIndex))
             {
                 throw DatabaseFailure("participant-create", ex, participantId: null, campaignId: null);
             }
         }
 
-        // The unique phone index rejected the insert, so a racing request created the row.
-        return await _db.Participants.FirstOrDefaultAsync(p => p.NormalizedPhoneNumber == phone, ct)
+        // The unique phone (or email) index rejected the insert, so a racing request created the row.
+        return await FindParticipantAsync(phone, email, ct)
             ?? throw DatabaseFailure("participant-reread", exception: null, participantId: null, campaignId: null);
     }
+
+    private Task<Participant?> FindParticipantAsync(string? phone, string? email, CancellationToken ct) =>
+        email is not null
+            ? _db.Participants.FirstOrDefaultAsync(p => p.Email == email, ct)
+            : _db.Participants.FirstOrDefaultAsync(p => p.NormalizedPhoneNumber == phone, ct);
 
     /// <summary>
     /// Consumes one attempt. The count is re-read and the insert retried when the unique

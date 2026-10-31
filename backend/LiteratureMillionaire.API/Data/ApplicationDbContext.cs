@@ -1,4 +1,5 @@
 using LiteratureMillionaire.API.Entities;
+using LiteratureMillionaire.API.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace LiteratureMillionaire.API.Data;
@@ -215,16 +216,25 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Participant>(entity =>
         {
-            entity.ToTable("Participants");
+            entity.ToTable("Participants", t =>
+            {
+                // A QRLog player has a phone, an email player an address - never neither, or the one-attempt rule
+                // would have nothing to count by, and never both, so one person is never two participants at once.
+                t.HasCheckConstraint("CK_Participants_Identity",
+                    "(\"NormalizedPhoneNumber\" IS NOT NULL AND \"Email\" IS NULL) OR (\"NormalizedPhoneNumber\" IS NULL AND \"Email\" IS NOT NULL)");
+            });
             entity.HasKey(p => p.Id);
 
             entity.Property(p => p.FullName).IsRequired().HasMaxLength(120);
-            entity.Property(p => p.NormalizedPhoneNumber).IsRequired().HasMaxLength(16).IsUnicode(false);
+            entity.Property(p => p.NormalizedPhoneNumber).HasMaxLength(16).IsUnicode(false);
+            entity.Property(p => p.Email).HasMaxLength(EmailAddress.MaxLength).IsUnicode(false);
             entity.Property(p => p.CreatedAtUtc)
                 .IsRequired()
                 .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
+            // Both unique; NULLs do not collide, in PostgreSQL or SQLite, so phone and email players share the table.
             entity.HasIndex(p => p.NormalizedPhoneNumber).IsUnique();
+            entity.HasIndex(p => p.Email).IsUnique();
         });
 
         modelBuilder.Entity<QuizAttempt>(entity =>

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using LiteratureMillionaire.API.Services;
 
 namespace LiteratureMillionaire.API.Dtos;
@@ -19,9 +20,16 @@ public class StartGameRequestDto : IValidatableObject
     [MaxLength(32)]
     public string PhoneNumber { get; set; } = string.Empty;
 
-    /// <summary>The ticket a confirmed QRLog sign-in returned. When present, it alone says who is playing.</summary>
+    /// <summary>The ticket a confirmed QRLog or email sign-in returned. When present, it alone says who is playing.</summary>
     [MaxLength(128)]
     public string? SignInTicket { get; set; }
+
+    /// <summary>
+    /// The verified address of an email sign-in, set by the server from the ticket - never read from the body, so
+    /// nobody can claim an address they did not prove. When set, the participant is found by it, not by phone.
+    /// </summary>
+    [JsonIgnore]
+    public string? Email { get; set; }
 
     /// <summary>
     /// Campaign to play, as listed by GET /api/campaigns/available. Omitted: the default "Bilik Dünyası" campaign

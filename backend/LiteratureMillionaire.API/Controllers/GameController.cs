@@ -40,21 +40,22 @@ public class GameController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<StartGameResponseDto>> Start([FromBody] StartGameRequestDto request, CancellationToken ct)
     {
-        // Who is playing comes from a QRLog sign-in, never from what the request says about itself. A ticket
-        // replaces any name and phone in the body; without one, production refuses to start at all.
+        // Who is playing comes from a sign-in (QRLog or an emailed code), never from what the request says about
+        // itself. A ticket replaces any name and phone in the body; without one, production refuses to start at all.
         if (!string.IsNullOrWhiteSpace(request.SignInTicket))
         {
             if (_logins.ResolveTicket(request.SignInTicket) is not { } identity)
             {
-                return SignInProblem("SIGN_IN_EXPIRED", "QRLog girişinin vaxtı bitib. QR kodu yenidən oxudun.");
+                return SignInProblem("SIGN_IN_EXPIRED", "Girişin vaxtı bitib. Yenidən daxil olun.");
             }
 
             request.FullName = identity.FullName;
-            request.PhoneNumber = identity.PhoneNumber;
+            request.PhoneNumber = identity.PhoneNumber ?? string.Empty;
+            request.Email = identity.Email;
         }
         else if (_signIn.RequireQrLogin)
         {
-            return SignInProblem("SIGN_IN_REQUIRED", "Yarışa yalnız QRLog ilə daxil olmaq olar.");
+            return SignInProblem("SIGN_IN_REQUIRED", "Yarışa yalnız QRLog və ya email ilə daxil olmaq olar.");
         }
 
         try

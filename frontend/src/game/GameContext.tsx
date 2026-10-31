@@ -132,9 +132,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setErrorCode(code)
       setError(
         code === 'SIGN_IN_EXPIRED'
-          ? 'QRLog girişinin vaxtı bitib. Yeni QR kodu oxudun.'
+          ? 'Girişin vaxtı bitib. Yenidən daxil olun: QR kodu oxudun və ya email kodunu yenidən istəyin.'
           : code === 'SIGN_IN_REQUIRED'
-            ? 'Yarışa yalnız QRLog ilə daxil olmaq olar. QR kodu oxudun.'
+            ? 'Yarışa QRLog və ya email ilə daxil olmaq lazımdır.'
             : status === 404 && code === 'NO_ACTIVE_CAMPAIGN'
           ? 'Bu kateqoriya artıq mövcud deyil.'
           : status === 404 && code === 'CAMPAIGN_NOT_FOUND'
@@ -142,7 +142,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             : status === 409 && code === 'CAMPAIGN_NOT_ACTIVE'
               ? 'Bu kateqoriya hazırda aktiv deyil.'
               : code === 'ATTEMPT_LIMIT_REACHED'
-                ? 'Bu kampaniyada artıq iştirak etmisiniz. Hər telefon nömrəsi ilə yalnız bir dəfə iştirak etmək mümkündür.'
+                ? 'Bu kampaniyada artıq iştirak etmisiniz. Hər telefon nömrəsi və ya email ilə yalnız bir dəfə iştirak etmək mümkündür.'
                 : code === 'ATTEMPT_CONFLICT'
                   ? 'Cəhd qeydə alına bilmədi. Zəhmət olmasa yenidən cəhd edin.'
                   : code === 'DATABASE_ERROR'

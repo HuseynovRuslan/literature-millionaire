@@ -187,6 +187,7 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     private readonly string? _adminPhones;
     private readonly string? _uploadsRoot;
     private readonly string? _qrLogAppConfirmUrl;
+    private readonly IEmailSender? _emailSender;
 
     /// <summary>Every log line written by the API during the test (for PII checks).</summary>
     public ConcurrentQueue<string> Logs { get; } = new();
@@ -196,9 +197,11 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
     /// <param name="adminPhones">Admin:Phones; null leaves the admin list empty (nobody is an admin).</param>
     /// <param name="uploadsRoot">Uploads:Root; null leaves the default (a folder under the content root).</param>
     /// <param name="qrLogAppConfirmUrl">QrLog:AppConfirmUrl; null leaves the phone button unconfigured.</param>
+    /// <param name="emailSender">Where email sign-in codes go; null leaves no mailbox configured (email sign-in off).</param>
     public LeaderboardApiFactory(bool failPositionLookup = false, string? qrLogSecret = null, bool? requireQrLogin = null,
-        string? adminPhones = null, string? uploadsRoot = null, string? qrLogAppConfirmUrl = null)
+        string? adminPhones = null, string? uploadsRoot = null, string? qrLogAppConfirmUrl = null, IEmailSender? emailSender = null)
     {
+        _emailSender = emailSender;
         _qrLogAppConfirmUrl = qrLogAppConfirmUrl;
         _adminPhones = adminPhones;
         _uploadsRoot = uploadsRoot;
@@ -229,6 +232,12 @@ internal sealed class LeaderboardApiFactory : WebApplicationFactory<Program>, IA
             services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<ApplicationDbContext>>();
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(_connection));
+
+            if (_emailSender is not null)
+            {
+                services.RemoveAll<IEmailSender>();
+                services.AddSingleton(_emailSender);
+            }
 
             if (_failPositionLookup)
             {

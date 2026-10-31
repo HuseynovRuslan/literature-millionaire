@@ -45,7 +45,23 @@ builder.Services.AddScoped<IBookService, BookService>();
 // their own; the shared signing secret comes from configuration (QrLog__VouchSecret in production).
 builder.Services.AddSingleton<IQrLoginService, QrLoginService>();
 
-// Whether a quiz may only be started with a QRLog sign-in ticket. Fail-closed: it is required everywhere
+// "Email ilə daxil ol", for players who are not in QRLog: a code is mailed from the mailbox in Email__* and the
+// player ends up with the same kind of ticket a QRLog sign-in gives. No mailbox configured: switched off (in
+// Development the message is written to the log instead). Read when first needed, like the policy below.
+builder.Services.AddSingleton<IEmailSender>(sp =>
+{
+    if (SmtpSettings.Read(sp.GetRequiredService<IConfiguration>()) is { } smtp)
+    {
+        return new SmtpEmailSender(smtp);
+    }
+
+    return sp.GetRequiredService<IWebHostEnvironment>().IsDevelopment()
+        ? new DevelopmentEmailSender(sp.GetRequiredService<ILogger<DevelopmentEmailSender>>())
+        : new UnconfiguredEmailSender();
+});
+builder.Services.AddSingleton<IEmailLoginService, EmailLoginService>();
+
+// Whether a quiz may only be started with a sign-in ticket (QRLog or email). Fail-closed: it is required everywhere
 // except Development and Testing unless configuration says otherwise, so a production deployment that
 // forgets the setting still refuses a bare name and phone rather than accepting them.
 // Read when first needed rather than while the builder runs, so configuration layered on afterwards (a test

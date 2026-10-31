@@ -218,23 +218,33 @@ namespace LiteratureMillionaire.API.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(254)");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
                     b.Property<string>("NormalizedPhoneNumber")
-                        .IsRequired()
                         .HasMaxLength(16)
                         .IsUnicode(false)
                         .HasColumnType("character varying(16)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.HasIndex("NormalizedPhoneNumber")
                         .IsUnique();
 
-                    b.ToTable("Participants", (string)null);
+                    b.ToTable("Participants", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Participants_Identity", "(\"NormalizedPhoneNumber\" IS NOT NULL AND \"Email\" IS NULL) OR (\"NormalizedPhoneNumber\" IS NULL AND \"Email\" IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("LiteratureMillionaire.API.Entities.Question", b =>

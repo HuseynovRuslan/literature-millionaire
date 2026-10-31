@@ -100,9 +100,17 @@ services:
       # screen). Must contain {code}; see docs/qrlog-phone-signin.md. Empty until QRLog has that page:
       # the button is then simply not shown and only the QR is.
       QrLog__AppConfirmUrl: ${QRLOG_APP_CONFIRM_URL:-}
-      # A quiz starts only with a QRLog sign-in ticket. Already the default outside Development; stated so
-      # nobody reading this file has to know that.
+      # A quiz starts only with a sign-in ticket (QRLog or email). Already the default outside Development;
+      # stated so nobody reading this file has to know that.
       Game__RequireQrLogin: "true"
+      # "Email ilə daxil ol": the mailbox sign-in codes are sent from. Optional: with no host or address the
+      # registration screen simply offers QRLog only. STARTTLS on 587 (port 465 is not supported).
+      Email__SmtpHost: ${EMAIL_SMTP_HOST:-}
+      Email__SmtpPort: ${EMAIL_SMTP_PORT:-587}
+      Email__Username: ${EMAIL_USERNAME:-}
+      Email__Password: ${EMAIL_PASSWORD:-}
+      Email__FromAddress: ${EMAIL_FROM_ADDRESS:-}
+      Email__FromName: ${EMAIL_FROM_NAME:-Kitabxana 2.0}
       # Who may use the admin panel: phone numbers separated by commas. Empty means nobody - the panel
       # fails closed. Kept in deploy/.env, never in this file.
       Admin__Phones: ${ADMIN_PHONES:-}
