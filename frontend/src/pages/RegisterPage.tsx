@@ -3,12 +3,14 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { getAvailableCampaigns } from '../api/campaigns'
 import QuizModeIcon from '../components/home/QuizModeIcon'
 import { accentFor } from '../components/home/categoryThemes'
-import { ArrowLeftIcon, CheckIcon, ClockIcon, ListIcon, PhoneIcon, PlayIcon, RewardMedal, RuleBadge, TargetIcon, UserIcon } from '../components/home/GameShowArt'
+import { ArrowLeftIcon, CheckIcon, ClockIcon, ListIcon, MailIcon, PhoneIcon, PlayIcon, RewardMedal, RuleBadge, TargetIcon, UserIcon } from '../components/home/GameShowArt'
 import { PRIMARY_CTA, SECONDARY_CTA } from '../components/home/gameShowClasses'
 import { Octagram } from '../components/arena/NationalMotifs'
 import GameShowShell from '../components/home/GameShowShell'
 import QrLoginPanel from '../components/QrLoginPanel'
-import { useQrLogin, type QrLoginIdentity } from '../hooks/useQrLogin'
+import EmailLoginPanel from '../components/EmailLoginPanel'
+import { getEmailLoginEnabled } from '../api/emailLogin'
+import { useQrLogin } from '../hooks/useQrLogin'
 import { useGame } from '../game/GameContext'
 import type { CampaignSummary } from '../types/campaign'
 import { formatDateRange } from '../utils/date'
@@ -58,23 +60,34 @@ type CampaignLookup = { kind: 'loading' } | { kind: 'found'; campaign: CampaignS
  * with the start request; nothing is written to sessionStorage. campaignId is only a selection
  * identifier - every quiz rule (passing score, image count, book) still comes from the backend.
  */
-/** After QRLog has vouched: who arrived, before a quiz starts under their name. */
-function QrLoginWelcome({ fullName, phoneNumber, onSignOut }: {
-  fullName: string
-  phoneNumber: string
-  /** Not this person: let go of the sign-in and put a new QR up for whoever is actually standing here. */
+/**
+ * Who has signed in, by whichever door: QRLog vouched for a phone, or an emailed code proved an address. Either
+ * way the ticket is what the quiz is started with; the rest is only shown.
+ */
+type SignedIn =
+  | { method: 'qrlog'; fullName: string; phoneNumber: string; signInTicket: string }
+  | { method: 'email'; fullName: string; email: string; signInTicket: string }
+
+/** How the player signs in on this screen. QRLog first: most players are colleagues already carrying it. */
+type SignInMethod = 'qrlog' | 'email'
+
+/** After a sign-in: who arrived, before a quiz starts under their name. */
+function SignedInWelcome({ identity, onSignOut }: {
+  identity: SignedIn
+  /** Not this person: let go of the sign-in and put the sign-in up again for whoever is actually standing here. */
   onSignOut: () => void
 }) {
+  const byEmail = identity.method === 'email'
   return (
     <div className="pop flex min-w-0 flex-col items-center text-center" data-testid="qrlog-signed-in">
       <span className="grid size-16 place-items-center rounded-full bg-ok/15 text-ok ring-1 ring-ok/40 max-sm:size-14">
         <CheckIcon className="size-8 max-sm:size-7" />
       </span>
       <p lang="az" className="mt-4 font-display text-[clamp(1.4rem,2.2vw,2rem)] font-extrabold leading-tight">
-        Xoş gəldiniz, dəyərli QRLog üzvü!
+        {byEmail ? 'Xoş gəldiniz!' : 'Xoş gəldiniz, dəyərli QRLog üzvü!'}
       </p>
       <p lang="az" className="mt-1 text-[clamp(0.95rem,1.1vw,1.05rem)] font-medium text-fg-2">
-        Məlumatlarınız QRLog-dan gəldi. Yoxlayın və yarışa başlayın.
+        {byEmail ? 'Email ünvanınız təsdiqləndi. Yoxlayın və yarışa başlayın.' : 'Məlumatlarınız QRLog-dan gəldi. Yoxlayın və yarışa başlayın.'}
       </p>
 
       <dl className="mt-5 w-full max-w-[24rem] overflow-hidden rounded-2xl bg-white/[0.05] text-left ring-1 ring-white/10">
@@ -82,16 +95,26 @@ function QrLoginWelcome({ fullName, phoneNumber, onSignOut }: {
           <UserIcon className="size-5 shrink-0 text-brand-soft" />
           <div className="min-w-0">
             <dt className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-fg-3">Ad və soyad</dt>
-            <dd lang="az" className="font-display text-[clamp(1.05rem,1.3vw,1.25rem)] font-bold [overflow-wrap:anywhere]" data-testid="qrlog-name">{fullName}</dd>
+            <dd lang="az" className="font-display text-[clamp(1.05rem,1.3vw,1.25rem)] font-bold [overflow-wrap:anywhere]" data-testid="qrlog-name">{identity.fullName}</dd>
           </div>
         </div>
-        <div className="flex items-center gap-3 border-t border-white/10 px-4 py-3">
-          <PhoneIcon className="size-5 shrink-0 text-brand-soft" />
-          <div className="min-w-0">
-            <dt className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-fg-3">Telefon nömrəsi</dt>
-            <dd className="font-display text-[clamp(1.05rem,1.3vw,1.25rem)] font-bold tabular-nums" data-testid="qrlog-phone">{phoneNumber}</dd>
+        {identity.method === 'email' ? (
+          <div className="flex items-center gap-3 border-t border-white/10 px-4 py-3">
+            <MailIcon className="size-5 shrink-0 text-brand-soft" />
+            <div className="min-w-0">
+              <dt className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-fg-3">Email</dt>
+              <dd className="font-display text-[clamp(1.05rem,1.3vw,1.25rem)] font-bold [overflow-wrap:anywhere]" data-testid="email-login-address">{identity.email}</dd>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-3 border-t border-white/10 px-4 py-3">
+            <PhoneIcon className="size-5 shrink-0 text-brand-soft" />
+            <div className="min-w-0">
+              <dt className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-fg-3">Telefon nömrəsi</dt>
+              <dd className="font-display text-[clamp(1.05rem,1.3vw,1.25rem)] font-bold tabular-nums" data-testid="qrlog-phone">{identity.phoneNumber}</dd>
+            </div>
+          </div>
+        )}
       </dl>
 
       {/* One phone is passed around a room, and whoever signed in last stays signed in until their code runs
@@ -112,7 +135,12 @@ export default function RegisterPage() {
   const starting = state.status === 'starting'
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
-  const [signedInAs, setSignedInAs] = useState<QrLoginIdentity | null>(null)
+  const [signedInAs, setSignedInAs] = useState<SignedIn | null>(null)
+  const [method, setMethod] = useState<SignInMethod>('qrlog')
+  /** Offered only once the server says a mailbox is configured; until then (or without one) the screen is QRLog's. */
+  const [emailEnabled, setEmailEnabled] = useState(false)
+  /** What was typed into the email panel last, so it comes back filled in after a sign-out or an expired ticket. */
+  const [lastEmail, setLastEmail] = useState({ fullName: '', email: '' })
   /** The ticket the server last turned down, so a repeat of it is never mistaken for a new sign-in. */
   const [refusedTicket, setRefusedTicket] = useState<string | null>(null)
   const [lookup, setLookup] = useState<CampaignLookup>({ kind: 'loading' })
@@ -126,14 +154,24 @@ export default function RegisterPage() {
     if (errorCode && identity.signInTicket !== refusedTicket) reset()
     setFullName(identity.fullName)
     setPhone(identity.phoneNumber)
-    setSignedInAs(identity)
-    // The player is looking at their phone when this lands. On a laptop window the start button sits
-    // below the fold while the QR is up, so bring it into view rather than leave them to find it.
+    setSignedInAs({ method: 'qrlog', ...identity })
+    revealStart()
+  })
+
+  // The player is looking at their phone (or their mail) when a sign-in lands. On a laptop window the start
+  // button sits below the fold while the QR or the form is up, so bring it into view rather than leave them to find it.
+  function revealStart() {
     requestAnimationFrame(() => submitRef.current?.scrollIntoView({
       block: 'nearest',
       behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
     }))
-  })
+  }
+
+  useEffect(() => {
+    const controller = new AbortController()
+    void getEmailLoginEnabled(controller.signal).then((enabled) => { if (!controller.signal.aborted) setEmailEnabled(enabled) })
+    return () => controller.abort()
+  }, [])
   const submitRef = useRef<HTMLButtonElement>(null)
   // One start per registration. The context only ignores taps while a request is in flight; once it
   // succeeds, the form is briefly interactive again before navigation. With one attempt per campaign
@@ -168,9 +206,9 @@ export default function RegisterPage() {
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (starting || submittedRef.current || campaignId === null) return
-    // Nothing here is typed any more: the name and phone came from QRLog, which is the only way in.
-    // The server has the last word on both, and says so where the player can read it - a check here
-    // that failed silently was what made the start button look broken.
+    // Nothing here is typed: the name and phone came from QRLog, or the name and address were proved by an
+    // emailed code. The server has the last word on both, and says so where the player can read it - a check
+    // here that failed silently was what made the start button look broken.
     submittedRef.current = true
     // The ticket is who plays. The name and phone ride along only for a server that allows starting
     // without QRLog (development); production ignores them whenever a ticket is sent.
@@ -328,9 +366,8 @@ export default function RegisterPage() {
           {/* Form */}
           <div className={`${CARD} card-glow flex min-w-0 flex-col justify-center gap-[clamp(1rem,2vh,1.4rem)] px-[clamp(1.2rem,3vw,3rem)] py-[clamp(1.4rem,3vh,2.4rem)] [animation-delay:60ms]`}>
             {signedInAs && !signInLost ? (
-              <QrLoginWelcome
-                fullName={signedInAs.fullName}
-                phoneNumber={signedInAs.phoneNumber}
+              <SignedInWelcome
+                identity={signedInAs}
                 onSignOut={async () => {
                   setSignedInAs(null)
                   setFullName('')
@@ -341,10 +378,48 @@ export default function RegisterPage() {
                 }}
               />
             ) : (
-              <QrLoginPanel
-                state={qrLogin.state}
-                onRetry={() => { setSignedInAs(null); void qrLogin.begin({ fresh: true }) }}
-              />
+              <>
+                {emailEnabled && (
+                  <div role="group" aria-label="Giriş üsulu" className="mx-auto grid w-full max-w-[24rem] grid-cols-2 gap-1 rounded-2xl bg-white/[0.05] p-1 ring-1 ring-white/10" data-testid="sign-in-method">
+                    {([['qrlog', 'QRLog ilə'], ['email', 'Email ilə']] as const).map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={method === value}
+                        onClick={() => setMethod(value)}
+                        className={`tap min-h-11 rounded-xl px-3 font-display text-[clamp(0.95rem,1.05vw,1.05rem)] font-bold transition-colors ${
+                          method === value ? 'bg-brand text-white shadow-[0_0.4rem_1rem_-0.4rem_rgba(123,97,255,0.8)]' : 'text-fg-2 hover:text-fg'
+                        }`}
+                        data-testid={`sign-in-method-${value}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {emailEnabled && method === 'email' ? (
+                  <EmailLoginPanel
+                    initialName={lastEmail.fullName}
+                    initialEmail={lastEmail.email}
+                    onVerified={(verified) => {
+                      if (errorCode && verified.signInTicket !== refusedTicket) reset()
+                      setLastEmail({ fullName: verified.fullName, email: verified.email })
+                      setFullName(verified.fullName)
+                      setPhone('')
+                      setSignedInAs({ method: 'email', ...verified })
+                      // The QR waiting in the other tab is not needed any more; a scan landing now would replace this
+                      // sign-in with somebody else's.
+                      qrLogin.cancel()
+                      revealStart()
+                    }}
+                  />
+                ) : (
+                  <QrLoginPanel
+                    state={qrLogin.state}
+                    onRetry={() => { setSignedInAs(null); void qrLogin.begin({ fresh: true }) }}
+                  />
+                )}
+              </>
             )}
             {error && (
               <p

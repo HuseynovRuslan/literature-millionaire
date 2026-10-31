@@ -65,7 +65,17 @@ public class AdminSessionController : ControllerBase
             return Problem401("SIGN_IN_EXPIRED", "QRLog girişinin vaxtı bitib. QR kodu yenidən oxudun.");
         }
 
-        var actor = new AdminActor(identity.FullName, identity.PhoneNumber);
+        // An email sign-in proves an address, and the admin list is phones: the panel stays QRLog-only. Nothing is
+        // spent, for the same reason as below - the player keeps the ticket they signed in for.
+        if (identity.PhoneNumber is not { } phone)
+        {
+            var problem = ProblemDetailsFactory.CreateProblemDetails(HttpContext, StatusCodes.Status403Forbidden,
+                "Not an administrator", detail: "İdarəetmə panelinə yalnız QRLog ilə daxil olmaq olar.");
+            problem.Extensions["code"] = "QRLOG_SIGN_IN_REQUIRED";
+            return StatusCode(StatusCodes.Status403Forbidden, problem);
+        }
+
+        var actor = new AdminActor(identity.FullName, phone);
         if (!_admins.IsAdmin(actor.PhoneNumber))
         {
             return await RefuseAsync(actor, "sign-in", ct);

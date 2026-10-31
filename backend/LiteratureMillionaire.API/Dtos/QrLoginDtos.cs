@@ -23,8 +23,11 @@ public record QrLoginStartedDto(string Code, string PollSecret, DateTime Expires
 /// </summary>
 public record QrLoginStatusDto(string Status, string? FullName, string? PhoneNumber, string? SignInTicket = null);
 
-/// <summary>An employee QRLog has vouched for, as held behind a sign-in ticket.</summary>
-public sealed record SignedInIdentity(string FullName, string PhoneNumber);
+/// <summary>
+/// A player as held behind a sign-in ticket: an employee QRLog has vouched for (a phone), or somebody who proved
+/// they read a mailbox (an email - see IEmailLoginService). Exactly one of the two is set.
+/// </summary>
+public sealed record SignedInIdentity(string FullName, string? PhoneNumber, string? Email = null);
 
 /// <summary>
 /// What QRLog's server posts to confirm a code. It is signed, because this endpoint is the one place

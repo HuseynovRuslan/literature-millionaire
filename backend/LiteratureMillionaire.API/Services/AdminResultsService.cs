@@ -83,7 +83,7 @@ public sealed class AdminResultsService : IAdminResultsService
         var (campaign, rows) = loaded.Value;
         var columns = new XlsxWriter.Column[]
         {
-            new("Yer", 6), new("Ad Soyad", 28), new("Telefon", 16), new("Düzgün cavab", 13), new("Sual", 6),
+            new("Yer", 6), new("Ad Soyad", 28), new("Telefon", 16), new("Email", 28), new("Düzgün cavab", 13), new("Sual", 6),
             new("Xal", 6), new("Maks. xal", 9), new("Müddət (saniyə)", 15), new("Keçdi", 7),
             new("Başladı (Bakı)", 17), new("Bitirdi (Bakı)", 17), new("Vəziyyət", 11),
         };
@@ -92,6 +92,7 @@ public sealed class AdminResultsService : IAdminResultsService
             r.Rank,
             r.FullName,
             r.PhoneNumber,
+            r.Email,
             r.Attempt.CorrectAnswers,
             r.Attempt.TotalQuestions,
             r.Attempt.PointsEarned,
@@ -103,7 +104,7 @@ public sealed class AdminResultsService : IAdminResultsService
             r.Attempt.CompletedAtUtc is null ? "Bitməyib" : "Bitib",
         ]));
 
-        // The export is the one place full phone numbers leave the panel, so it is recorded like a change.
+        // The export is the one place full phone numbers and addresses leave the panel, so it is recorded like a change.
         await _audit.RecordAsync(actor, "results-exported", "campaign", campaignId.ToString(CultureInfo.InvariantCulture),
             $"{campaign.QuizModeTitle} · {rows.Count} cəhd", ct);
 
@@ -173,7 +174,8 @@ public sealed class AdminResultsService : IAdminResultsService
 
     // --- data -------------------------------------------------------------------------------------------------
 
-    private sealed record Row(QuizAttempt Attempt, string FullName, string PhoneNumber, int? Rank, int ParticipantAttempts);
+    /// <summary>A QRLog player has <see cref="PhoneNumber"/>, an email player <see cref="Email"/>; the other is null.</summary>
+    private sealed record Row(QuizAttempt Attempt, string FullName, string? PhoneNumber, string? Email, int? Rank, int ParticipantAttempts);
 
     private async Task<(AdminResultsCampaignDto Campaign, List<Row> Rows)?> LoadAsync(int campaignId, CancellationToken ct)
     {
@@ -189,7 +191,7 @@ public sealed class AdminResultsService : IAdminResultsService
 
         var attempts = await _db.QuizAttempts.AsNoTracking()
             .Where(a => a.CampaignId == campaignId)
-            .Select(a => new { Attempt = a, a.Participant.FullName, a.Participant.NormalizedPhoneNumber, Total = a.Participant.Attempts.Count })
+            .Select(a => new { Attempt = a, a.Participant.FullName, a.Participant.NormalizedPhoneNumber, a.Participant.Email, Total = a.Participant.Attempts.Count })
             .ToListAsync(ct);
 
         // The public leaderboard's own ranking, so the panel and the screen players see never disagree.
@@ -201,14 +203,17 @@ public sealed class AdminResultsService : IAdminResultsService
             .ToDictionary(r => r.Candidate.AttemptId, r => r.Rank);
 
         var rows = attempts
-            .Select(x => new Row(x.Attempt, x.FullName, x.NormalizedPhoneNumber, ranks.TryGetValue(x.Attempt.Id, out var rank) ? rank : null, x.Total))
+            .Select(x => new Row(x.Attempt, x.FullName, x.NormalizedPhoneNumber, x.Email, ranks.TryGetValue(x.Attempt.Id, out var rank) ? rank : null, x.Total))
             .OrderBy(r => r.Rank ?? int.MaxValue)
             .ThenByDescending(r => r.Attempt.StartedAtUtc)
             .ToList();
         return (campaign, rows);
     }
 
-    /// <summary>Name, ignoring case and Azerbaijani letters typed without their marks; or three or more digits of the phone.</summary>
+    /// <summary>
+    /// Name, ignoring case and Azerbaijani letters typed without their marks; three or more digits of the phone; or
+    /// three or more characters of the email address.
+    /// </summary>
     private static bool Matches(Row row, string? search)
     {
         var query = search?.Trim();
@@ -222,16 +227,25 @@ public sealed class AdminResultsService : IAdminResultsService
             return true;
         }
 
+        if (query.Length >= 3 && row.Email?.Contains(query, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return true;
+        }
+
         var digits = new string(query.Where(char.IsAsciiDigit).ToArray());
-        return digits.Length >= 3 && row.PhoneNumber.Contains(digits, StringComparison.Ordinal);
+        return digits.Length >= 3 && row.PhoneNumber?.Contains(digits, StringComparison.Ordinal) == true;
     }
+
+    /// <summary>The phone or the address, masked for the screen.</summary>
+    private static string MaskedContact(string? phoneNumber, string? email) =>
+        email is not null ? EmailAddress.Mask(email) : PhoneNumber.Mask(phoneNumber);
 
     private static AdminAttemptRowDto ToDto(Row r) => new(
         r.Attempt.Id,
         r.Attempt.ParticipantId,
         r.Rank,
         r.FullName,
-        PhoneNumber.Mask(r.PhoneNumber),
+        MaskedContact(r.PhoneNumber, r.Email),
         r.Attempt.StartedAtUtc,
         r.Attempt.CompletedAtUtc,
         r.Attempt.CorrectAnswers,
@@ -248,7 +262,8 @@ public sealed class AdminResultsService : IAdminResultsService
     private static string Baku(DateTime utc) =>
         DateTime.SpecifyKind(utc, DateTimeKind.Utc).Add(BakuOffset).ToString("dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
-    private static string Who(Participant participant) => $"{participant.FullName} ({PhoneNumber.Mask(participant.NormalizedPhoneNumber)})";
+    private static string Who(Participant participant) =>
+        $"{participant.FullName} ({MaskedContact(participant.NormalizedPhoneNumber, participant.Email)})";
 
     private static string Outcome(QuizAttempt attempt) =>
         attempt.CompletedAtUtc is null

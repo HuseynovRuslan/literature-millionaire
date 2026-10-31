@@ -84,6 +84,13 @@ public interface IQrLoginService
     /// session is worth more than a quiz, so the ticket that opened one cannot open a second.
     /// </summary>
     SignedInIdentity? ConsumeTicket(string ticket);
+
+    /// <summary>
+    /// Mints a ticket for a player another sign-in has vouched for - an emailed code (IEmailLoginService) - so a
+    /// quiz is started the same way whichever door the player came in by. It belongs to no QR, so starting a quiz
+    /// with it ends no sign-in, and it lasts <see cref="QrLoginService.TicketLifetime"/> like every other.
+    /// </summary>
+    string IssueTicket(SignedInIdentity identity);
 }
 
 public sealed class QrLoginService : IQrLoginService
@@ -247,15 +254,22 @@ public sealed class QrLoginService : IQrLoginService
         return new QrLoginStatusDto("confirmed", pending.FullName, pending.PhoneNumber, pending.SignInTicket);
     }
 
-    /// <summary>A ticket and the sign-in it came from, so spending one can end the other.</summary>
-    private sealed record IssuedTicket(SignedInIdentity Identity, string Code);
+    /// <summary>
+    /// A ticket and the QR sign-in it came from, so spending one can end the other. Code is null for a ticket that
+    /// came from no QR (an email sign-in).
+    /// </summary>
+    private sealed record IssuedTicket(SignedInIdentity Identity, string? Code);
 
     /// <summary>Mints the ticket a confirmed sign-in carries, and remembers who it stands for.</summary>
-    private string IssueTicket(PendingLogin pending, string code)
+    private string IssueTicket(PendingLogin pending, string code) =>
+        Mint(new SignedInIdentity(pending.FullName!, pending.PhoneNumber!), code);
+
+    public string IssueTicket(SignedInIdentity identity) => Mint(identity, code: null);
+
+    private string Mint(SignedInIdentity identity, string? code)
     {
         var ticket = Convert.ToHexString(RandomNumberGenerator.GetBytes(TicketBytes)).ToLowerInvariant();
-        _cache.Set(TicketKey(ticket), new IssuedTicket(new SignedInIdentity(pending.FullName!, pending.PhoneNumber!), code),
-            TicketLifetime);
+        _cache.Set(TicketKey(ticket), new IssuedTicket(identity, code), TicketLifetime);
         return ticket;
     }
 
@@ -277,12 +291,12 @@ public sealed class QrLoginService : IQrLoginService
 
     public void EndForTicket(string ticket)
     {
-        if (string.IsNullOrWhiteSpace(ticket) || _cache.Get<IssuedTicket>(TicketKey(ticket.Trim().ToLowerInvariant())) is not { } issued)
+        if (string.IsNullOrWhiteSpace(ticket) || _cache.Get<IssuedTicket>(TicketKey(ticket.Trim().ToLowerInvariant())) is not { Code: { } code })
         {
             return;
         }
 
-        _cache.Remove(CacheKey(issued.Code));
+        _cache.Remove(CacheKey(code));
     }
 
     public bool IsSignatureValid(string code, string phoneNumber, string timestamp, string signature)
@@ -322,7 +336,10 @@ public sealed class QrLoginService : IQrLoginService
         // screen back to the QR, the cookie resumed this very code, polling handed back this very ticket, and
         // the session refused it - over and over until the code expired.
         _cache.Remove(key);
-        _cache.Remove(CacheKey(issued.Code));
+        if (issued.Code is { } code)
+        {
+            _cache.Remove(CacheKey(code));
+        }
         return issued.Identity;
     }
 

@@ -25,7 +25,8 @@ public sealed record AdminAttemptRowDto(
     // Null for an unfinished attempt.
     int? Rank,
     string FullName,
-    // Masked, e.g. "+994 55 *** ** 02". The full number is only in the Excel export, which is audited.
+    // Masked, e.g. "+994 55 *** ** 02" - or "a***@gmail.com" for somebody who signed in by email. The full number
+    // or address is only in the Excel export, which is audited.
     string Phone,
     DateTime StartedAtUtc,
     DateTime? CompletedAtUtc,
